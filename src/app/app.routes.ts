@@ -7,12 +7,14 @@ import { LoginComponent } from './auth/login/login.component';
 import { SignupComponent } from './auth/signup/signup.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ProductDetailComponent } from './product/product-detail.component';
+import { MyKitComponent } from './my-kit/my-kit.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'travel', component: TravelComponent },
   { path: 'shop', component: ShopComponent },
   { path: 'product/:id', component: ProductDetailComponent },
+  { path: 'my-kit', component: MyKitComponent },
   { path: 'about', component: AboutComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },

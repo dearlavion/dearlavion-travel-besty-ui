@@ -190,7 +190,7 @@
       @if (kitItemCount(); as count) {
         <div class="reveal-count">{{ count }} items, hand-picked for this trip</div>
       }
-      <a routerLink="/shop" class="reveal-btn">See My Travel Kit</a>
+      <button type="button" class="reveal-btn" (click)="seeMyTravelKit()">See My Travel Kit</button>
     </div>
   </div>
 

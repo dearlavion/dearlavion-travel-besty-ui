@@ -1,6 +1,7 @@
-import { Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { buildTravelKit, Destination, Duration, Party, Season } from './kit-recommendation';
+import { TravelKitService } from './travel-kit.service';
 
 const TOTAL_STEPS = 5;
 const AUTO_ADVANCE_DELAY_MS = 350;
@@ -8,11 +9,13 @@ const AUTO_ADVANCE_DELAY_MS = 350;
 @Component({
   selector: 'app-travel',
   standalone: true,
-  imports: [RouterLink],
   templateUrl: './travel.component.html',
   styleUrl: './travel.component.css',
 })
 export class TravelComponent {
+  private readonly router = inject(Router);
+  private readonly travelKitService = inject(TravelKitService);
+
   protected readonly step = signal(0);
   protected readonly totalSteps = TOTAL_STEPS;
 
@@ -84,6 +87,22 @@ export class TravelComponent {
     if (this.step() > 0) {
       this.step.update((s) => s - 1);
     }
+  }
+
+  protected seeMyTravelKit(): void {
+    const destination = this.destination();
+    const season = this.season();
+    const party = this.party();
+    const duration = this.duration();
+    if (!destination || !season || !party || !duration) {
+      return;
+    }
+
+    this.travelKitService.setKit({
+      items: buildTravelKit({ destination, season, party, duration }),
+      summary: this.revealSummary(),
+    });
+    this.router.navigate(['/my-kit']);
   }
 
   private autoAdvance(): void {

@@ -325,10 +325,17 @@
 .reveal-btn {
   background: var(--color-ink);
   color: #fff;
+  border: none;
   padding: 15px 34px;
   border-radius: 999px;
   font-weight: 700;
   font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reveal-btn:hover {
+  background: var(--color-coral-deep);
 }
 
 @media (max-width: 600px) {
