@@ -1,0 +1,59 @@
+@if (product(); as p) {
+  <div class="product-page">
+    <a routerLink="/shop" class="back-link">← Back to Shop</a>
+
+    <div class="product-layout">
+      <div class="product-image" [style.background]="getProductTint(p)">
+        @if (p.popular) {
+          <div class="popular-badge">🔥 Popular</div>
+        }
+        <span class="product-icon">{{ p.icon }}</span>
+      </div>
+
+      <div class="product-info">
+        <p class="product-cat">{{ p.category }}</p>
+        <h1 class="product-name">{{ p.name }}</h1>
+        <p class="product-price">{{ p.price | currency }}</p>
+        <p class="product-desc">{{ p.desc }}</p>
+
+        <div class="tag-row">
+          @if (p.destination !== 'All') {
+            <span class="tag">{{ p.destination }}</span>
+          }
+          @if (p.season !== 'All') {
+            <span class="tag">{{ p.season }}</span>
+          }
+          <span class="tag tag-tested">🧪 Field-tested</span>
+        </div>
+
+        <button type="button" class="add-btn" [class.added]="added()" (click)="addToKit()">
+          {{ added() ? 'Added to kit ✓' : 'Add to Kit' }}
+        </button>
+      </div>
+    </div>
+
+    @if (relatedProducts().length > 0) {
+      <div class="related-section">
+        <p class="related-title">You might also like</p>
+        <div class="related-grid">
+          @for (item of relatedProducts(); track item.id) {
+            <a class="related-card" [routerLink]="['/product', item.id]">
+              <div class="related-image" [style.background]="getProductTint(item)">
+                <span>{{ item.icon }}</span>
+              </div>
+              <div class="related-name">{{ item.name }}</div>
+              <div class="related-price">{{ item.price | currency }}</div>
+            </a>
+          }
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="not-found">
+    <p class="not-found-icon">🧭</p>
+    <h1>We couldn't find that item.</h1>
+    <p>It may have sold out, or the link might be off — browse the full shop instead.</p>
+    <a routerLink="/shop" class="back-btn">Back to Shop</a>
+  </div>
+}

@@ -56,9 +56,9 @@
   @if (filtered().length === 0) {
     <div class="no-results">No items match your filters yet — try clearing search or filters.</div>
   } @else {
-    @for (product of filtered(); track product.name) {
-      <div class="card">
-        <div class="card-image" [style.background]="getCardTint(product)">
+    @for (product of filtered(); track product.id) {
+      <a class="card" [routerLink]="['/product', product.id]">
+        <div class="card-image" [style.background]="getProductTint(product)">
           @if (product.popular) {
             <div class="popular-badge">🔥 Popular</div>
           }
@@ -71,7 +71,7 @@
           <div class="card-divider"></div>
           <div class="card-price">{{ product.price | currency }}</div>
         </div>
-      </div>
+      </a>
     }
   }
 </div>
