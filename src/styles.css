@@ -1,4 +1,4 @@
-/* Kiteun — design tokens extracted from the travel-kit mockups (homepage/travel/shop).
+/* Travel Besty — design tokens extracted from the travel-kit mockups (homepage/travel/shop).
    The homepage mockup named the accent var --coral, travel/shop named it --apricot —
    same hex values, unified here under --color-coral. */
 :root {
@@ -55,4 +55,87 @@ a {
 
 button {
   font-family: var(--font-body);
+}
+
+/* Shared form chrome for the auth overlays (login/signup/forgot-password) — identical across
+   all three, so it lives here rather than being copy-pasted into each component's CSS. */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.form-field label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+
+.form-field input {
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--color-ink);
+  background: var(--tint-cream);
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  padding: 12px 16px;
+  transition: border-color 0.18s ease;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: var(--color-coral);
+}
+
+.form-field input::placeholder {
+  color: var(--color-ink-soft);
+  opacity: 0.7;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  background: var(--color-coral);
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-top: 6px;
+}
+
+.auth-submit-btn:hover {
+  background: var(--color-coral-deep);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-links {
+  margin-top: 22px;
+  font-size: 13.5px;
+  color: var(--color-ink-soft);
+}
+
+.auth-links a {
+  color: var(--color-coral-deep);
+  font-weight: 700;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
+
+.auth-note {
+  font-size: 14px;
+  color: var(--color-ink-soft);
+  line-height: 1.6;
+  margin-bottom: 8px;
 }

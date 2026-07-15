@@ -1,0 +1,57 @@
+<app-auth-overlay eyebrow="Join us" title="Create your account">
+  @if (!done()) {
+    <form #signupForm="ngForm" (ngSubmit)="submit(signupForm)">
+      <div class="form-field">
+        <label for="name">Name</label>
+        <input id="name" type="text" name="name" [(ngModel)]="name" required placeholder="Your name" />
+      </div>
+
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          email
+          placeholder="you@example.com"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          required
+          minlength="6"
+          placeholder="At least 6 characters"
+        />
+      </div>
+
+      <button type="submit" class="auth-submit-btn" [disabled]="submitting()">
+        {{ submitting() ? 'Creating account…' : 'Create Account' }}
+      </button>
+    </form>
+
+    <p class="auth-links">Already have an account? <a routerLink="/login">Log in</a></p>
+  } @else {
+    <div class="success-state">
+      <svg width="48" height="48" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="28" fill="var(--tint-green)" />
+        <path
+          d="M22 34l7 7 14-16"
+          stroke="var(--color-leaf)"
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"
+        />
+      </svg>
+      <p class="auth-note">You're all set — taking you to log in…</p>
+    </div>
+  }
+</app-auth-overlay>

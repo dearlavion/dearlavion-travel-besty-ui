@@ -1,0 +1,11 @@
+.forgot-link {
+  display: block;
+  text-align: right;
+  font-size: 13px;
+  color: var(--color-ink-soft);
+  margin-bottom: 18px;
+}
+
+.forgot-link:hover {
+  color: var(--color-coral-deep);
+}
