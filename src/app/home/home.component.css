@@ -519,63 +519,6 @@ section {
   font-weight: 700;
 }
 
-footer {
-  border-top: 1px solid var(--color-line);
-  padding: 48px 0 40px;
-  margin-top: 40px;
-}
-
-.foot-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 28px;
-}
-
-footer .logo {
-  font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 23px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.foot-links {
-  display: flex;
-  gap: 44px;
-  flex-wrap: wrap;
-}
-
-.foot-col h4 {
-  font-size: 12.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-leaf);
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.foot-col a {
-  display: block;
-  font-size: 14.5px;
-  color: var(--color-ink-soft);
-  font-weight: 600;
-  margin-bottom: 9px;
-}
-
-.foot-col a:hover {
-  color: var(--color-coral-deep);
-}
-
-.foot-bottom {
-  font-size: 13px;
-  color: var(--color-ink-soft);
-  margin-top: 36px;
-  font-weight: 600;
-}
-
 @media (max-width: 860px) {
   .hero {
     grid-template-columns: 1fr;

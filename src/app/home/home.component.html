@@ -130,32 +130,4 @@
   </div>
 </section>
 
-<footer>
-  <div class="wrap">
-    <div class="foot-row">
-      <div class="logo"><span class="mark">🌷</span>Travel Besty</div>
-      <div class="foot-links">
-        <div class="foot-col">
-          <h4>Shop</h4>
-          <a routerLink="/shop">All Kits</a>
-          <a routerLink="/shop" [queryParams]="{ destination: 'Beach' }">Beach</a>
-          <a routerLink="/shop" [queryParams]="{ destination: 'Mountain' }">Mountain</a>
-          <a routerLink="/shop" [queryParams]="{ destination: 'City' }">City</a>
-        </div>
-        <div class="foot-col">
-          <h4>Company</h4>
-          <a routerLink="/about">About</a>
-          <a href="#">Our Testing Process</a>
-          <a href="#">Contact</a>
-        </div>
-        <div class="foot-col">
-          <h4>Support</h4>
-          <a href="#">Shipping</a>
-          <a href="#">Returns</a>
-          <a href="#">FAQ</a>
-        </div>
-      </div>
-    </div>
-    <div class="foot-bottom">© 2026 Travel Besty. Freshly gathered for every trip.</div>
-  </div>
-</footer>
+<app-footer tagline="© 2026 Travel Besty. Freshly gathered for every trip." />

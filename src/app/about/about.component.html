@@ -1,9 +1,338 @@
-<div class="about-page">
-  <div class="petal-divider"><span></span><span></span><span></span></div>
-  <p class="eyebrow">About Travel Besty</p>
-  <h1 class="title">More of our story, coming soon.</h1>
-  <p class="sub">
-    We're still writing this page. In the meantime, tell us your trip and we'll gather your kit.
-  </p>
-  <a routerLink="/travel" class="btn-primary">Build My Travel Kit</a>
+<!-- HERO: illustrated sunset shore -->
+<div class="hero-scene">
+  <svg viewBox="0 0 1180 560" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#F3EBF5" />
+        <stop offset="55%" stop-color="#FBEEDC" />
+        <stop offset="100%" stop-color="#F2AE3E" />
+      </linearGradient>
+      <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#E38B4E" />
+        <stop offset="100%" stop-color="#C96A2E" />
+      </linearGradient>
+    </defs>
+    <rect width="1180" height="560" fill="url(#sky)" />
+    <circle cx="590" cy="230" r="70" fill="#FDF6D2" opacity="0.9" />
+    <path
+      d="M0,300 C200,270 350,320 590,290 C800,265 950,310 1180,280 L1180,560 L0,560 Z"
+      fill="url(#water)"
+    />
+    <path
+      d="M0,300 C200,270 350,320 590,290 C800,265 950,310 1180,280"
+      stroke="#FDF6D2"
+      stroke-width="3"
+      fill="none"
+      opacity="0.6"
+    />
+    <path
+      d="M0,340 C220,310 380,360 600,330 C820,305 960,350 1180,320"
+      stroke="#FDF6D2"
+      stroke-width="2"
+      fill="none"
+      opacity="0.4"
+    />
+    <g transform="translate(60,180)" fill="#4F7A42">
+      <path d="M40,220 L40,120" />
+      <path d="M40,120 C10,100 -10,110 -25,95 C0,90 20,95 40,110 Z" />
+      <path d="M40,120 C70,95 95,100 115,85 C90,85 65,95 40,110 Z" />
+      <path d="M40,110 C20,80 5,60 -10,35 C15,55 30,80 40,105 Z" />
+      <path d="M40,110 C60,75 80,55 100,30 C80,55 60,80 40,105 Z" />
+      <path d="M40,105 C42,70 42,45 40,15 C48,45 46,75 40,105 Z" />
+    </g>
+    <g transform="translate(1040,200)" fill="#4F7A42" opacity="0.85">
+      <path d="M40,220 L40,120" />
+      <path d="M40,120 C10,100 -10,110 -25,95 C0,90 20,95 40,110 Z" />
+      <path d="M40,120 C70,95 95,100 115,85 C90,85 65,95 40,110 Z" />
+      <path d="M40,110 C20,80 5,60 -10,35 C15,55 30,80 40,105 Z" />
+      <path d="M40,110 C60,75 80,55 100,30 C80,55 60,80 40,105 Z" />
+    </g>
+  </svg>
+  <div class="hero-text">
+    <h1>We're going to help you<br /><em>build the trip you'll talk about for years.</em></h1>
+  </div>
 </div>
+
+<div class="story">
+  <div class="story-head">
+    <div class="story-eyebrow">Our Story</div>
+    <div class="story-title">Why Travel Besty exists</div>
+  </div>
+  <p class="lede">Some people count sheep. I count layovers I'd take again just for the window seat.</p>
+  <p>
+    I've always been the person who gets to the airport two hours early — not because I have to, but
+    because I like being there. The smell of coffee at the gate, the boarding announcements, watching
+    a plane push back from the jet bridge. It never got old.
+  </p>
+  <p>
+    But every trip started the same way: scattered lists, half-packed bags, and that nagging feeling
+    of "did I forget something?" I'd overpack for short trips and underpack for long ones. I'd buy a
+    $12 travel pillow at the airport because I forgot mine again.
+  </p>
+  <p>
+    So I started building my own systems — a list for the beach, a different one for the mountains,
+    one for quick weekend trips, another for the ones where I'd be gone a month. Friends started
+    asking me to help them pack for their trips too. That's where the name came from: I wanted to be
+    the friend who already has your trip figured out before you even finish asking.
+  </p>
+  <p>
+    Travel Besty started as a favor for friends. Now it's a place where anyone can answer a few simple
+    questions and get a kit built just for their trip — the way I wish someone had done for me on my
+    very first flight.
+  </p>
+  <div class="signature">— The Founder</div>
+  <div class="signature-role">Frequent flyer, list-maker, window-seat loyalist</div>
+</div>
+
+<div class="photo-strip">
+  <div class="photo-card one">✈️</div>
+  <div class="photo-card two">🧳</div>
+  <div class="photo-card three">🗺️</div>
+</div>
+
+<div class="values-section">
+  <div class="section-head">
+    <div class="section-eyebrow">What we stand for</div>
+    <div class="section-title">The little things that matter</div>
+  </div>
+  <div class="values-grid">
+    @for (value of values; track value.title) {
+      <div class="value-card">
+        <div class="value-icon">{{ value.icon }}</div>
+        <div class="value-title">{{ value.title }}</div>
+        <div class="value-text">{{ value.text }}</div>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="mission">
+  <div class="mission-quote">
+    We believe the best part of traveling shouldn't be <em>getting ready</em> to travel. So we handle
+    that part — <em>like a good friend would.</em>
+  </div>
+</div>
+
+<!-- TESTIMONIALS CAROUSEL -->
+<div class="testimonials-section">
+  <div class="testimonials-head">
+    <div class="testimonials-eyebrow">Real trips, real kits</div>
+    <div class="testimonials-title">Don't just take our word for it</div>
+  </div>
+  <div class="carousel-wrap">
+    <div class="t-arrow back" (click)="scrollTestimonials('back')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M15 6l-6 6 6 6" stroke="#3A2E2E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+    <div class="t-arrow fwd" (click)="scrollTestimonials('fwd')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M9 6l6 6-6 6" stroke="#3A2E2E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+
+    <div class="t-track" #track (scroll)="onTrackScroll()">
+      @for (testimonial of testimonials; track testimonial.name) {
+        <div class="t-card" [style.background]="testimonial.bg">
+          <div class="t-stars">★★★★★</div>
+          <div class="t-quote">"{{ testimonial.quote }}"</div>
+          <div class="t-person">
+            <div class="t-avatar" [style.background]="testimonial.avatarBg">{{ testimonial.initial }}</div>
+            <div>
+              <div class="t-name">{{ testimonial.name }}</div>
+              <div class="t-trip">{{ testimonial.trip }}</div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="t-dots">
+      @for (testimonial of testimonials; track testimonial.name; let i = $index) {
+        <div
+          class="dot"
+          [class.active]="activeTestimonial() === i"
+          (click)="scrollToTestimonial(i)"
+        ></div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- COLLAGE + TEXT -->
+<div class="collage-section">
+  <div class="collage">
+    <div class="collage-card back">
+      <svg viewBox="0 0 230 290" width="100%" height="100%">
+        <rect width="230" height="290" fill="#EBF2E4" />
+        <g transform="translate(60,40)" fill="#6E9B5C">
+          <path d="M40,250 L40,80" />
+          <path d="M40,80 C10,55 -10,60 -30,40 C0,40 25,50 40,70 Z" />
+          <path d="M40,80 C70,55 100,60 120,40 C90,40 65,50 40,70 Z" />
+          <path d="M40,70 C20,40 5,15 -10,-10 C15,10 30,40 40,65 Z" />
+          <path d="M40,70 C60,40 80,15 100,-10 C80,10 60,40 40,65 Z" />
+        </g>
+      </svg>
+    </div>
+    <div class="collage-card front">
+      <svg viewBox="0 0 210 250" width="100%" height="100%">
+        <rect width="210" height="250" fill="#FBEEDC" />
+        <circle cx="105" cy="90" r="34" fill="#F2AE3E" />
+        <path d="M0,180 C60,150 150,200 210,160 L210,250 L0,250 Z" fill="#E38B4E" />
+      </svg>
+    </div>
+  </div>
+  <div class="collage-text">
+    <h2>Ready to love every minute of packing your next trip?</h2>
+    <p>
+      From first ideas to final packing lists, we handle the details — so all you have to do is
+      answer a few easy questions and get ready for the adventure. Big trip, quick escape, or a
+      bucket-list island — we'll make sure it's unforgettable for all the right reasons.
+    </p>
+    <p>
+      We make trip planning feel less like a chore and more like the first exciting step of your
+      adventure. Whether you're dreaming of lazy beach days or a mountain trail, we're here to make
+      it easy, exciting, and 100% yours.
+    </p>
+    <div class="collage-tagline">You dream it. We gather it. You experience it.</div>
+    <a routerLink="/travel" class="btn btn-fill">Build My Travel Kit</a>
+  </div>
+</div>
+
+<!-- BIG ILLUSTRATED SCENE: flower-farm meets shore -->
+<div class="farm-scene">
+  <svg viewBox="0 0 1180 420" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="farmsky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#F3EBF5" />
+        <stop offset="100%" stop-color="#FDF7EE" />
+      </linearGradient>
+    </defs>
+    <rect width="1180" height="420" fill="url(#farmsky)" />
+    <g>
+      <g fill="#E38B4E">
+        <circle cx="60" cy="60" r="6" /><circle cx="160" cy="90" r="6" /><circle cx="260" cy="55" r="6" />
+        <circle cx="360" cy="95" r="6" /><circle cx="460" cy="60" r="6" /><circle cx="560" cy="90" r="6" />
+        <circle cx="660" cy="58" r="6" /><circle cx="760" cy="92" r="6" /><circle cx="860" cy="60" r="6" />
+        <circle cx="960" cy="90" r="6" /><circle cx="1060" cy="58" r="6" /><circle cx="1140" cy="92" r="6" />
+      </g>
+      <g fill="#F2AE3E">
+        <circle cx="110" cy="130" r="6" /><circle cx="210" cy="150" r="6" /><circle cx="310" cy="120" r="6" />
+        <circle cx="410" cy="155" r="6" /><circle cx="510" cy="125" r="6" /><circle cx="610" cy="150" r="6" />
+        <circle cx="710" cy="120" r="6" /><circle cx="810" cy="155" r="6" /><circle cx="910" cy="125" r="6" />
+        <circle cx="1010" cy="150" r="6" /><circle cx="1110" cy="120" r="6" />
+      </g>
+      <g fill="#B695C4">
+        <circle cx="70" cy="190" r="6" /><circle cx="180" cy="210" r="6" /><circle cx="280" cy="185" r="6" />
+        <circle cx="380" cy="215" r="6" /><circle cx="480" cy="188" r="6" /><circle cx="580" cy="212" r="6" />
+        <circle cx="680" cy="186" r="6" /><circle cx="780" cy="214" r="6" /><circle cx="880" cy="188" r="6" />
+        <circle cx="980" cy="212" r="6" /><circle cx="1080" cy="186" r="6" />
+      </g>
+    </g>
+    <path
+      d="M0,260 C200,235 350,280 600,255 C820,232 980,270 1180,245 L1180,420 L0,420 Z"
+      fill="#EBF2E4"
+    />
+    <path
+      d="M0,300 C220,275 380,320 600,295 C820,272 980,310 1180,285 L1180,420 L0,420 Z"
+      fill="#E38B4E"
+      opacity="0.85"
+    />
+    <path
+      d="M0,260 C200,235 350,280 600,255 C820,232 980,270 1180,245"
+      stroke="#fff"
+      stroke-width="3"
+      fill="none"
+      opacity="0.6"
+    />
+    <g transform="translate(920,140)" fill="#4F7A42">
+      <path d="M40,220 L40,110" />
+      <path d="M40,110 C10,90 -10,100 -25,85 C0,80 20,85 40,100 Z" />
+      <path d="M40,110 C70,85 95,90 115,75 C90,75 65,85 40,100 Z" />
+      <path d="M40,100 C20,70 5,50 -10,25 C15,45 30,70 40,95 Z" />
+      <path d="M40,100 C60,65 80,45 100,20 C80,45 60,70 40,95 Z" />
+    </g>
+  </svg>
+</div>
+
+<!-- KICK BACK + WORK TOGETHER -->
+<div class="close-section">
+  <div class="close-text">
+    <h2>Kick Back, Relax.<br />We've Got This.</h2>
+    <p>
+      You bring the excitement, we'll bring the checklist. Every kit is personalized to your exact
+      trip — the destination, the season, who's coming, how long you're gone — so nothing gets left
+      behind and nothing extra weighs you down.
+    </p>
+    <a routerLink="/shop" class="btn btn-fill">Explore Kits</a>
+  </div>
+
+  <div class="close-photo">
+    <svg viewBox="0 0 300 340" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="citysky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#F3EBF5" />
+          <stop offset="100%" stop-color="#FBEEDC" />
+        </linearGradient>
+      </defs>
+      <rect width="300" height="340" fill="url(#citysky)" />
+      <rect x="30" y="180" width="30" height="120" fill="#B695C4" />
+      <rect x="70" y="140" width="34" height="160" fill="#E38B4E" />
+      <rect x="114" y="200" width="28" height="100" fill="#B695C4" />
+      <rect x="152" y="160" width="32" height="140" fill="#6E9B5C" />
+      <rect x="194" y="210" width="26" height="90" fill="#E38B4E" />
+      <rect x="230" y="175" width="30" height="125" fill="#B695C4" />
+      <path d="M0,300 C90,280 200,320 300,290 L300,340 L0,340 Z" fill="#FDF6D2" />
+    </svg>
+  </div>
+
+  <div class="work-list">
+    <div class="close-heading">We should work together.</div>
+    @for (item of workItems; track item.num) {
+      <div class="work-item">
+        <div class="work-num">{{ item.num }}</div>
+        <div class="work-copy">
+          <h4>{{ item.title }}</h4>
+          <p>{{ item.text }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="contact-section">
+  <div class="contact-title">Get in touch</div>
+  <div class="contact-sub">
+    Questions, trip stories, or just want to say hi — we'd love to hear from you.
+  </div>
+  <div class="contact-links">
+    <a href="mailto:hello@travelbesty.com" class="contact-link">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.8" />
+        <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8" />
+      </svg>
+      <span class="contact-tooltip">hello&#64;travelbesty.com</span>
+    </a>
+    <a href="https://instagram.com/travelbesty" target="_blank" rel="noopener" class="contact-link">
+      <svg viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.8" />
+        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8" />
+        <circle cx="17.2" cy="6.8" r="1" fill="currentColor" />
+      </svg>
+      <span class="contact-tooltip">&#64;travelbesty on Instagram</span>
+    </a>
+    <a href="https://tiktok.com/@travelbesty" target="_blank" rel="noopener" class="contact-link">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path
+          d="M16 3c.5 2.5 2 4 5 4.3V11c-1.8 0-3.5-.6-5-1.6V15a6 6 0 1 1-6-6c.3 0 .7 0 1 .1v3.2a2.8 2.8 0 1 0 2 2.7V3z"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <span class="contact-tooltip">&#64;travelbesty on TikTok</span>
+    </a>
+  </div>
+</div>
+
+<app-footer tagline="© 2026 Travel Besty. Packed with a little bit of love for airplanes." />
