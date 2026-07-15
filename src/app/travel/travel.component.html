@@ -1,0 +1,202 @@
+<div class="page-head">
+  <div class="page-eyebrow">🌸 Tell us your trip</div>
+  <div class="page-title">Let's gather your kit</div>
+  <div class="page-sub">A few easy questions — answer at your own pace, no account needed.</div>
+</div>
+
+<div class="carousel-outer">
+  <div class="nav-arrow back" [class.hidden]="step() === 0" (click)="goBack()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M15 6l-6 6 6 6" stroke="#3A2E2E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </div>
+  <div class="nav-arrow fwd" [class.hidden]="step() === totalSteps - 1" (click)="goNext()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M9 6l6 6-6 6" stroke="#3A2E2E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </div>
+
+  <div class="carousel-track">
+    <!-- CARD 1: Destination -->
+    <div class="card cream" [class.active]="step() === 0">
+      <div class="q-eyebrow">Step 1 of 4</div>
+      <div class="q-text">Where does your heart want to wander?</div>
+      <div class="tiles">
+        <div class="tile" [class.selected]="destination() === 'Beach'" (click)="selectDestination('Beach')">
+          <svg viewBox="0 0 64 64">
+            <circle cx="32" cy="20" r="9" fill="#F2AE3E" />
+            <path d="M6 40c8-6 16-6 26 0s18 6 26 0" stroke="#6E9B5C" stroke-width="3" fill="none" stroke-linecap="round" />
+            <path d="M6 50c8-6 16-6 26 0s18 6 26 0" stroke="#E38B4E" stroke-width="3" fill="none" stroke-linecap="round" />
+          </svg>
+          <div class="tile-label">Beach</div>
+        </div>
+        <div class="tile" [class.selected]="destination() === 'Mountain'" (click)="selectDestination('Mountain')">
+          <svg viewBox="0 0 64 64">
+            <path d="M4 50L22 22l10 14 6-8 22 22z" fill="#6E9B5C" />
+            <path d="M22 22l6 8-6 9-8-11z" fill="#fff" opacity=".85" />
+            <circle cx="48" cy="16" r="6" fill="#F2AE3E" />
+          </svg>
+          <div class="tile-label">Mountain</div>
+        </div>
+        <div class="tile" [class.selected]="destination() === 'City'" (click)="selectDestination('City')">
+          <svg viewBox="0 0 64 64">
+            <rect x="8" y="26" width="10" height="28" fill="#B695C4" />
+            <rect x="20" y="14" width="12" height="40" fill="#E38B4E" />
+            <rect x="34" y="22" width="10" height="32" fill="#B695C4" />
+            <rect x="46" y="32" width="10" height="22" fill="#6E9B5C" />
+          </svg>
+          <div class="tile-label">City</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: Season -->
+    <div class="card green" [class.active]="step() === 1">
+      <div class="q-eyebrow">Step 2 of 4</div>
+      <div class="q-text">What will the sky look like when you get there?</div>
+      <div class="tiles">
+        <div class="tile" [class.selected]="season() === 'Summer'" (click)="selectSeason('Summer')">
+          <svg viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="12" fill="#F2AE3E" />
+            <g stroke="#E38B4E" stroke-width="3" stroke-linecap="round">
+              <line x1="32" y1="8" x2="32" y2="16" />
+              <line x1="32" y1="48" x2="32" y2="56" />
+              <line x1="8" y1="32" x2="16" y2="32" />
+              <line x1="48" y1="32" x2="56" y2="32" />
+            </g>
+          </svg>
+          <div class="tile-label">Summer</div>
+        </div>
+        <div class="tile" [class.selected]="season() === 'Winter'" (click)="selectSeason('Winter')">
+          <svg viewBox="0 0 64 64">
+            <g stroke="#B695C4" stroke-width="3" stroke-linecap="round">
+              <line x1="32" y1="10" x2="32" y2="54" />
+              <line x1="12" y1="20" x2="52" y2="44" />
+              <line x1="12" y1="44" x2="52" y2="20" />
+            </g>
+          </svg>
+          <div class="tile-label">Winter</div>
+        </div>
+        <div class="tile" [class.selected]="season() === 'Rainy'" (click)="selectSeason('Rainy')">
+          <svg viewBox="0 0 64 64">
+            <path
+              d="M14 30a12 12 0 0 1 22-7 10 10 0 0 1 12 10 9 9 0 0 1-2 18H16a10 10 0 0 1-2-21z"
+              fill="#B695C4"
+            />
+            <g stroke="#6E9B5C" stroke-width="3" stroke-linecap="round">
+              <line x1="22" y1="50" x2="18" y2="58" />
+              <line x1="32" y1="50" x2="28" y2="58" />
+              <line x1="42" y1="50" x2="38" y2="58" />
+            </g>
+          </svg>
+          <div class="tile-label">Rainy</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: Party -->
+    <div class="card pink" [class.active]="step() === 2">
+      <div class="q-eyebrow">Step 3 of 4</div>
+      <div class="q-text">Who's coming along for the ride?</div>
+      <div class="tiles">
+        <div class="tile" [class.selected]="party() === 'Solo'" (click)="selectParty('Solo')">
+          <svg viewBox="0 0 64 64">
+            <circle cx="32" cy="20" r="9" fill="#E38B4E" />
+            <path d="M16 54c2-14 12-18 16-18s14 4 16 18z" fill="#F2AE3E" />
+          </svg>
+          <div class="tile-label">Just me</div>
+        </div>
+        <div class="tile" [class.selected]="party() === 'Group'" (click)="selectParty('Group')">
+          <svg viewBox="0 0 64 64">
+            <circle cx="22" cy="18" r="7" fill="#B695C4" />
+            <path d="M10 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#B695C4" />
+            <circle cx="42" cy="18" r="7" fill="#E38B4E" />
+            <path d="M30 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#E38B4E" />
+          </svg>
+          <div class="tile-label">Group</div>
+        </div>
+      </div>
+      <div class="counter-row" [class.show]="party() === 'Group'">
+        <button class="counter-btn" (click)="decrementPartySize()">−</button>
+        <div class="counter-val">{{ partySize() }} travelers</div>
+        <button class="counter-btn" (click)="incrementPartySize()">+</button>
+      </div>
+      <button class="continue-btn" [class.show]="party() === 'Group'" (click)="continueFromParty()">
+        Continue
+      </button>
+    </div>
+
+    <!-- CARD 4: Duration -->
+    <div class="card marigold" [class.active]="step() === 3">
+      <div class="q-eyebrow">Step 4 of 4</div>
+      <div class="q-text">How long will this chapter last?</div>
+      <div class="bands">
+        <div
+          class="band"
+          [class.selected]="duration() === 'Quick escape'"
+          (click)="selectDuration('Quick escape')"
+        >
+          <div>
+            <div class="band-label">Quick escape</div>
+            <div class="band-sub">2–4 days</div>
+          </div>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <rect x="4" y="8" width="16" height="11" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
+            <path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
+          </svg>
+        </div>
+        <div
+          class="band"
+          [class.selected]="duration() === 'A proper break'"
+          (click)="selectDuration('A proper break')"
+        >
+          <div>
+            <div class="band-label">A proper break</div>
+            <div class="band-sub">1–2 weeks</div>
+          </div>
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="7" width="18" height="13" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
+            <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
+          </svg>
+        </div>
+        <div class="band" [class.selected]="duration() === 'Living it'" (click)="selectDuration('Living it')">
+          <div>
+            <div class="band-label">Living it</div>
+            <div class="band-sub">3+ weeks</div>
+          </div>
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="6" width="20" height="15" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
+            <path d="M7 6V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 5: Reveal -->
+    <div class="card lav" [class.active]="step() === 4">
+      <svg width="54" height="54" viewBox="0 0 64 64" style="margin-bottom: 18px">
+        <circle cx="32" cy="32" r="28" fill="#fff" />
+        <path
+          d="M22 34l7 7 14-16"
+          stroke="#6E9B5C"
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"
+        />
+      </svg>
+      <div class="reveal-title">Your kit is ready.</div>
+      <div class="reveal-sub">{{ revealSummary() }}</div>
+      @if (kitItemCount(); as count) {
+        <div class="reveal-count">{{ count }} items, hand-picked for this trip</div>
+      }
+      <a routerLink="/shop" class="reveal-btn">See My Travel Kit</a>
+    </div>
+  </div>
+
+  <div class="progress">
+    @for (dot of [0, 1, 2, 3, 4]; track dot) {
+      <div class="dot" [class.done]="dot < step()" [class.now]="dot === step()"></div>
+    }
+  </div>
+</div>

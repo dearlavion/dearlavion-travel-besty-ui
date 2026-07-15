@@ -1,0 +1,161 @@
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="hero">
+  <div>
+    <div class="eyebrow">🌸 Free pre-trip planning</div>
+    <h1 class="headline">Tell us your trip,<br />we'll <em>gather</em> your kit.</h1>
+    <p class="subhead">
+      Answer a few easy questions and watch your travel essentials bloom into a kit made just for
+      this trip — fresh picks, nothing wilted, nothing extra.
+    </p>
+    <div class="cta-row">
+      <a routerLink="/travel" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M4 12h16M14 6l6 6-6 6"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Build My Travel Kit
+      </a>
+      <a routerLink="/shop" class="btn btn-ghost">I Know What I Want</a>
+    </div>
+    <div class="microcopy">Takes about a minute · no account needed</div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="bouquet-card">
+      <div class="bouquet-tag">freshly gathered 🌱</div>
+      <div class="stems">
+        <div class="stem s1"></div>
+        <div class="stem s2"></div>
+        <div class="stem s3"></div>
+        <div class="stem s4"></div>
+      </div>
+      <div class="bouquet-fields">
+        <div class="bfield"><span class="k">Destination</span><span class="v">Beach</span></div>
+        <div class="bfield"><span class="k">Season</span><span class="v">Summer</span></div>
+        <div class="bfield"><span class="k">Party</span><span class="v">Solo</span></div>
+      </div>
+      <div class="dot-row">4 items picked</div>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="petal-divider"><span></span><span></span><span></span></div>
+      <div class="section-eyebrow">How it works</div>
+      <div class="section-title">Three easy steps</div>
+    </div>
+    <div class="steps">
+      @for (step of steps; track step.num) {
+        <div class="step-card">
+          <div class="step-num">{{ step.num }}</div>
+          <div class="step-title">{{ step.title }}</div>
+          <div class="step-text">{{ step.text }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section style="padding-top: 0">
+  <div class="wrap">
+    <div class="trust-band">
+      <div class="trust-copy">
+        <h3>Nothing untested makes the cut.</h3>
+        <p>
+          Every item in every kit is field-tested before it's recommended — no guessing, no cheap
+          materials, no surprises mid-trip.
+        </p>
+      </div>
+      <div class="trust-pills">
+        @for (pill of trustPills; track pill) {
+          <div class="pill"><span class="dot"></span>{{ pill }}</div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-eyebrow">Popular kits</div>
+      <div class="section-title">Already gathered for you</div>
+      <div class="section-sub">Browse ready-made kits, or build your own from scratch.</div>
+    </div>
+    <div class="kits-grid">
+      @for (kit of kitCards; track kit.name) {
+        <div class="kit-card">
+          <div class="kit-thumb" [class]="kit.thumbClass">{{ kit.icon }}</div>
+          <div class="kit-info">
+            <div class="kit-name">{{ kit.name }}</div>
+            <div class="kit-meta">{{ kit.meta }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom: 32px">
+      <div class="section-eyebrow">Or browse by mood</div>
+      <div class="section-title">Shop by destination</div>
+    </div>
+    <div class="cat-row">
+      @for (chip of categoryChips; track chip.label) {
+        <a
+          class="cat-chip"
+          routerLink="/shop"
+          [queryParams]="chip.destination ? { destination: chip.destination } : {}"
+        >
+          {{ chip.icon }} {{ chip.label }}
+        </a>
+      }
+    </div>
+    <div style="height: 32px"></div>
+    <div class="nudge">
+      Not sure if you have everything?
+      <a routerLink="/travel">Build a kit in 60 seconds →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <div class="logo"><span class="mark">🌷</span>Travel Besty</div>
+      <div class="foot-links">
+        <div class="foot-col">
+          <h4>Shop</h4>
+          <a routerLink="/shop">All Kits</a>
+          <a routerLink="/shop" [queryParams]="{ destination: 'Beach' }">Beach</a>
+          <a routerLink="/shop" [queryParams]="{ destination: 'Mountain' }">Mountain</a>
+          <a routerLink="/shop" [queryParams]="{ destination: 'City' }">City</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a routerLink="/about">About</a>
+          <a href="#">Our Testing Process</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="foot-col">
+          <h4>Support</h4>
+          <a href="#">Shipping</a>
+          <a href="#">Returns</a>
+          <a href="#">FAQ</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">© 2026 Travel Besty. Freshly gathered for every trip.</div>
+  </div>
+</footer>

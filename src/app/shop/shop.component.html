@@ -1,0 +1,77 @@
+<div class="page-head">
+  <div class="page-eyebrow">Products</div>
+  <div class="page-title">Our Travel Shop</div>
+  <div class="page-sub">Every essential, field-tested and ready for wherever you're headed.</div>
+</div>
+
+<div class="controls">
+  <div class="search-bar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="11" cy="11" r="7" stroke="#7A6B68" stroke-width="2" />
+      <line x1="21" y1="21" x2="16.5" y2="16.5" stroke="#7A6B68" stroke-width="2" stroke-linecap="round" />
+    </svg>
+    <input
+      type="text"
+      placeholder="Search items — e.g. sunscreen, rain jacket, packing cubes..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    />
+  </div>
+
+  <div class="filter-groups">
+    <div class="filter-row">
+      <span class="filter-row-label">Sort</span>
+      <select class="sort-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+        <option value="default">Featured</option>
+        <option value="popular">Most Popular</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="name">Name: A to Z</option>
+      </select>
+
+      <span class="filter-row-label" style="margin-left: 14px">Season</span>
+      <select class="sort-select" [ngModel]="season()" (ngModelChange)="season.set($event)">
+        <option value="All">All Seasons</option>
+        <option value="Summer">☀️ Summer</option>
+        <option value="Winter">❄️ Winter</option>
+        <option value="Rainy">🌧️ Rainy</option>
+      </select>
+
+      <span class="filter-row-label" style="margin-left: 14px">Destination</span>
+      <select class="sort-select" [ngModel]="destination()" (ngModelChange)="destination.set($event)">
+        <option value="All">All Destinations</option>
+        <option value="Beach">🏖️ Beach</option>
+        <option value="Mountain">⛰️ Mountain</option>
+        <option value="City">🏙️ City</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="results-count">
+  {{ filtered().length }} item{{ filtered().length !== 1 ? 's' : '' }}
+</div>
+
+<div class="grid">
+  @if (filtered().length === 0) {
+    <div class="no-results">No items match your filters yet — try clearing search or filters.</div>
+  } @else {
+    @for (product of filtered(); track product.name) {
+      <div class="card">
+        <div class="card-image" [style.background]="getCardTint(product)">
+          @if (product.popular) {
+            <div class="popular-badge">🔥 Popular</div>
+          }
+          <span>{{ product.icon }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">{{ product.category }}</div>
+          <div class="card-name">{{ product.name }}</div>
+          <div class="card-desc">{{ product.desc }}</div>
+          <div class="card-divider"></div>
+          <div class="card-price">{{ product.price | currency }}</div>
+        </div>
+      </div>
+    }
+  }
+</div>
