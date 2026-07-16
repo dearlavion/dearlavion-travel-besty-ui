@@ -71,7 +71,18 @@
           <div class="card-name">{{ product.name }}</div>
           <div class="card-desc">{{ product.desc }}</div>
           <div class="card-divider"></div>
-          <div class="card-price">{{ product.price | currency }}</div>
+          <div class="card-footer">
+            <div class="card-price">{{ product.price | currency }}</div>
+            <button
+              type="button"
+              class="card-add-btn"
+              [class.added]="isAdded(product.id)"
+              [disabled]="product.soldOut"
+              (click)="addToCart($event, product.id)"
+            >
+              {{ product.soldOut ? 'Sold Out' : isAdded(product.id) ? 'Added ✓' : 'Add to Cart' }}
+            </button>
+          </div>
         </div>
       </a>
     }

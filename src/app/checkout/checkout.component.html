@@ -1,0 +1,101 @@
+@if (orderNumber(); as order) {
+  <div class="confirm-state">
+    <p class="confirm-icon">🌷</p>
+    <h1>Order placed!</h1>
+    <p class="confirm-sub">Thanks for your order — a confirmation has been sent to {{ email }}.</p>
+    <p class="order-number">Order #{{ order }}</p>
+    <a routerLink="/" class="confirm-btn">Continue Shopping</a>
+  </div>
+} @else if (cart.lines().length === 0) {
+  <div class="empty-state">
+    <p class="empty-icon">🛒</p>
+    <h1>Nothing to check out yet.</h1>
+    <p>Your cart is empty — add a few essentials before checking out.</p>
+    <a routerLink="/shop" class="empty-btn">Go to Shop</a>
+  </div>
+} @else {
+  <div class="checkout-page">
+    <div class="checkout-head">
+      <p class="eyebrow">Checkout</p>
+      <h1 class="checkout-title">Complete Your Order</h1>
+    </div>
+
+    <div class="checkout-layout">
+      <form #checkoutForm="ngForm" class="checkout-form" (ngSubmit)="placeOrder(checkoutForm)">
+        <h2 class="section-title">Shipping Details</h2>
+
+        <div class="form-field">
+          <label for="fullName">Full name</label>
+          <input id="fullName" type="text" name="fullName" [(ngModel)]="fullName" required placeholder="Jamie Rivera" />
+        </div>
+
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input id="email" type="email" name="email" [(ngModel)]="email" required email placeholder="you@example.com" />
+        </div>
+
+        <div class="form-field">
+          <label for="address">Shipping address</label>
+          <input id="address" type="text" name="address" [(ngModel)]="address" required placeholder="123 Wanderlust Ave" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="city">City</label>
+            <input id="city" type="text" name="city" [(ngModel)]="city" required placeholder="Lisbon" />
+          </div>
+          <div class="form-field">
+            <label for="postalCode">Postal code</label>
+            <input id="postalCode" type="text" name="postalCode" [(ngModel)]="postalCode" required placeholder="1000-001" />
+          </div>
+        </div>
+
+        <h2 class="section-title">Payment</h2>
+
+        <div class="form-field">
+          <label for="cardNumber">Card number</label>
+          <input
+            id="cardNumber"
+            type="text"
+            name="cardNumber"
+            [(ngModel)]="cardNumber"
+            required
+            minlength="12"
+            placeholder="4242 4242 4242 4242"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="cardExpiry">Expiry</label>
+            <input id="cardExpiry" type="text" name="cardExpiry" [(ngModel)]="cardExpiry" required placeholder="MM/YY" />
+          </div>
+          <div class="form-field">
+            <label for="cardCvc">CVC</label>
+            <input id="cardCvc" type="text" name="cardCvc" [(ngModel)]="cardCvc" required minlength="3" placeholder="123" />
+          </div>
+        </div>
+
+        <button type="submit" class="place-order-btn" [disabled]="submitting()">
+          {{ submitting() ? 'Placing order…' : 'Place Order' }}
+        </button>
+      </form>
+
+      <div class="order-summary">
+        <h2 class="section-title">Order Summary</h2>
+        <div class="summary-lines">
+          @for (line of cart.lines(); track line.productId) {
+            <div class="summary-line">
+              <span class="summary-line-name">{{ line.product.icon }} {{ line.product.name }} × {{ line.quantity }}</span>
+              <span>{{ line.product.price * line.quantity | currency }}</span>
+            </div>
+          }
+        </div>
+        <div class="summary-total-row">
+          <span>Total</span>
+          <span class="summary-total">{{ cart.subtotal() | currency }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,67 @@
+@if (cart.lines().length > 0) {
+  <div class="cart-page">
+    <div class="cart-head">
+      <p class="eyebrow">Your cart</p>
+      <h1 class="cart-title">Your Cart</h1>
+      <p class="cart-count">{{ cart.itemCount() }} item{{ cart.itemCount() !== 1 ? 's' : '' }}</p>
+    </div>
+
+    <div class="line-list">
+      @for (line of cart.lines(); track line.productId) {
+        <div class="line-card">
+          <div class="line-image" [style.background]="getProductTint(line.product)">
+            <span>{{ line.product.icon }}</span>
+          </div>
+
+          <div class="line-body">
+            <div class="line-name">{{ line.product.name }}</div>
+            @if (line.product.soldOut) {
+              <div class="line-sold-out">Sold Out</div>
+            }
+            <div class="line-price">{{ line.product.price | currency }}</div>
+          </div>
+
+          <div class="line-qty">
+            <button
+              type="button"
+              class="qty-btn"
+              (click)="decrement(line.productId, line.quantity)"
+            >
+              −
+            </button>
+            <span class="qty-val">{{ line.quantity }}</span>
+            <button
+              type="button"
+              class="qty-btn"
+              [disabled]="line.product.soldOut"
+              (click)="increment(line.productId, line.quantity)"
+            >
+              +
+            </button>
+          </div>
+
+          <div class="line-subtotal">{{ line.product.price * line.quantity | currency }}</div>
+
+          <button type="button" class="remove-btn" (click)="cart.removeItem(line.productId)">
+            Remove
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="cart-summary">
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span class="summary-total">{{ cart.subtotal() | currency }}</span>
+      </div>
+      <a routerLink="/checkout" class="checkout-btn">Proceed to Checkout</a>
+    </div>
+  </div>
+} @else {
+  <div class="empty-state">
+    <p class="empty-icon">🛒</p>
+    <h1>Your cart is empty.</h1>
+    <p>Browse the shop and add a few essentials for your next trip.</p>
+    <a routerLink="/shop" class="empty-btn">Go to Shop</a>
+  </div>
+}

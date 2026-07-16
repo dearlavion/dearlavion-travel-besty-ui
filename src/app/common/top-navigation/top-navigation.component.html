@@ -9,6 +9,22 @@
   </div>
 
   <div class="nav-actions">
+    <a routerLink="/cart" class="cart-link" aria-label="View cart">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M3 4h2l2.4 12.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 8H6"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="10" cy="21" r="1.4" fill="currentColor" />
+        <circle cx="18" cy="21" r="1.4" fill="currentColor" />
+      </svg>
+      @if (cart.itemCount() > 0) {
+        <span class="cart-badge">{{ cart.itemCount() }}</span>
+      }
+    </a>
     <a routerLink="/login" class="nav-cta nav-cta-ghost">Login</a>
     <a routerLink="/travel" class="nav-cta nav-cta-primary">Build Travel Kit</a>
   </div>

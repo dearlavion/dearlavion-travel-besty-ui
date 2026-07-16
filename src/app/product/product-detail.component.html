@@ -33,9 +33,9 @@
           class="add-btn"
           [class.added]="added()"
           [disabled]="p.soldOut"
-          (click)="addToKit()"
+          (click)="addToCart()"
         >
-          {{ p.soldOut ? 'Sold Out' : added() ? 'Added to kit ✓' : 'Add to Kit' }}
+          {{ p.soldOut ? 'Sold Out' : added() ? 'Added to cart ✓' : 'Add to Cart' }}
         </button>
       </div>
     </div>

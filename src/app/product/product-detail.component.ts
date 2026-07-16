@@ -4,10 +4,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { Product, getProductTint } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
+import { CartService } from '../cart/cart.service';
 
 // The reusable template for any single product — one route (`/product/:id`), the id decides
-// what renders. No real backend/cart yet, so "Add to Kit" is a mocked inline confirmation,
-// same spirit as the rest of this app's mock interactions (auth forms, travel quiz reveal).
+// what renders.
 @Component({
   selector: 'app-product-detail',
   standalone: true,
@@ -18,6 +18,7 @@ import { ProductCatalogService } from '../shop/product-catalog.service';
 export class ProductDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly catalog = inject(ProductCatalogService);
+  private readonly cart = inject(CartService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
@@ -33,7 +34,11 @@ export class ProductDetailComponent {
     return product ? this.catalog.getRelated(product) : [];
   });
 
-  protected addToKit(): void {
+  protected addToCart(): void {
+    const product = this.product();
+    if (!product) return;
+
+    this.cart.addItem(product.id);
     this.added.set(true);
     setTimeout(() => this.added.set(false), 2000);
   }

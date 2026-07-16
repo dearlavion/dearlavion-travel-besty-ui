@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductDestination, ProductSeason, getProductTint } from './product-catalog';
 import { ProductCatalogService } from './product-catalog.service';
+import { CartService } from '../cart/cart.service';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 
@@ -17,12 +18,14 @@ type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 })
 export class ShopComponent implements OnInit {
   private readonly catalog = inject(ProductCatalogService);
+  private readonly cart = inject(CartService);
 
   protected readonly search = signal('');
   protected readonly season = signal<ProductSeason>('All');
   protected readonly destination = signal<ProductDestination>('All');
   protected readonly sortBy = signal<SortOption>('default');
   protected readonly getProductTint = getProductTint;
+  protected readonly addedIds = signal<ReadonlySet<string>>(new Set());
 
   protected readonly filtered = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -66,5 +69,26 @@ export class ShopComponent implements OnInit {
     if (destinationParam === 'Beach' || destinationParam === 'Mountain' || destinationParam === 'City') {
       this.destination.set(destinationParam);
     }
+  }
+
+  protected isAdded(productId: string): boolean {
+    return this.addedIds().has(productId);
+  }
+
+  protected addToCart(event: Event, productId: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.cart.addItem(productId);
+
+    const next = new Set(this.addedIds());
+    next.add(productId);
+    this.addedIds.set(next);
+
+    setTimeout(() => {
+      const reverted = new Set(this.addedIds());
+      reverted.delete(productId);
+      this.addedIds.set(reverted);
+    }, 2000);
   }
 }

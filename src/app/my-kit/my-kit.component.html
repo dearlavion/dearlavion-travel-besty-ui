@@ -48,9 +48,9 @@
                   class="mini-add-btn"
                   [class.added]="isAdded(item.productId)"
                   [disabled]="item.product.soldOut"
-                  (click)="addToKit(item.productId)"
+                  (click)="addToCart(item.productId)"
                 >
-                  {{ item.product.soldOut ? 'Sold Out' : isAdded(item.productId) ? 'Added ✓' : 'Add to Kit' }}
+                  {{ item.product.soldOut ? 'Sold Out' : isAdded(item.productId) ? 'Added ✓' : 'Add to Cart' }}
                 </button>
                 <a [routerLink]="['/product', item.product.id]" class="mini-view-btn">View</a>
               </div>

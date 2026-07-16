@@ -8,6 +8,8 @@ import { SignupComponent } from './auth/signup/signup.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ProductDetailComponent } from './product/product-detail.component';
 import { MyKitComponent } from './my-kit/my-kit.component';
+import { CartComponent } from './cart/cart.component';
+import { CheckoutComponent } from './checkout/checkout.component';
 import { AdminShellComponent } from './admin/admin-shell/admin-shell.component';
 import { AdminProductListComponent } from './admin/product-list/admin-product-list.component';
 import { AdminProductFormComponent } from './admin/product-form/admin-product-form.component';
@@ -18,6 +20,8 @@ export const routes: Routes = [
   { path: 'shop', component: ShopComponent },
   { path: 'product/:id', component: ProductDetailComponent },
   { path: 'my-kit', component: MyKitComponent },
+  { path: 'cart', component: CartComponent },
+  { path: 'checkout', component: CheckoutComponent },
   { path: 'about', component: AboutComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },

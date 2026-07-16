@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TravelKitService } from '../travel/travel-kit.service';
 import { Product, getProductTint } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
+import { CartService } from '../cart/cart.service';
 
 interface DisplayItem {
   label: string;
@@ -34,6 +35,7 @@ const PASTEL_TINTS = [
 export class MyKitComponent {
   private readonly travelKitService = inject(TravelKitService);
   private readonly catalog = inject(ProductCatalogService);
+  private readonly cart = inject(CartService);
 
   protected readonly getProductTint = getProductTint;
   protected readonly kit = this.travelKitService.currentKit;
@@ -69,7 +71,9 @@ export class MyKitComponent {
     this.expandedIds.set(next);
   }
 
-  protected addToKit(productId: string): void {
+  protected addToCart(productId: string): void {
+    this.cart.addItem(productId);
+
     const next = new Set(this.addedIds());
     next.add(productId);
     this.addedIds.set(next);
