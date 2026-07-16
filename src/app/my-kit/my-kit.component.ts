@@ -2,7 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TravelKitService } from '../travel/travel-kit.service';
-import { Product, getProductById, getProductTint } from '../shop/product-catalog';
+import { Product, getProductTint } from '../shop/product-catalog';
+import { ProductCatalogService } from '../shop/product-catalog.service';
 
 interface DisplayItem {
   label: string;
@@ -32,6 +33,7 @@ const PASTEL_TINTS = [
 })
 export class MyKitComponent {
   private readonly travelKitService = inject(TravelKitService);
+  private readonly catalog = inject(ProductCatalogService);
 
   protected readonly getProductTint = getProductTint;
   protected readonly kit = this.travelKitService.currentKit;
@@ -44,7 +46,7 @@ export class MyKitComponent {
     return kit.items.map((item, index) => ({
       label: item.label,
       productId: item.productId,
-      product: getProductById(item.productId),
+      product: this.catalog.getById(item.productId),
       tint: PASTEL_TINTS[index % PASTEL_TINTS.length],
     }));
   });

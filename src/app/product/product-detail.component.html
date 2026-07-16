@@ -4,7 +4,9 @@
 
     <div class="product-layout">
       <div class="product-image" [style.background]="getProductTint(p)">
-        @if (p.popular) {
+        @if (p.soldOut) {
+          <div class="sold-out-badge">Sold Out</div>
+        } @else if (p.popular) {
           <div class="popular-badge">🔥 Popular</div>
         }
         <span class="product-icon">{{ p.icon }}</span>
@@ -26,8 +28,14 @@
           <span class="tag tag-tested">🧪 Field-tested</span>
         </div>
 
-        <button type="button" class="add-btn" [class.added]="added()" (click)="addToKit()">
-          {{ added() ? 'Added to kit ✓' : 'Add to Kit' }}
+        <button
+          type="button"
+          class="add-btn"
+          [class.added]="added()"
+          [disabled]="p.soldOut"
+          (click)="addToKit()"
+        >
+          {{ p.soldOut ? 'Sold Out' : added() ? 'Added to kit ✓' : 'Add to Kit' }}
         </button>
       </div>
     </div>

@@ -1,0 +1,77 @@
+<div class="list-head">
+  <div>
+    <h1>Products</h1>
+    <p class="sub">{{ filtered().length }} of {{ catalog.products().length }} items</p>
+  </div>
+  <a routerLink="/admin/products/new" class="add-btn">+ Add Product</a>
+</div>
+
+<div class="search-bar">
+  <input
+    type="text"
+    placeholder="Search by name, category, or id..."
+    [ngModel]="search()"
+    (ngModelChange)="search.set($event)"
+  />
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (product of filtered(); track product.id) {
+        <tr [class.sold-out-row]="product.soldOut">
+          <td class="icon-cell">{{ product.icon }}</td>
+          <td class="name-cell">{{ product.name }}</td>
+          <td>{{ product.category }}</td>
+          <td>{{ product.price | currency }}</td>
+          <td>
+            <input
+              type="number"
+              min="0"
+              class="stock-input"
+              [ngModel]="product.stock"
+              (ngModelChange)="setStock(product.id, $event)"
+            />
+          </td>
+          <td>
+            <button
+              type="button"
+              class="status-badge"
+              [class.sold-out]="product.soldOut"
+              (click)="toggleSoldOut(product.id, !product.soldOut)"
+            >
+              {{ product.soldOut ? 'Sold Out' : 'In Stock' }}
+            </button>
+          </td>
+          <td class="actions-cell">
+            @if (confirmingDeleteId() === product.id) {
+              <span class="confirm-row">
+                Delete?
+                <button type="button" class="confirm-yes" (click)="confirmDelete(product.id)">Yes</button>
+                <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+              </span>
+            } @else {
+              <a [routerLink]="['/admin/products', product.id, 'edit']" class="edit-link">Edit</a>
+              <button type="button" class="delete-link" (click)="requestDelete(product.id)">Delete</button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" class="no-results">No products match your search.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

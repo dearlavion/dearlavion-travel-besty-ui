@@ -57,9 +57,11 @@
     <div class="no-results">No items match your filters yet — try clearing search or filters.</div>
   } @else {
     @for (product of filtered(); track product.id) {
-      <a class="card" [routerLink]="['/product', product.id]">
+      <a class="card" [class.sold-out]="product.soldOut" [routerLink]="['/product', product.id]">
         <div class="card-image" [style.background]="getProductTint(product)">
-          @if (product.popular) {
+          @if (product.soldOut) {
+            <div class="sold-out-badge">Sold Out</div>
+          } @else if (product.popular) {
             <div class="popular-badge">🔥 Popular</div>
           }
           <span>{{ product.icon }}</span>

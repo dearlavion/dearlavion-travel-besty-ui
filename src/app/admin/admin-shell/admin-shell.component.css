@@ -1,0 +1,49 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--tint-cream);
+}
+
+.admin-bar {
+  background: var(--color-ink);
+  padding: 18px 32px;
+}
+
+.admin-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-logo {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mark {
+  font-size: 18px;
+}
+
+.back-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: #fff;
+}
+
+.admin-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 32px 80px;
+}

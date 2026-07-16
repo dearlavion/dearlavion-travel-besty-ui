@@ -151,6 +151,12 @@
   background: var(--color-leaf);
 }
 
+.mini-add-btn:disabled {
+  background: var(--color-line);
+  color: var(--color-ink-soft);
+  cursor: not-allowed;
+}
+
 .mini-view-btn {
   display: block;
   text-align: center;

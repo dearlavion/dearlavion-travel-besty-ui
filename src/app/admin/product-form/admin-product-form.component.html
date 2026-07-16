@@ -1,0 +1,125 @@
+@if (notFound()) {
+  <div class="not-found">
+    <p>We couldn't find that product.</p>
+    <a routerLink="/admin" class="back-link">← Back to Products</a>
+  </div>
+} @else {
+  <a routerLink="/admin" class="back-link">← Back to Products</a>
+  <h1>{{ isEditMode() ? 'Edit Product' : 'Add Product' }}</h1>
+
+  <form class="product-form" (ngSubmit)="save()">
+    <div class="field-row">
+      <label>
+        <span>Name</span>
+        <input
+          type="text"
+          required
+          [ngModel]="form().name"
+          (ngModelChange)="updateField('name', $event)"
+          name="name"
+        />
+      </label>
+
+      <label>
+        <span>Icon (emoji)</span>
+        <input
+          type="text"
+          [ngModel]="form().icon"
+          (ngModelChange)="updateField('icon', $event)"
+          name="icon"
+        />
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label>
+        <span>Category</span>
+        <input
+          type="text"
+          required
+          placeholder="e.g. Electronics"
+          [ngModel]="form().category"
+          (ngModelChange)="updateField('category', $event)"
+          name="category"
+        />
+      </label>
+
+      <label>
+        <span>Price</span>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          required
+          [ngModel]="form().price"
+          (ngModelChange)="updateField('price', $event)"
+          name="price"
+        />
+      </label>
+    </div>
+
+    <label class="field-full">
+      <span>Description</span>
+      <textarea
+        rows="3"
+        [ngModel]="form().desc"
+        (ngModelChange)="updateField('desc', $event)"
+        name="desc"
+      ></textarea>
+    </label>
+
+    <div class="field-row">
+      <label>
+        <span>Season</span>
+        <select [ngModel]="form().season" (ngModelChange)="updateField('season', $event)" name="season">
+          <option value="All">All Seasons</option>
+          <option value="Summer">☀️ Summer</option>
+          <option value="Winter">❄️ Winter</option>
+          <option value="Rainy">🌧️ Rainy</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Destination</span>
+        <select
+          [ngModel]="form().destination"
+          (ngModelChange)="updateField('destination', $event)"
+          name="destination"
+        >
+          <option value="All">All Destinations</option>
+          <option value="Beach">🏖️ Beach</option>
+          <option value="Mountain">⛰️ Mountain</option>
+          <option value="City">🏙️ City</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label>
+        <span>Stock</span>
+        <input
+          type="number"
+          min="0"
+          [ngModel]="form().stock"
+          (ngModelChange)="updateField('stock', $event)"
+          name="stock"
+        />
+      </label>
+
+      <label class="checkbox-field">
+        <input
+          type="checkbox"
+          [ngModel]="form().soldOut"
+          (ngModelChange)="updateField('soldOut', $event)"
+          name="soldOut"
+        />
+        <span>Mark as sold out</span>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/admin" class="cancel-btn">Cancel</a>
+      <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Changes' : 'Add Product' }}</button>
+    </div>
+  </form>
+}

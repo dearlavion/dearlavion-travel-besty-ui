@@ -1,9 +1,10 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { PRODUCTS, ProductDestination, ProductSeason, getProductTint } from './product-catalog';
+import { ProductDestination, ProductSeason, getProductTint } from './product-catalog';
+import { ProductCatalogService } from './product-catalog.service';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 
@@ -15,6 +16,8 @@ type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
   styleUrl: './shop.component.css',
 })
 export class ShopComponent implements OnInit {
+  private readonly catalog = inject(ProductCatalogService);
+
   protected readonly search = signal('');
   protected readonly season = signal<ProductSeason>('All');
   protected readonly destination = signal<ProductDestination>('All');
@@ -26,7 +29,7 @@ export class ShopComponent implements OnInit {
     const season = this.season();
     const destination = this.destination();
 
-    let list = PRODUCTS.filter((p) => {
+    let list = this.catalog.products().filter((p) => {
       if (season !== 'All' && p.season !== 'All' && p.season !== season) return false;
       if (destination !== 'All' && p.destination !== 'All' && p.destination !== destination) return false;
       if (
