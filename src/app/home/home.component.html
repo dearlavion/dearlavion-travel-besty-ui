@@ -46,6 +46,89 @@
   </div>
 </div>
 
+<div class="ribbon-band">
+  <svg viewBox="0 0 1600 320" preserveAspectRatio="none" style="width: 100%; height: 280px; display: block">
+    <defs>
+      <path
+        id="ribbonMid"
+        d="M-100,163 C 150,63 350,63 550,143 C 750,223 950,223 1150,143
+                              C 1350,63 1550,63 1750,153
+                              M1500,163 C 1700,63 1900,63 2100,143 C 2300,223 2500,223 2700,143
+                              C 2900,63 3100,63 3300,153"
+      />
+    </defs>
+
+    <!-- olive filler behind the ribbon, seamlessly continues into the matcha section below -->
+    <path
+      d="M-100,215 C 150,115 350,115 550,195 C 750,275 950,275 1150,195
+             C 1350,115 1550,115 1750,205
+             L1750,320 L-100,320 Z"
+      fill="#C3C05A"
+    />
+
+    <!-- pink ribbon, wavy top and bottom -->
+    <path
+      d="M-100,110 C 150,10 350,10 550,90 C 750,170 950,170 1150,90
+             C 1350,10 1550,10 1750,100
+             L1750,205 C 1550,115 1350,115 1150,195 C 950,275 750,275 550,195
+             C 350,115 150,115 -100,215 Z"
+      fill="#F4CBDA"
+    />
+
+    <text class="ribbon-text" font-size="30" fill="#33502F">
+      <textPath href="#ribbonMid" startOffset="0%">
+        <animate attributeName="startOffset" from="0%" to="-100%" dur="24s" repeatCount="indefinite" />
+        &#8226;&nbsp;TELL US YOUR TRIP, WE'LL BUILD YOUR KIT&nbsp;&#8226;&nbsp;FREE PRE-TRIP PLANNING
+        TOOL &amp; PERSONALIZED TRAVEL ESSENTIALS&nbsp;&#8226;&nbsp;TELL US YOUR TRIP, WE'LL BUILD YOUR
+        KIT&nbsp;&#8226;&nbsp;FREE PRE-TRIP PLANNING TOOL &amp; PERSONALIZED TRAVEL
+        ESSENTIALS&nbsp;&#8226;&nbsp;TELL US YOUR TRIP, WE'LL BUILD YOUR KIT&nbsp;&#8226;&nbsp;
+      </textPath>
+    </text>
+  </svg>
+</div>
+
+<div class="matcha-section">
+  <div class="matcha-frame left">
+    <svg viewBox="0 0 200 200">
+      <defs>
+        <clipPath id="quatrefoil1">
+          <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
+          <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
+        </clipPath>
+      </defs>
+      <g clip-path="url(#quatrefoil1)">
+        <rect width="200" height="200" fill="#FBEEDC" />
+        <circle cx="100" cy="70" r="26" fill="#F2AE3E" />
+        <path d="M0,150 C50,120 150,170 200,140 L200,200 L0,200 Z" fill="#E38B4E" />
+        <path d="M0,170 C60,150 140,190 200,165 L200,200 L0,200 Z" fill="#6E9B5C" opacity="0.6" />
+      </g>
+    </svg>
+  </div>
+
+  <div class="matcha-copy">
+    <div class="matcha-eyebrow-word">Beach Essentials</div>
+    <div class="matcha-sub">For sunny escapes, and <em>everything</em> in between.</div>
+  </div>
+
+  <div class="matcha-frame right">
+    <svg viewBox="0 0 200 200">
+      <defs>
+        <clipPath id="quatrefoil2">
+          <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
+          <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
+        </clipPath>
+      </defs>
+      <g clip-path="url(#quatrefoil2)">
+        <rect width="200" height="200" fill="#F3EBF5" />
+        <rect x="30" y="90" width="26" height="90" fill="#B695C4" />
+        <rect x="66" y="60" width="30" height="120" fill="#E38B4E" />
+        <rect x="106" y="100" width="24" height="80" fill="#B695C4" />
+        <rect x="140" y="75" width="28" height="105" fill="#6E9B5C" />
+      </g>
+    </svg>
+  </div>
+</div>
+
 <section>
   <div class="wrap">
     <div class="section-head">
