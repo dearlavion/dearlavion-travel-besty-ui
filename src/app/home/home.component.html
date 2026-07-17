@@ -49,13 +49,35 @@
 <div class="ribbon-band">
   <svg viewBox="0 0 1600 320" preserveAspectRatio="none" style="width: 100%; height: 280px; display: block">
     <defs>
+      <!--
+        Single unbroken subpath (no internal "M") — the original mockup's guide path had a second
+        "M1500,163 ..." moveto partway through, which for textPath purposes accumulates arc length
+        continuously but RENDERS as a hard jump back to x=1500 at the seam, right in the visible
+        right-hand portion of the band. That jump is what read as "overflowing" text on the right.
+        This continues the same crest/trough wave (amplitude 63/223, midline 143) for 12 half-cycles
+        so there's plenty of continuous path length for the marquee with no discontinuity anywhere.
+      -->
       <path
         id="ribbonMid"
-        d="M-100,163 C 150,63 350,63 550,143 C 750,223 950,223 1150,143
-                              C 1350,63 1550,63 1750,153
-                              M1500,163 C 1700,63 1900,63 2100,143 C 2300,223 2500,223 2700,143
-                              C 2900,63 3100,63 3300,153"
+        d="M-100,163 C150,63 350,63 550,143 C750,223 950,223 1150,143 C1350,63 1550,63 1750,143
+           C1950,223 2150,223 2350,143 C2550,63 2750,63 2950,143 C3150,223 3350,223 3550,143
+           C3750,63 3950,63 4150,143 C4350,223 4550,223 4750,143 C4950,63 5150,63 5350,143
+           C5550,223 5750,223 5950,143 C6150,63 6350,63 6550,143 C6750,223 6950,223 7150,143"
       />
+      <!--
+        Fixed to the visible viewBox (0-1600), not the scrolling text's own huge bounding box —
+        fades the tiled marquee text out before it hits the left/right edges instead of hard-
+        clipping mid-word, which is what read as "overflowing letters" on the right side.
+      -->
+      <linearGradient id="ribbonFade" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#fff" stop-opacity="0" />
+        <stop offset="6%" stop-color="#fff" stop-opacity="1" />
+        <stop offset="94%" stop-color="#fff" stop-opacity="1" />
+        <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+      </linearGradient>
+      <mask id="ribbonTextMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="320">
+        <rect x="0" y="0" width="1600" height="320" fill="url(#ribbonFade)" />
+      </mask>
     </defs>
 
     <!-- olive filler behind the ribbon, seamlessly continues into the matcha section below -->
@@ -75,13 +97,41 @@
       fill="#F4CBDA"
     />
 
-    <text class="ribbon-text" font-size="30" fill="#33502F">
+    <text class="ribbon-text" font-size="30" fill="#33502F" mask="url(#ribbonTextMask)">
       <textPath href="#ribbonMid" startOffset="0%">
-        <animate attributeName="startOffset" from="0%" to="-100%" dur="24s" repeatCount="indefinite" />
-        &#8226;&nbsp;TELL US YOUR TRIP, WE'LL BUILD YOUR KIT&nbsp;&#8226;&nbsp;FREE PRE-TRIP PLANNING
-        TOOL &amp; PERSONALIZED TRAVEL ESSENTIALS&nbsp;&#8226;&nbsp;TELL US YOUR TRIP, WE'LL BUILD YOUR
-        KIT&nbsp;&#8226;&nbsp;FREE PRE-TRIP PLANNING TOOL &amp; PERSONALIZED TRAVEL
-        ESSENTIALS&nbsp;&#8226;&nbsp;TELL US YOUR TRIP, WE'LL BUILD YOUR KIT&nbsp;&#8226;&nbsp;
+        <!--
+          The "to" offset below (-18.8377%) is not arbitrary: it's the measured rendered width of
+          exactly ONE repeat unit ("phrase + flower + phrase + flower"), expressed as a fraction of
+          #ribbonMid's total path length (getComputedTextLength() / path.getTotalLength() * 100,
+          measured live in-browser for this exact font/size/letter-spacing, against the CURRENT
+          single-subpath #ribbonMid — re-measure both values together if either the path or the
+          text ever changes). Because the text below tiles that same unit 8 times (enough to fully
+          cover the path with a buffer), shifting by exactly one unit's width per cycle makes the
+          SMIL loop-restart (indefinite repeatCount snaps back to startOffset 0%) visually
+          indistinguishable from continuing — a seamless loop with no jump and no blank gap.
+        -->
+        <animate
+          attributeName="startOffset"
+          from="0%"
+          to="-18.8377%"
+          dur="30s"
+          repeatCount="indefinite"
+        />
+        Tell us your trip, we'll build your kit&nbsp;&#127804;&nbsp;Free pre-trip planning tool &amp;
+        personalized travel essentials&nbsp;&#127804;&nbsp;Tell us your trip, we'll build your
+        kit&nbsp;&#127804;&nbsp;Free pre-trip planning tool &amp; personalized travel
+        essentials&nbsp;&#127804;&nbsp;Tell us your trip, we'll build your kit&nbsp;&#127804;&nbsp;Free
+        pre-trip planning tool &amp; personalized travel essentials&nbsp;&#127804;&nbsp;Tell us your
+        trip, we'll build your kit&nbsp;&#127804;&nbsp;Free pre-trip planning tool &amp; personalized
+        travel essentials&nbsp;&#127804;&nbsp;Tell us your trip, we'll build your
+        kit&nbsp;&#127804;&nbsp;Free pre-trip planning tool &amp; personalized travel
+        essentials&nbsp;&#127804;&nbsp;Tell us your trip, we'll build your kit&nbsp;&#127804;&nbsp;Free
+        pre-trip planning tool &amp; personalized travel essentials&nbsp;&#127804;&nbsp;Tell us your
+        trip, we'll build your kit&nbsp;&#127804;&nbsp;Free pre-trip planning tool &amp; personalized
+        travel essentials&nbsp;&#127804;&nbsp;Tell us your trip, we'll build your
+        kit&nbsp;&#127804;&nbsp;Free pre-trip planning tool &amp; personalized travel
+        essentials&nbsp;&#127804;&nbsp;Tell us your trip, we'll build your kit&nbsp;&#127804;&nbsp;Free
+        pre-trip planning tool &amp; personalized travel essentials&nbsp;&#127804;&nbsp;
       </textPath>
     </text>
   </svg>

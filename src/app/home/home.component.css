@@ -286,6 +286,7 @@
   font-family: var(--font-heading);
   font-style: italic;
   font-weight: 500;
+  letter-spacing: 0.06em;
 }
 
 .matcha-section {
