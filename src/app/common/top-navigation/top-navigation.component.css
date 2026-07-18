@@ -19,7 +19,7 @@
 }
 
 .logo .mark {
-  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .navlinks {

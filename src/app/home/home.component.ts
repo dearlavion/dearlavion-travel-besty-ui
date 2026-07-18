@@ -196,7 +196,7 @@ export class HomeComponent {
   protected readonly steps: Step[] = [
     {
       num: 'One',
-      title: 'Tell us your trip',
+      title: 'Tell us about your trip',
       text: "Destination, season, who's coming, how long — a short, story-like flow, not a form.",
     },
     {
