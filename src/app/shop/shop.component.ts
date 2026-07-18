@@ -56,13 +56,13 @@ export class ShopComponent implements OnInit {
   protected readonly destinationMenuOpen = signal(false);
 
   protected readonly seasonButtonLabel = computed(() => {
-    const count = this.seasons().size;
-    return count > 0 ? `Season (${count})` : 'Season';
+    const selected = this.seasons();
+    return selected.size > 0 ? [...selected].join(', ') : 'All';
   });
 
   protected readonly destinationButtonLabel = computed(() => {
-    const count = this.destinations().size;
-    return count > 0 ? `Destination (${count})` : 'Destination';
+    const selected = this.destinations();
+    return selected.size > 0 ? [...selected].join(', ') : 'All';
   });
 
   protected readonly filtered = computed(() => {
