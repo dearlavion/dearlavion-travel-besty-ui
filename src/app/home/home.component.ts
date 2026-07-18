@@ -27,28 +27,19 @@ interface BagItem {
   icon: SafeHtml;
 }
 
-interface BagSlot {
-  top: number;
-  left: number;
-}
-
 interface BagItemLayout extends BagItem {
   top: number;
   left: number;
   delay: number;
 }
 
-// Loose, non-overlapping anchor points across the bag stage — jittered and
-// shuffled onto items each time the bag opens so the scatter reads as random
-// without items ever colliding.
-const BAG_SLOTS: BagSlot[] = [
-  { top: 6, left: 14 },
-  { top: 4, left: 64 },
-  { top: 40, left: 4 },
-  { top: 42, left: 78 },
-  { top: 72, left: 22 },
-  { top: 70, left: 58 },
-];
+// Items sit at exactly equal distance from the bag's center, evenly spaced by
+// angle — a fixed, perfectly circular arrangement rather than a random scatter.
+// The stage is a square (see .bag-stage aspect-ratio in the CSS), so a single
+// radius percentage is the same number of pixels on both axes, keeping the
+// ring an actual circle instead of an ellipse.
+const RING_RADIUS = 34;
+const RING_START_ANGLE = -90; // first item straight up, rest follow clockwise
 
 @Component({
   selector: 'app-home',
@@ -60,7 +51,7 @@ const BAG_SLOTS: BagSlot[] = [
 export class HomeComponent {
   constructor(private readonly sanitizer: DomSanitizer) {
     this.bagItems = this.buildBagItems();
-    this.bagLayout = signal(this.shuffleLayout());
+    this.bagLayout = signal(this.buildLayout());
   }
 
   protected readonly bagOpen = signal(false);
@@ -68,11 +59,7 @@ export class HomeComponent {
   protected readonly bagLayout;
 
   protected toggleBag(): void {
-    const opening = !this.bagOpen();
-    if (opening) {
-      this.bagLayout.set(this.shuffleLayout());
-    }
-    this.bagOpen.set(opening);
+    this.bagOpen.set(!this.bagOpen());
   }
 
   protected onBagSpace(event: Event): void {
@@ -80,18 +67,18 @@ export class HomeComponent {
     this.toggleBag();
   }
 
-  private shuffleLayout(): BagItemLayout[] {
-    const slots = [...BAG_SLOTS];
-    for (let i = slots.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [slots[i], slots[j]] = [slots[j], slots[i]];
-    }
-    return this.bagItems.map((item, i) => ({
-      ...item,
-      top: slots[i].top + (Math.random() * 8 - 4),
-      left: slots[i].left + (Math.random() * 8 - 4),
-      delay: i * 70,
-    }));
+  private buildLayout(): BagItemLayout[] {
+    const step = 360 / this.bagItems.length;
+
+    return this.bagItems.map((item, i) => {
+      const angle = ((RING_START_ANGLE + i * step) * Math.PI) / 180;
+      return {
+        ...item,
+        left: 50 + RING_RADIUS * Math.cos(angle),
+        top: 50 + RING_RADIUS * Math.sin(angle),
+        delay: i * 70,
+      };
+    });
   }
 
   private trust(svg: string): SafeHtml {
@@ -175,6 +162,31 @@ export class HomeComponent {
           <svg viewBox="0 0 64 64">
             <rect x="14" y="10" width="16" height="8" fill="#33502F" />
             <path d="M14 14h16v22c0 4 3 7 8 7h18v11H14z" fill="#6E9B5C" />
+          </svg>
+        `),
+      },
+      {
+        label: 'Sunglasses',
+        bg: 'var(--tint-yellow)',
+        icon: this.trust(`
+          <svg viewBox="0 0 64 64">
+            <path d="M5 30 L1 26 M59 30 L63 26" stroke="#33502F" stroke-width="3" stroke-linecap="round" fill="none" />
+            <rect x="27" y="30" width="10" height="5" rx="2" fill="#33502F" />
+            <circle cx="18" cy="34" r="13" fill="#33502F" />
+            <circle cx="46" cy="34" r="13" fill="#33502F" />
+            <circle cx="18" cy="34" r="8" fill="#B695C4" opacity="0.55" />
+            <circle cx="46" cy="34" r="8" fill="#B695C4" opacity="0.55" />
+          </svg>
+        `),
+      },
+      {
+        label: 'Bug Spray',
+        bg: 'var(--tint-green)',
+        icon: this.trust(`
+          <svg viewBox="0 0 64 64">
+            <rect x="24" y="26" width="16" height="30" rx="4" fill="#EBF2E4" stroke="#6E9B5C" stroke-width="2" />
+            <rect x="27" y="14" width="10" height="12" rx="2" fill="#6E9B5C" />
+            <rect x="34" y="9" width="12" height="6" rx="2" fill="#33502F" transform="rotate(30 34 9)" />
           </svg>
         `),
       },

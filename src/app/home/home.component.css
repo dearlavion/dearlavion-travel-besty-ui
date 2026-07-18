@@ -331,8 +331,8 @@
 
 .bag-stage {
   position: relative;
-  max-width: 640px;
-  height: 460px;
+  width: min(560px, 92vw);
+  aspect-ratio: 1 / 1;
   margin: 0 auto;
   cursor: pointer;
   outline: none;
@@ -441,13 +441,13 @@
   align-items: center;
   gap: 10px;
   opacity: 0;
-  transform: translateY(14px) scale(0.7);
+  transform: translate(-50%, -50%) translateY(14px) scale(0.7);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 .bag-items.is-visible .bag-item {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translate(-50%, -50%) translateY(0) scale(1);
 }
 
 .bag-item-frame {
@@ -477,9 +477,6 @@
 }
 
 @media (max-width: 640px) {
-  .bag-stage {
-    height: 620px;
-  }
   .bag-icon {
     width: 120px;
     height: 120px;
