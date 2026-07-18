@@ -56,6 +56,10 @@ export class HomeComponent {
     { thumbClass: 'group', icon: '🧳', name: 'Group Travel Bundle', meta: '30 items · 2–6 people' },
   ];
 
+  // Doubled so the marquee's translateX(-50%) keyframe lands exactly on a repeat of the
+  // original set, making the loop seamless instead of jumping/blanking at the restart.
+  protected readonly kitCardsLoop: KitCard[] = [...this.kitCards, ...this.kitCards];
+
   protected readonly categoryChips: CategoryChip[] = [
     { icon: '🏖️', label: 'Beach', destination: 'Beach' },
     { icon: '⛰️', label: 'Mountain', destination: 'Mountain' },

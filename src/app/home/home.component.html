@@ -278,8 +278,11 @@
       <div class="section-title">Already gathered for you</div>
       <div class="section-sub">Browse ready-made kits, or build your own from scratch.</div>
     </div>
-    <div class="kits-grid">
-      @for (kit of kitCards; track kit.name) {
+  </div>
+
+  <div class="kits-marquee">
+    <div class="kits-track">
+      @for (kit of kitCardsLoop; track $index) {
         <div class="kit-card">
           <div class="kit-thumb" [class]="kit.thumbClass">{{ kit.icon }}</div>
           <div class="kit-info">
