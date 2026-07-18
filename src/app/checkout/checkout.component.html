@@ -87,7 +87,7 @@
           @for (line of cart.lines(); track line.productId) {
             <div class="summary-line">
               <span class="summary-line-name">{{ line.product.icon }} {{ line.product.name }} × {{ line.quantity }}</span>
-              <span>{{ line.product.price * line.quantity | currency }}</span>
+              <span>{{ line.product.price * line.quantity | currency: line.product.currency }}</span>
             </div>
           }
         </div>

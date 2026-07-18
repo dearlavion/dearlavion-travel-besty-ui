@@ -44,8 +44,8 @@ export class ProductCatalogService {
     const sameTrip = others.filter(
       (p) =>
         p.category !== product.category &&
-        ((product.destination !== 'All' && p.destination === product.destination) ||
-          (product.season !== 'All' && p.season === product.season)),
+        ((product.destinations.length > 0 && p.destinations.some((d) => product.destinations.includes(d))) ||
+          (product.seasons.length > 0 && p.seasons.some((s) => product.seasons.includes(s)))),
     );
 
     return [...sameCategory, ...sameTrip].slice(0, limit);

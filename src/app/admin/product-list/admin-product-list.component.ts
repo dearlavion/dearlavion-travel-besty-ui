@@ -38,6 +38,10 @@ export class AdminProductListComponent {
     this.catalog.updateProduct(id, { soldOut });
   }
 
+  protected toggleActive(id: string, active: boolean): void {
+    this.catalog.updateProduct(id, { active });
+  }
+
   protected requestDelete(id: string): void {
     this.confirmingDeleteId.set(id);
   }

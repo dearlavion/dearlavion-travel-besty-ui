@@ -138,44 +138,97 @@
 </div>
 
 <div class="matcha-section">
-  <div class="matcha-frame left">
-    <svg viewBox="0 0 200 200">
-      <defs>
-        <clipPath id="quatrefoil1">
-          <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
-          <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
-        </clipPath>
-      </defs>
-      <g clip-path="url(#quatrefoil1)">
-        <rect width="200" height="200" fill="#FBEEDC" />
-        <circle cx="100" cy="70" r="26" fill="#F2AE3E" />
-        <path d="M0,150 C50,120 150,170 200,140 L200,200 L0,200 Z" fill="#E38B4E" />
-        <path d="M0,170 C60,150 140,190 200,165 L200,200 L0,200 Z" fill="#6E9B5C" opacity="0.6" />
-      </g>
-    </svg>
+  <div class="matcha-head">
+    <div class="matcha-eyebrow-word">Pick Your Terrain</div>
+    <div class="matcha-sub">Every trip starts with a place in mind.</div>
   </div>
 
-  <div class="matcha-copy">
-    <div class="matcha-eyebrow-word">Beach Essentials</div>
-    <div class="matcha-sub">For sunny escapes, and <em>everything</em> in between.</div>
-  </div>
+  <div class="matcha-grid">
+    <a routerLink="/shop" [queryParams]="{ destination: 'Beach' }" class="matcha-item">
+      <div class="matcha-frame">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <clipPath id="quatrefoil-beach">
+              <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
+              <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
+            </clipPath>
+          </defs>
+          <g clip-path="url(#quatrefoil-beach)">
+            <rect width="200" height="200" fill="#FBEEDC" />
+            <circle cx="100" cy="70" r="26" fill="#F2AE3E" />
+            <path d="M0,150 C50,120 150,170 200,140 L200,200 L0,200 Z" fill="#E38B4E" />
+            <path d="M0,170 C60,150 140,190 200,165 L200,200 L0,200 Z" fill="#6E9B5C" opacity="0.6" />
+          </g>
+        </svg>
+      </div>
+      <div class="matcha-label">Beach</div>
+    </a>
 
-  <div class="matcha-frame right">
-    <svg viewBox="0 0 200 200">
-      <defs>
-        <clipPath id="quatrefoil2">
-          <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
-          <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
-        </clipPath>
-      </defs>
-      <g clip-path="url(#quatrefoil2)">
-        <rect width="200" height="200" fill="#F3EBF5" />
-        <rect x="30" y="90" width="26" height="90" fill="#B695C4" />
-        <rect x="66" y="60" width="30" height="120" fill="#E38B4E" />
-        <rect x="106" y="100" width="24" height="80" fill="#B695C4" />
-        <rect x="140" y="75" width="28" height="105" fill="#6E9B5C" />
-      </g>
-    </svg>
+    <a routerLink="/shop" [queryParams]="{ destination: 'Mountain' }" class="matcha-item">
+      <div class="matcha-frame">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <clipPath id="quatrefoil-mountain">
+              <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
+              <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
+            </clipPath>
+          </defs>
+          <g clip-path="url(#quatrefoil-mountain)">
+            <rect width="200" height="200" fill="#EBF2E4" />
+            <svg x="18" y="48" width="164" height="164" viewBox="0 0 64 64">
+              <path d="M4 50L22 22l10 14 6-8 22 22z" fill="#6E9B5C" />
+              <path d="M22 22l6 8-6 9-8-11z" fill="#fff" opacity=".85" />
+              <circle cx="48" cy="16" r="6" fill="#F2AE3E" />
+            </svg>
+          </g>
+        </svg>
+      </div>
+      <div class="matcha-label">Mountain</div>
+    </a>
+
+    <a routerLink="/shop" [queryParams]="{ destination: 'City' }" class="matcha-item">
+      <div class="matcha-frame">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <clipPath id="quatrefoil-city">
+              <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
+              <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
+            </clipPath>
+          </defs>
+          <g clip-path="url(#quatrefoil-city)">
+            <rect width="200" height="200" fill="#F3EBF5" />
+            <rect x="30" y="90" width="26" height="90" fill="#B695C4" />
+            <rect x="66" y="60" width="30" height="120" fill="#E38B4E" />
+            <rect x="106" y="100" width="24" height="80" fill="#B695C4" />
+            <rect x="140" y="75" width="28" height="105" fill="#6E9B5C" />
+          </g>
+        </svg>
+      </div>
+      <div class="matcha-label">City</div>
+    </a>
+
+    <a routerLink="/shop" class="matcha-item">
+      <div class="matcha-frame">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <clipPath id="quatrefoil-group">
+              <circle cx="70" cy="70" r="52" /><circle cx="130" cy="70" r="52" />
+              <circle cx="70" cy="130" r="52" /><circle cx="130" cy="130" r="52" />
+            </clipPath>
+          </defs>
+          <g clip-path="url(#quatrefoil-group)">
+            <rect width="200" height="200" fill="#FCE9EC" />
+            <svg x="10" y="55" width="180" height="180" viewBox="0 0 64 64">
+              <circle cx="22" cy="18" r="7" fill="#B695C4" />
+              <path d="M10 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#B695C4" />
+              <circle cx="42" cy="18" r="7" fill="#E38B4E" />
+              <path d="M30 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#E38B4E" />
+            </svg>
+          </g>
+        </svg>
+      </div>
+      <div class="matcha-label">Group Travel</div>
+    </a>
   </div>
 </div>
 
@@ -217,7 +270,8 @@
   </div>
 </section>
 
-<section>
+<div class="cloud-edge" aria-hidden="true"></div>
+<section class="kits-section">
   <div class="wrap">
     <div class="section-head">
       <div class="section-eyebrow">Popular kits</div>

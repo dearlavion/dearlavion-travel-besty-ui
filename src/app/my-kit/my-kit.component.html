@@ -36,11 +36,15 @@
           @if (item.product && isExpanded(item.productId)) {
             <div class="mini-product">
               <div class="mini-image" [style.background]="getProductTint(item.product)">
-                <span>{{ item.product.icon }}</span>
+                @if (item.product.image) {
+                  <img [src]="item.product.image" [alt]="item.product.name" class="mini-photo" />
+                } @else {
+                  <span>{{ item.product.icon }}</span>
+                }
               </div>
               <div class="mini-body">
                 <div class="mini-name">{{ item.product.name }}</div>
-                <div class="mini-price">{{ item.product.price | currency }}</div>
+                <div class="mini-price">{{ item.product.price | currency: item.product.currency }}</div>
               </div>
               <div class="mini-actions">
                 <button

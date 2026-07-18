@@ -30,11 +30,11 @@
     </thead>
     <tbody>
       @for (product of filtered(); track product.id) {
-        <tr [class.sold-out-row]="product.soldOut">
+        <tr [class.sold-out-row]="product.soldOut" [class.inactive-row]="!product.active">
           <td class="icon-cell">{{ product.icon }}</td>
           <td class="name-cell">{{ product.name }}</td>
           <td>{{ product.category }}</td>
-          <td>{{ product.price | currency }}</td>
+          <td>{{ product.price | currency: product.currency }}</td>
           <td>
             <input
               type="number"
@@ -44,7 +44,7 @@
               (ngModelChange)="setStock(product.id, $event)"
             />
           </td>
-          <td>
+          <td class="status-cell">
             <button
               type="button"
               class="status-badge"
@@ -52,6 +52,14 @@
               (click)="toggleSoldOut(product.id, !product.soldOut)"
             >
               {{ product.soldOut ? 'Sold Out' : 'In Stock' }}
+            </button>
+            <button
+              type="button"
+              class="status-badge"
+              [class.inactive]="!product.active"
+              (click)="toggleActive(product.id, !product.active)"
+            >
+              {{ product.active ? 'Active' : 'Inactive' }}
             </button>
           </td>
           <td class="actions-cell">

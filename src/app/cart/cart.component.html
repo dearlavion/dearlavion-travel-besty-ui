@@ -10,7 +10,11 @@
       @for (line of cart.lines(); track line.productId) {
         <div class="line-card">
           <div class="line-image" [style.background]="getProductTint(line.product)">
-            <span>{{ line.product.icon }}</span>
+            @if (line.product.image) {
+              <img [src]="line.product.image" [alt]="line.product.name" class="line-photo" />
+            } @else {
+              <span>{{ line.product.icon }}</span>
+            }
           </div>
 
           <div class="line-body">
@@ -18,7 +22,7 @@
             @if (line.product.soldOut) {
               <div class="line-sold-out">Sold Out</div>
             }
-            <div class="line-price">{{ line.product.price | currency }}</div>
+            <div class="line-price">{{ line.product.price | currency: line.product.currency }}</div>
           </div>
 
           <div class="line-qty">
@@ -40,7 +44,7 @@
             </button>
           </div>
 
-          <div class="line-subtotal">{{ line.product.price * line.quantity | currency }}</div>
+          <div class="line-subtotal">{{ line.product.price * line.quantity | currency: line.product.currency }}</div>
 
           <button type="button" class="remove-btn" (click)="cart.removeItem(line.productId)">
             Remove

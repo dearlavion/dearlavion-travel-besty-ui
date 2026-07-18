@@ -90,6 +90,41 @@ textarea:focus {
   height: 18px;
 }
 
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkbox-group-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+
+.checkbox-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.checkbox-options .checkbox-field {
+  padding-top: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-transform: none;
+}
+
+.checkbox-stack {
+  padding-top: 22px;
+  gap: 10px;
+}
+
+.checkbox-stack .checkbox-field {
+  padding-top: 0;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

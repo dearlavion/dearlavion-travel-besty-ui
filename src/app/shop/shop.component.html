@@ -28,22 +28,64 @@
         <option value="price-high">Price: High to Low</option>
         <option value="name">Name: A to Z</option>
       </select>
+    </div>
 
-      <span class="filter-row-label" style="margin-left: 14px">Season</span>
-      <select class="sort-select" [ngModel]="season()" (ngModelChange)="season.set($event)">
-        <option value="All">All Seasons</option>
-        <option value="Summer">☀️ Summer</option>
-        <option value="Winter">❄️ Winter</option>
-        <option value="Rainy">🌧️ Rainy</option>
-      </select>
+    <div class="filter-row">
+      <div class="filter-dropdown">
+        <button
+          type="button"
+          class="dropdown-toggle"
+          [class.active]="seasons().size > 0"
+          (click)="toggleSeasonMenu()"
+        >
+          {{ seasonButtonLabel() }}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="chevron" [class.open]="seasonMenuOpen()">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        @if (seasonMenuOpen()) {
+          <div class="dropdown-panel">
+            @for (opt of seasonOptions; track opt.value) {
+              <label class="dropdown-option">
+                <input
+                  type="checkbox"
+                  [checked]="isSeasonSelected(opt.value)"
+                  (change)="toggleSeason(opt.value)"
+                />
+                <span>{{ opt.label }}</span>
+              </label>
+            }
+          </div>
+        }
+      </div>
 
-      <span class="filter-row-label" style="margin-left: 14px">Destination</span>
-      <select class="sort-select" [ngModel]="destination()" (ngModelChange)="destination.set($event)">
-        <option value="All">All Destinations</option>
-        <option value="Beach">🏖️ Beach</option>
-        <option value="Mountain">⛰️ Mountain</option>
-        <option value="City">🏙️ City</option>
-      </select>
+      <div class="filter-dropdown">
+        <button
+          type="button"
+          class="dropdown-toggle"
+          [class.active]="destinations().size > 0"
+          (click)="toggleDestinationMenu()"
+        >
+          {{ destinationButtonLabel() }}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="chevron" [class.open]="destinationMenuOpen()">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        @if (destinationMenuOpen()) {
+          <div class="dropdown-panel">
+            @for (opt of destinationOptions; track opt.value) {
+              <label class="dropdown-option">
+                <input
+                  type="checkbox"
+                  [checked]="isDestinationSelected(opt.value)"
+                  (change)="toggleDestination(opt.value)"
+                />
+                <span>{{ opt.label }}</span>
+              </label>
+            }
+          </div>
+        }
+      </div>
     </div>
   </div>
 </div>
@@ -64,15 +106,19 @@
           } @else if (product.popular) {
             <div class="popular-badge">🔥 Popular</div>
           }
-          <span>{{ product.icon }}</span>
+          @if (product.image) {
+            <img [src]="product.image" [alt]="product.name" class="card-photo" />
+          } @else {
+            <span>{{ product.icon }}</span>
+          }
         </div>
         <div class="card-body">
           <div class="card-cat">{{ product.category }}</div>
           <div class="card-name">{{ product.name }}</div>
-          <div class="card-desc">{{ product.desc }}</div>
+          <div class="card-desc">{{ product.description }}</div>
           <div class="card-divider"></div>
           <div class="card-footer">
-            <div class="card-price">{{ product.price | currency }}</div>
+            <div class="card-price">{{ product.price | currency: product.currency }}</div>
             <button
               type="button"
               class="card-add-btn"

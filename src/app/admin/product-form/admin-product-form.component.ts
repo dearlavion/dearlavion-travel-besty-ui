@@ -3,33 +3,48 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.service';
-import { ProductDestination, ProductSeason } from '../../shop/product-catalog';
+import { ProductDestination, ProductParty, ProductSeason } from '../../shop/product-catalog';
 
 interface ProductFormModel {
   name: string;
   category: string;
-  desc: string;
+  description: string;
   price: number;
   icon: string;
-  season: ProductSeason;
-  destination: ProductDestination;
+  image: string;
+  seasons: ProductSeason[];
+  destinations: ProductDestination[];
+  parties: ProductParty[];
   stock: number;
   soldOut: boolean;
+  tested: boolean;
+  active: boolean;
 }
 
 function emptyForm(): ProductFormModel {
   return {
     name: '',
     category: '',
-    desc: '',
+    description: '',
     price: 0,
     icon: '🧳',
-    season: 'All',
-    destination: 'All',
+    image: '',
+    seasons: [],
+    destinations: [],
+    parties: [],
     stock: 0,
     soldOut: false,
+    tested: true,
+    active: true,
   };
 }
+
+const SEASON_OPTIONS: ProductSeason[] = ['Summer', 'Winter', 'Rainy'];
+const DESTINATION_OPTIONS: ProductDestination[] = ['Beach', 'Mountain', 'City'];
+const PARTY_OPTIONS: ProductParty[] = ['Solo', 'Group'];
+
+// Every product in this mock catalog uses the same currency — not worth exposing as a form field.
+const DEFAULT_CURRENCY = 'USD';
 
 // Shared add/edit form — no `:id` param means add mode, same toSignal(paramMap) pattern
 // ProductDetailComponent uses to detect route param changes.
@@ -49,6 +64,10 @@ export class AdminProductFormComponent {
   protected readonly editingId = computed(() => this.paramMap()?.get('id') ?? null);
   protected readonly isEditMode = computed(() => this.editingId() !== null);
 
+  protected readonly seasonOptions = SEASON_OPTIONS;
+  protected readonly destinationOptions = DESTINATION_OPTIONS;
+  protected readonly partyOptions = PARTY_OPTIONS;
+
   protected readonly form = signal<ProductFormModel>(emptyForm());
   protected readonly notFound = signal(false);
 
@@ -60,13 +79,17 @@ export class AdminProductFormComponent {
         this.form.set({
           name: existing.name,
           category: existing.category,
-          desc: existing.desc,
+          description: existing.description,
           price: existing.price,
           icon: existing.icon,
-          season: existing.season,
-          destination: existing.destination,
+          image: existing.image ?? '',
+          seasons: [...existing.seasons],
+          destinations: [...existing.destinations],
+          parties: [...existing.parties],
           stock: existing.stock,
           soldOut: existing.soldOut,
+          tested: existing.tested,
+          active: existing.active,
         });
       } else {
         this.notFound.set(true);
@@ -78,18 +101,47 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
+  protected isSeasonChecked(season: ProductSeason): boolean {
+    return this.form().seasons.includes(season);
+  }
+
+  protected toggleSeason(season: ProductSeason): void {
+    this.form.update((f) => ({ ...f, seasons: toggleInArray(f.seasons, season) }));
+  }
+
+  protected isDestinationChecked(destination: ProductDestination): boolean {
+    return this.form().destinations.includes(destination);
+  }
+
+  protected toggleDestination(destination: ProductDestination): void {
+    this.form.update((f) => ({ ...f, destinations: toggleInArray(f.destinations, destination) }));
+  }
+
+  protected isPartyChecked(party: ProductParty): boolean {
+    return this.form().parties.includes(party);
+  }
+
+  protected toggleParty(party: ProductParty): void {
+    this.form.update((f) => ({ ...f, parties: toggleInArray(f.parties, party) }));
+  }
+
   protected save(): void {
     const f = this.form();
     const fields = {
       name: f.name.trim(),
       category: f.category.trim(),
-      desc: f.desc.trim(),
+      description: f.description.trim(),
       price: Number(f.price) || 0,
       icon: f.icon.trim() || '🧳',
-      season: f.season,
-      destination: f.destination,
+      image: f.image.trim() || undefined,
+      currency: DEFAULT_CURRENCY,
+      seasons: f.seasons,
+      destinations: f.destinations,
+      parties: f.parties,
       stock: Math.max(0, Number(f.stock) || 0),
       soldOut: f.soldOut,
+      tested: f.tested,
+      active: f.active,
     };
 
     const id = this.editingId();
@@ -103,4 +155,8 @@ export class AdminProductFormComponent {
 
     this.router.navigateByUrl('/admin');
   }
+}
+
+function toggleInArray<T>(list: readonly T[], value: T): T[] {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }

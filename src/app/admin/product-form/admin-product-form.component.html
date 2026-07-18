@@ -59,39 +59,60 @@
     </div>
 
     <label class="field-full">
+      <span>Image URL (optional — falls back to the icon above)</span>
+      <input
+        type="text"
+        placeholder="https://..."
+        [ngModel]="form().image"
+        (ngModelChange)="updateField('image', $event)"
+        name="image"
+      />
+    </label>
+
+    <label class="field-full">
       <span>Description</span>
       <textarea
         rows="3"
-        [ngModel]="form().desc"
-        (ngModelChange)="updateField('desc', $event)"
-        name="desc"
+        [ngModel]="form().description"
+        (ngModelChange)="updateField('description', $event)"
+        name="description"
       ></textarea>
     </label>
 
-    <div class="field-row">
-      <label>
-        <span>Season</span>
-        <select [ngModel]="form().season" (ngModelChange)="updateField('season', $event)" name="season">
-          <option value="All">All Seasons</option>
-          <option value="Summer">☀️ Summer</option>
-          <option value="Winter">❄️ Winter</option>
-          <option value="Rainy">🌧️ Rainy</option>
-        </select>
-      </label>
+    <div class="checkbox-group">
+      <span class="checkbox-group-label">Seasons (none selected = applies to all)</span>
+      <div class="checkbox-options">
+        @for (opt of seasonOptions; track opt) {
+          <label class="checkbox-field">
+            <input type="checkbox" [ngModel]="isSeasonChecked(opt)" (ngModelChange)="toggleSeason(opt)" [name]="'season-' + opt" />
+            <span>{{ opt }}</span>
+          </label>
+        }
+      </div>
+    </div>
 
-      <label>
-        <span>Destination</span>
-        <select
-          [ngModel]="form().destination"
-          (ngModelChange)="updateField('destination', $event)"
-          name="destination"
-        >
-          <option value="All">All Destinations</option>
-          <option value="Beach">🏖️ Beach</option>
-          <option value="Mountain">⛰️ Mountain</option>
-          <option value="City">🏙️ City</option>
-        </select>
-      </label>
+    <div class="checkbox-group">
+      <span class="checkbox-group-label">Destinations (none selected = applies to all)</span>
+      <div class="checkbox-options">
+        @for (opt of destinationOptions; track opt) {
+          <label class="checkbox-field">
+            <input type="checkbox" [ngModel]="isDestinationChecked(opt)" (ngModelChange)="toggleDestination(opt)" [name]="'destination-' + opt" />
+            <span>{{ opt }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="checkbox-group">
+      <span class="checkbox-group-label">Party size (none selected = applies to all)</span>
+      <div class="checkbox-options">
+        @for (opt of partyOptions; track opt) {
+          <label class="checkbox-field">
+            <input type="checkbox" [ngModel]="isPartyChecked(opt)" (ngModelChange)="toggleParty(opt)" [name]="'party-' + opt" />
+            <span>{{ opt }}</span>
+          </label>
+        }
+      </div>
     </div>
 
     <div class="field-row">
@@ -106,15 +127,37 @@
         />
       </label>
 
-      <label class="checkbox-field">
-        <input
-          type="checkbox"
-          [ngModel]="form().soldOut"
-          (ngModelChange)="updateField('soldOut', $event)"
-          name="soldOut"
-        />
-        <span>Mark as sold out</span>
-      </label>
+      <div class="field-full checkbox-stack">
+        <label class="checkbox-field">
+          <input
+            type="checkbox"
+            [ngModel]="form().soldOut"
+            (ngModelChange)="updateField('soldOut', $event)"
+            name="soldOut"
+          />
+          <span>Mark as sold out</span>
+        </label>
+
+        <label class="checkbox-field">
+          <input
+            type="checkbox"
+            [ngModel]="form().tested"
+            (ngModelChange)="updateField('tested', $event)"
+            name="tested"
+          />
+          <span>Field-tested</span>
+        </label>
+
+        <label class="checkbox-field">
+          <input
+            type="checkbox"
+            [ngModel]="form().active"
+            (ngModelChange)="updateField('active', $event)"
+            name="active"
+          />
+          <span>Active (visible on the storefront)</span>
+        </label>
+      </div>
     </div>
 
     <div class="form-actions">

@@ -26,7 +26,10 @@ export class ProductDetailComponent {
 
   protected readonly product = computed<Product | undefined>(() => {
     const id = this.paramMap()?.get('id');
-    return id ? this.catalog.getById(id) : undefined;
+    const product = id ? this.catalog.getById(id) : undefined;
+    // An inactive product is treated the same as a deleted one on the customer-facing page —
+    // admins can still see/reactivate it via the catalog list, just not preview it live.
+    return product?.active ? product : undefined;
   });
 
   protected readonly relatedProducts = computed<Product[]>(() => {
