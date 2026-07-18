@@ -535,6 +535,7 @@ section {
 
 .kits-track {
   display: flex;
+  gap: 10px;
   width: max-content;
   animation: kits-scroll 32s linear infinite;
 }
@@ -548,8 +549,7 @@ section {
   min-width: 260px;
   overflow: hidden;
   background: var(--tint-yellow);
-  border: 2px solid var(--color-ink);
-  border-right-width: 1px;
+  border: 2px solid transparent;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -569,13 +569,11 @@ section {
 }
 
 .kit-thumb {
+  display: block;
+  width: 100%;
   height: 420px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 64px;
+  object-fit: cover;
   border-bottom: 2px solid var(--color-ink);
-  background: #fff;
 }
 
 .kit-info {

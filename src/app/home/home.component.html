@@ -284,7 +284,7 @@
     <div class="kits-track">
       @for (kit of kitCardsLoop; track $index) {
         <div class="kit-card">
-          <div class="kit-thumb" [class]="kit.thumbClass">{{ kit.icon }}</div>
+          <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
           <div class="kit-info">
             <div class="kit-name">{{ kit.name }}</div>
             <div class="kit-meta">{{ kit.meta }}</div>
