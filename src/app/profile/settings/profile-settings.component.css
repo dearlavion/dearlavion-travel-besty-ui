@@ -1,0 +1,121 @@
+:host {
+  display: block;
+}
+
+.settings-head {
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-leaf);
+  margin-bottom: 10px;
+}
+
+.settings-title {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 30px;
+  color: var(--color-ink);
+  margin-bottom: 8px;
+}
+
+.settings-sub {
+  font-size: 14px;
+  color: var(--color-ink-soft);
+}
+
+.settings-form {
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+
+.field input {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: var(--color-coral);
+}
+
+.avatar-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.avatar-option {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2px solid var(--color-line);
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.avatar-option:hover {
+  border-color: var(--color-coral);
+}
+
+.avatar-option.selected {
+  border-color: var(--color-coral);
+  background: var(--tint-cream);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.save-btn {
+  background: var(--color-coral);
+  color: #fff;
+  border: none;
+  padding: 12px 26px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.save-btn:hover {
+  background: var(--color-coral-deep);
+}
+
+.saved-msg {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-leaf);
+}

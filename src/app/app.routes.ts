@@ -8,11 +8,14 @@ import { SignupComponent } from './auth/signup/signup.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ProductDetailComponent } from './product/product-detail.component';
 import { MyKitComponent } from './my-kit/my-kit.component';
+import { MyCollectionComponent } from './my-collection/my-collection.component';
 import { CartComponent } from './cart/cart.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { AdminShellComponent } from './admin/admin-shell/admin-shell.component';
 import { AdminProductListComponent } from './admin/product-list/admin-product-list.component';
 import { AdminProductFormComponent } from './admin/product-form/admin-product-form.component';
+import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
+import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -20,6 +23,15 @@ export const routes: Routes = [
   { path: 'shop', component: ShopComponent },
   { path: 'product/:id', component: ProductDetailComponent },
   { path: 'my-kit', component: MyKitComponent },
+  {
+    path: 'profile',
+    component: ProfileShellComponent,
+    children: [
+      { path: '', redirectTo: 'collection', pathMatch: 'full' },
+      { path: 'collection', component: MyCollectionComponent },
+      { path: 'settings', component: ProfileSettingsComponent },
+    ],
+  },
   { path: 'cart', component: CartComponent },
   { path: 'checkout', component: CheckoutComponent },
   { path: 'about', component: AboutComponent },

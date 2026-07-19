@@ -1,0 +1,44 @@
+<div class="settings-head">
+  <p class="eyebrow">Settings</p>
+  <h1 class="settings-title">Your Profile</h1>
+  <p class="settings-sub">
+    This is a demo profile — no account needed, just saved on this device.
+  </p>
+</div>
+
+<form class="settings-form" (ngSubmit)="save()">
+  <label class="field">
+    <span>Display name</span>
+    <input
+      type="text"
+      [ngModel]="displayName()"
+      (ngModelChange)="displayName.set($event)"
+      name="displayName"
+      placeholder="Traveler"
+    />
+  </label>
+
+  <div class="field">
+    <span>Avatar</span>
+    <div class="avatar-options">
+      @for (avatar of avatarOptions; track avatar) {
+        <button
+          type="button"
+          class="avatar-option"
+          [class.selected]="selectedAvatar() === avatar"
+          (click)="selectedAvatar.set(avatar)"
+          [attr.aria-label]="'Choose avatar ' + avatar"
+        >
+          {{ avatar }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="save-btn">Save Changes</button>
+    @if (savedMessage()) {
+      <span class="saved-msg">Saved ✓</span>
+    }
+  </div>
+</form>

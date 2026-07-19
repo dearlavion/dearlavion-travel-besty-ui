@@ -1,0 +1,23 @@
+<div class="profile-page">
+  <aside class="profile-sidebar">
+    <div class="profile-card">
+      <div class="profile-avatar">{{ profile().avatar }}</div>
+      <div class="profile-name">{{ profile().displayName }}</div>
+    </div>
+
+    <nav class="profile-nav">
+      <a routerLink="/profile/collection" routerLinkActive="active" class="profile-nav-link">
+        <span class="profile-nav-icon">🧳</span>
+        My Collection
+      </a>
+      <a routerLink="/profile/settings" routerLinkActive="active" class="profile-nav-link">
+        <span class="profile-nav-icon">⚙️</span>
+        Settings
+      </a>
+    </nav>
+  </aside>
+
+  <main class="profile-content">
+    <router-outlet />
+  </main>
+</div>

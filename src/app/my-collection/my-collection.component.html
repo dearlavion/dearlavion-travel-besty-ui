@@ -1,0 +1,50 @@
+@if (kits().length > 0) {
+  <div class="collection-page">
+    <div class="collection-head">
+      <p class="eyebrow">My Collection</p>
+      <h1 class="collection-title">Your Saved Kits</h1>
+      <p class="collection-count">
+        {{ kits().length }} kit{{ kits().length !== 1 ? 's' : '' }} saved
+      </p>
+    </div>
+
+    <div class="collection-list">
+      @for (saved of kits(); track saved.id) {
+        <div class="collection-card">
+          <div class="collection-info">
+            <span class="collection-name">{{ saved.name }}</span>
+            <span class="collection-meta">
+              {{ saved.kit.items.length }} items · saved {{ savedDateLabel(saved) }}
+            </span>
+          </div>
+          <div class="collection-actions">
+            @if (confirmingDeleteId() === saved.id) {
+              <span class="confirm-row">
+                Delete?
+                <button type="button" class="confirm-yes" (click)="confirmDelete(saved.id)">Yes</button>
+                <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+              </span>
+            } @else {
+              <button type="button" class="load-btn" (click)="loadKit(saved)">Load</button>
+              <button
+                type="button"
+                class="delete-btn"
+                (click)="requestDelete(saved.id)"
+                aria-label="Delete kit"
+              >
+                Delete
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="empty-state">
+    <p class="empty-icon">🧳</p>
+    <h1>Your collection is empty.</h1>
+    <p>Build a kit and save it under a custom name to keep it here for next time.</p>
+    <a routerLink="/travel" class="empty-btn">Take the Quiz</a>
+  </div>
+}
