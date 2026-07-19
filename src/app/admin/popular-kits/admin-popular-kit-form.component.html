@@ -77,6 +77,47 @@
       </label>
     </div>
 
+    <div class="field-full">
+      <span>Linked Products ({{ linkedProducts().length }})</span>
+
+      @if (linkedProducts().length > 0) {
+        <div class="linked-chips">
+          @for (product of linkedProducts(); track product.id) {
+            <span class="linked-chip">
+              {{ product.icon }} {{ product.name }}
+              <button type="button" class="remove-chip" (click)="removeProduct(product.id)" aria-label="Remove product">
+                ×
+              </button>
+            </span>
+          }
+        </div>
+      } @else {
+        <p class="no-linked">No products linked yet — this kit will show as empty until you add some below.</p>
+      }
+
+      <input
+        type="text"
+        class="product-search"
+        placeholder="Search products by name or category to add..."
+        [ngModel]="productSearch()"
+        (ngModelChange)="productSearch.set($event)"
+        name="productSearch"
+      />
+
+      <div class="product-picker">
+        @for (product of searchResults(); track product.id) {
+          <button type="button" class="product-row" (click)="addProduct(product.id)">
+            <span class="product-row-icon">{{ product.icon }}</span>
+            <span class="product-row-name">{{ product.name }}</span>
+            <span class="product-row-category">{{ product.category }}</span>
+            <span class="product-row-add">+ Add</span>
+          </button>
+        } @empty {
+          <p class="no-linked">No matching products.</p>
+        }
+      </div>
+    </div>
+
     <div class="form-actions">
       <a routerLink="/admin/popular-kits" class="cancel-btn">Cancel</a>
       <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Changes' : 'Add Kit' }}</button>

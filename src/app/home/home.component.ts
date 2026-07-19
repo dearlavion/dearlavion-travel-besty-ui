@@ -3,8 +3,9 @@ import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
-import { TripAnswers, buildTravelKit } from '../travel/kit-recommendation';
+import { KitItem, TripAnswers } from '../travel/kit-recommendation';
 import { TravelKitService } from '../travel/travel-kit.service';
+import { ProductCatalogService } from '../shop/product-catalog.service';
 
 interface Step {
   num: string;
@@ -19,6 +20,7 @@ interface KitCard {
   tag: string;
   meta: string;
   answers: TripAnswers;
+  productIds: string[];
 }
 
 interface CategoryChip {
@@ -65,6 +67,7 @@ export class HomeComponent {
     private readonly router: Router,
     private readonly travelKitService: TravelKitService,
     private readonly popularKitsService: PopularKitsService,
+    private readonly catalog: ProductCatalogService,
   ) {
     this.bagItems = this.buildBagItems();
     this.bagLayout = signal(this.buildLayout());
@@ -237,10 +240,11 @@ export class HomeComponent {
   ];
 
   // Sourced from PopularKitsService (admin-editable, localStorage-backed) rather than hardcoded
-  // here — admins curate this "Popular kits" collection from /admin/popular-kits. `answers`
-  // feeds the same buildTravelKit() engine the quiz uses, so clicking a card lands on /my-kit
-  // with the identical results UI. `meta`'s item count is derived from that same engine so it
-  // can never drift out of sync with the kit the card actually opens.
+  // here — admins curate this "Popular kits" collection, including its exact product list, from
+  // /admin/popular-kits. `answers` (destination/season/party/duration) is cosmetic-only now —
+  // it just feeds the "Built for your ... trip" summary text; the actual contents come entirely
+  // from `productIds`, so `meta`'s item count can never drift out of sync with what the kit
+  // actually opens to.
   protected readonly kitCards = computed<KitCard[]>(() =>
     this.popularKitsService.kits().map((kit) => {
       const answers: TripAnswers = {
@@ -249,13 +253,15 @@ export class HomeComponent {
         party: kit.party,
         duration: kit.duration,
       };
+      const linkedCount = kit.productIds.filter((id) => this.catalog.getById(id)).length;
       return {
         id: kit.id,
         image: kit.image,
         name: kit.name,
         tag: kit.tag,
         answers,
-        meta: `${buildTravelKit(answers).length} items · ${kit.tag}`,
+        productIds: kit.productIds,
+        meta: `${linkedCount} items · ${kit.tag}`,
       };
     }),
   );
@@ -279,8 +285,14 @@ export class HomeComponent {
     // Duration labels ("A proper break") read as standalone answer choices, not clause
     // fragments — drop a leading "a " so it doesn't collide with the "your" already in front.
     const durationPhrase = duration.toLowerCase().replace(/^a /, '');
+    // Skip any productId whose product has since been deleted from the catalog rather than
+    // showing a broken entry with no name/price/image.
+    const items: KitItem[] = kit.productIds
+      .map((id) => this.catalog.getById(id))
+      .filter((product) => !!product)
+      .map((product) => ({ label: product.name, productId: product.id }));
     this.travelKitService.setKit({
-      items: buildTravelKit(kit.answers),
+      items,
       summary: `Built for your ${durationPhrase} ${season.toLowerCase()} trip to the ${destination.toLowerCase()}${partyPart} — here's everything you'll need.`,
       title: kit.name,
     });

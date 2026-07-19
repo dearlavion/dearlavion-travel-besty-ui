@@ -76,6 +76,13 @@ h1 {
   margin-top: 2px;
 }
 
+.kit-product-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-coral-deep);
+  margin-top: 10px;
+}
+
 .kit-badges {
   display: flex;
   flex-wrap: wrap;

@@ -8,17 +8,23 @@ export interface PopularKit {
   image: string;
   name: string;
   tag: string;
+  // Cosmetic trip tags only (shown as badges, feed the "Built for your ... trip" summary text) —
+  // they no longer generate the kit's contents. `productIds` is the sole, admin-curated source
+  // of what's actually in the kit.
   destination: Destination;
   season: Season;
   party: Party;
   duration: Duration;
+  productIds: string[];
 }
 
 export type NewPopularKit = Omit<PopularKit, 'id'>;
 
 // Seeded with the 4 kits that used to be hardcoded directly in HomeComponent, so moving the
 // "Popular kits" homepage section to this admin-editable service doesn't change what shows up
-// until an admin actually edits the collection.
+// until an admin actually edits the collection. `productIds` here is exactly what
+// buildTravelKit(...) used to generate for each kit's old destination/season/party/duration
+// combo, frozen at migration time so item counts/contents don't shift on this one-time cutover.
 const SEED_KITS: PopularKit[] = [
   {
     id: 'beach-essentials',
@@ -29,6 +35,28 @@ const SEED_KITS: PopularKit[] = [
     season: 'Summer',
     party: 'Solo',
     duration: 'Quick escape',
+    productIds: [
+      'passport-wallet',
+      'fast-charge-cable-set',
+      'travel-medication-case',
+      'compact-first-aid-kit',
+      'document-organizer-wallet',
+      'ripple-swimsuit',
+      'quick-dry-mini-towel',
+      'woven-flip-flops',
+      'waterproof-phone-pouch',
+      'after-sun-aloe-gel',
+      '50ml-sunscreen-spf50',
+      'polarized-sunglasses',
+      'packable-wide-brim-hat',
+      'breathable-linen-set',
+      'cooling-neck-towel',
+      'personal-safety-whistle',
+      'portable-door-alarm',
+      'travel-esim-card',
+      'travel-size-toiletry-kit',
+      'versatile-spare-outfit',
+    ],
   },
   {
     id: 'backpacker-kit',
@@ -39,6 +67,30 @@ const SEED_KITS: PopularKit[] = [
     season: 'Summer',
     party: 'Solo',
     duration: 'Living it',
+    productIds: [
+      'passport-wallet',
+      'fast-charge-cable-set',
+      'travel-medication-case',
+      'compact-first-aid-kit',
+      'document-organizer-wallet',
+      'trailhead-hiking-boots',
+      'carbon-trekking-poles',
+      'ridgeline-daypack-18l',
+      'insect-repellent-spray',
+      'rechargeable-headlamp',
+      '50ml-sunscreen-spf50',
+      'polarized-sunglasses',
+      'packable-wide-brim-hat',
+      'breathable-linen-set',
+      'cooling-neck-towel',
+      'personal-safety-whistle',
+      'portable-door-alarm',
+      'travel-esim-card',
+      'reusable-laundry-bag',
+      'extended-medication-organizer',
+      'packing-cubes-full-set',
+      'foldable-spare-duffel',
+    ],
   },
   {
     id: 'winter-city-break',
@@ -49,6 +101,28 @@ const SEED_KITS: PopularKit[] = [
     season: 'Winter',
     party: 'Solo',
     duration: 'Quick escape',
+    productIds: [
+      'passport-wallet',
+      'fast-charge-cable-set',
+      'travel-medication-case',
+      'compact-first-aid-kit',
+      'document-organizer-wallet',
+      'everyday-walking-sneakers',
+      'crossbody-city-bag',
+      'slim-power-bank-10000mah',
+      'offline-city-map-pack',
+      'foldable-laundry-bag',
+      'thermal-base-layer-set',
+      'insulated-touch-gloves',
+      'ribbed-wool-beanie',
+      'lip-skin-balm-duo',
+      'merino-wool-socks-2pk',
+      'personal-safety-whistle',
+      'portable-door-alarm',
+      'travel-esim-card',
+      'travel-size-toiletry-kit',
+      'versatile-spare-outfit',
+    ],
   },
   {
     id: 'group-travel-bundle',
@@ -59,6 +133,29 @@ const SEED_KITS: PopularKit[] = [
     season: 'Rainy',
     party: 'Group',
     duration: 'A proper break',
+    productIds: [
+      'passport-wallet',
+      'fast-charge-cable-set',
+      'travel-medication-case',
+      'compact-first-aid-kit',
+      'document-organizer-wallet',
+      'ripple-swimsuit',
+      'quick-dry-mini-towel',
+      'woven-flip-flops',
+      'waterproof-phone-pouch',
+      'after-sun-aloe-gel',
+      'packable-rain-jacket',
+      'compact-travel-umbrella',
+      'waterproof-shoe-covers',
+      'electronics-dry-bag',
+      'quick-dry-travel-set',
+      'group-first-aid-kit-large',
+      'printed-itinerary-set',
+      'multi-port-charging-hub',
+      'laundry-detergent-sheets',
+      'packing-cubes-set-of-3',
+      'universal-travel-adapter',
+    ],
   },
 ];
 
