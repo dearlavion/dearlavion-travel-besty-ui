@@ -5,6 +5,25 @@
   </div>
 </header>
 
-<main class="admin-main">
-  <router-outlet />
-</main>
+<div class="admin-page">
+  <aside class="admin-sidebar">
+    <nav class="admin-nav">
+      <a routerLink="/admin/products" routerLinkActive="active" class="admin-nav-link">
+        <span class="admin-nav-icon">🛍️</span>
+        Products
+      </a>
+      <a routerLink="/admin/popular-kits" routerLinkActive="active" class="admin-nav-link">
+        <span class="admin-nav-icon">🧳</span>
+        Popular Kits
+      </a>
+      <a routerLink="/admin/inventory" routerLinkActive="active" class="admin-nav-link">
+        <span class="admin-nav-icon">📦</span>
+        Inventory
+      </a>
+    </nav>
+  </aside>
+
+  <main class="admin-content">
+    <router-outlet />
+  </main>
+</div>

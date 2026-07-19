@@ -235,7 +235,7 @@
 
   <div class="kits-marquee">
     <div class="kits-track">
-      @for (kit of kitCardsLoop; track $index) {
+      @for (kit of kitCardsLoop(); track $index) {
         <button type="button" class="kit-card" (click)="viewKit(kit)">
           <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
           <div class="kit-info">

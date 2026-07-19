@@ -1,0 +1,39 @@
+<div class="list-head">
+  <div>
+    <h1>Popular Kits</h1>
+    <p class="sub">{{ popularKits.kits().length }} kits featured on the homepage</p>
+  </div>
+  <a routerLink="/admin/popular-kits/new" class="add-btn">+ Add Kit</a>
+</div>
+
+<div class="kit-grid">
+  @for (kit of popularKits.kits(); track kit.id) {
+    <div class="kit-card">
+      <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
+      <div class="kit-body">
+        <div class="kit-name">{{ kit.name }}</div>
+        <div class="kit-tag">{{ kit.tag }}</div>
+        <div class="kit-badges">
+          <span class="badge">{{ kit.destination }}</span>
+          <span class="badge">{{ kit.season }}</span>
+          <span class="badge">{{ kit.party }}</span>
+          <span class="badge">{{ kit.duration }}</span>
+        </div>
+      </div>
+      <div class="kit-actions">
+        @if (confirmingDeleteId() === kit.id) {
+          <span class="confirm-row">
+            Delete?
+            <button type="button" class="confirm-yes" (click)="confirmDelete(kit.id)">Yes</button>
+            <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+          </span>
+        } @else {
+          <a [routerLink]="['/admin/popular-kits', kit.id, 'edit']" class="edit-link">Edit</a>
+          <button type="button" class="delete-link" (click)="requestDelete(kit.id)">Delete</button>
+        }
+      </div>
+    </div>
+  } @empty {
+    <p class="no-results">No popular kits yet — add one to feature it on the homepage.</p>
+  }
+</div>

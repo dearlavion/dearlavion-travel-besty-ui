@@ -1,0 +1,83 @@
+<div class="list-head">
+  <div>
+    <h1>Inventory</h1>
+    <p class="sub">Stock levels across {{ catalog.products().length }} products</p>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats().total }}</div>
+    <div class="stat-label">Total Products</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats().inStock }}</div>
+    <div class="stat-label">In Stock</div>
+  </div>
+  <div class="stat-card stat-warning">
+    <div class="stat-value">{{ stats().lowStock }}</div>
+    <div class="stat-label">Low Stock (≤{{ lowStockThreshold }})</div>
+  </div>
+  <div class="stat-card stat-danger">
+    <div class="stat-value">{{ stats().soldOut }}</div>
+    <div class="stat-label">Sold Out</div>
+  </div>
+</div>
+
+<div class="filter-chips">
+  <button type="button" class="chip" [class.active]="filter() === 'all'" (click)="filter.set('all')">All</button>
+  <button type="button" class="chip" [class.active]="filter() === 'low'" (click)="filter.set('low')">Low Stock</button>
+  <button type="button" class="chip" [class.active]="filter() === 'sold-out'" (click)="filter.set('sold-out')">
+    Sold Out
+  </button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Stock</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (product of filtered(); track product.id) {
+        <tr [class.low-stock-row]="isLowStock(product.stock, product.soldOut)" [class.sold-out-row]="product.soldOut">
+          <td class="icon-cell">{{ product.icon }}</td>
+          <td class="name-cell">{{ product.name }}</td>
+          <td>{{ product.category }}</td>
+          <td>
+            <input
+              type="number"
+              min="0"
+              class="stock-input"
+              [ngModel]="product.stock"
+              (ngModelChange)="setStock(product.id, $event)"
+            />
+          </td>
+          <td>
+            <button
+              type="button"
+              class="status-badge"
+              [class.sold-out]="product.soldOut"
+              (click)="toggleSoldOut(product.id, !product.soldOut)"
+            >
+              {{ product.soldOut ? 'Sold Out' : 'In Stock' }}
+            </button>
+          </td>
+          <td class="actions-cell">
+            <a [routerLink]="['/admin/products', product.id, 'edit']" class="edit-link">Edit</a>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="no-results">No products match this filter.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

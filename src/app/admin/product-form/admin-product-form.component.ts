@@ -153,7 +153,7 @@ export class AdminProductFormComponent {
       this.catalog.addProduct(payload);
     }
 
-    this.router.navigateByUrl('/admin');
+    this.router.navigateByUrl('/admin/products');
   }
 }
 

@@ -1,10 +1,10 @@
 @if (notFound()) {
   <div class="not-found">
     <p>We couldn't find that product.</p>
-    <a routerLink="/admin" class="back-link">← Back to Products</a>
+    <a routerLink="/admin/products" class="back-link">← Back to Products</a>
   </div>
 } @else {
-  <a routerLink="/admin" class="back-link">← Back to Products</a>
+  <a routerLink="/admin/products" class="back-link">← Back to Products</a>
   <h1>{{ isEditMode() ? 'Edit Product' : 'Add Product' }}</h1>
 
   <form class="product-form" (ngSubmit)="save()">
@@ -161,7 +161,7 @@
     </div>
 
     <div class="form-actions">
-      <a routerLink="/admin" class="cancel-btn">Cancel</a>
+      <a routerLink="/admin/products" class="cancel-btn">Cancel</a>
       <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Changes' : 'Add Product' }}</button>
     </div>
   </form>

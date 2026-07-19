@@ -1,0 +1,85 @@
+@if (notFound()) {
+  <div class="not-found">
+    <p>We couldn't find that kit.</p>
+    <a routerLink="/admin/popular-kits" class="back-link">← Back to Popular Kits</a>
+  </div>
+} @else {
+  <a routerLink="/admin/popular-kits" class="back-link">← Back to Popular Kits</a>
+  <h1>{{ isEditMode() ? 'Edit Popular Kit' : 'Add Popular Kit' }}</h1>
+
+  <form class="kit-form" (ngSubmit)="save()">
+    <div class="field-row">
+      <label>
+        <span>Name</span>
+        <input type="text" required [ngModel]="form().name" (ngModelChange)="updateField('name', $event)" name="name" />
+      </label>
+
+      <label>
+        <span>Tag</span>
+        <input
+          type="text"
+          placeholder="e.g. warm climates"
+          [ngModel]="form().tag"
+          (ngModelChange)="updateField('tag', $event)"
+          name="tag"
+        />
+      </label>
+    </div>
+
+    <label class="field-full">
+      <span>Image URL</span>
+      <input
+        type="text"
+        placeholder="https://..."
+        [ngModel]="form().image"
+        (ngModelChange)="updateField('image', $event)"
+        name="image"
+      />
+    </label>
+
+    <div class="field-row">
+      <label>
+        <span>Destination</span>
+        <select [ngModel]="form().destination" (ngModelChange)="updateField('destination', $event)" name="destination">
+          @for (opt of destinationOptions; track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Season</span>
+        <select [ngModel]="form().season" (ngModelChange)="updateField('season', $event)" name="season">
+          @for (opt of seasonOptions; track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label>
+        <span>Party</span>
+        <select [ngModel]="form().party" (ngModelChange)="updateField('party', $event)" name="party">
+          @for (opt of partyOptions; track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Duration</span>
+        <select [ngModel]="form().duration" (ngModelChange)="updateField('duration', $event)" name="duration">
+          @for (opt of durationOptions; track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/admin/popular-kits" class="cancel-btn">Cancel</a>
+      <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Changes' : 'Add Kit' }}</button>
+    </div>
+  </form>
+}
