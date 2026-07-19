@@ -16,6 +16,7 @@ import { AdminProductListComponent } from './admin/product-list/admin-product-li
 import { AdminProductFormComponent } from './admin/product-form/admin-product-form.component';
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
+import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -29,6 +30,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'collection', pathMatch: 'full' },
       { path: 'collection', component: MyCollectionComponent },
+      { path: 'track-packages', component: TrackPackagesComponent },
       { path: 'settings', component: ProfileSettingsComponent },
     ],
   },

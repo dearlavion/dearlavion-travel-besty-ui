@@ -7,40 +7,6 @@
       <p class="kit-count">{{ displayItems().length }} items, hand-picked for this trip</p>
     </div>
 
-    <!-- Kit actions: download PDF, email, save under a custom name -->
-    <div class="kit-actions">
-      <button type="button" class="kit-action-btn" (click)="downloadPdf()" [disabled]="exporting()">
-        {{ exporting() ? 'Preparing…' : '⬇ Download PDF' }}
-      </button>
-      <button type="button" class="kit-action-btn" (click)="emailKit()">✉ Email my kit</button>
-      @if (!showSaveInput()) {
-        <button type="button" class="kit-action-btn kit-action-primary" (click)="startSave()">
-          💾 Save kit
-        </button>
-      }
-      @if (savedMessage()) {
-        <span class="kit-saved-msg">{{ savedMessage() }}</span>
-      }
-    </div>
-
-    <a routerLink="/profile/collection" class="collection-link">View My Collection →</a>
-
-    @if (showSaveInput()) {
-      <form class="save-row" (ngSubmit)="confirmSave()">
-        <input
-          type="text"
-          class="save-input"
-          placeholder="Name this kit (e.g. Bali June)"
-          [ngModel]="saveName()"
-          (ngModelChange)="saveName.set($event)"
-          name="kitName"
-          aria-label="Kit name"
-        />
-        <button type="submit" class="kit-action-btn kit-action-primary">Save</button>
-        <button type="button" class="kit-action-btn" (click)="cancelSave()">Cancel</button>
-      </form>
-    }
-
     <div class="item-list">
       @for (item of displayItems(); track item.productId) {
         <div class="item-card" [style.background]="item.tint">
@@ -97,6 +63,40 @@
         </div>
       }
     </div>
+
+    <!-- Kit actions: download PDF, email, save under a custom name -->
+    <div class="kit-actions">
+      <button type="button" class="kit-action-btn" (click)="downloadPdf()" [disabled]="exporting()">
+        {{ exporting() ? 'Preparing…' : '⬇ Download PDF' }}
+      </button>
+      <button type="button" class="kit-action-btn" (click)="emailKit()">✉ Email my kit</button>
+      @if (!showSaveInput()) {
+        <button type="button" class="kit-action-btn kit-action-primary" (click)="startSave()">
+          💾 Save kit
+        </button>
+      }
+      @if (savedMessage()) {
+        <span class="kit-saved-msg">{{ savedMessage() }}</span>
+      }
+    </div>
+
+    @if (showSaveInput()) {
+      <form class="save-row" (ngSubmit)="confirmSave()">
+        <input
+          type="text"
+          class="save-input"
+          placeholder="Name this kit (e.g. Bali June)"
+          [ngModel]="saveName()"
+          (ngModelChange)="saveName.set($event)"
+          name="kitName"
+          aria-label="Kit name"
+        />
+        <button type="submit" class="kit-action-btn kit-action-primary">Save</button>
+        <button type="button" class="kit-action-btn" (click)="cancelSave()">Cancel</button>
+      </form>
+    }
+
+    <a routerLink="/profile/collection" class="collection-link">View My Collection →</a>
   </div>
 } @else {
   <div class="empty-state">

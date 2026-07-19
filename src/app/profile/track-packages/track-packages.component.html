@@ -1,0 +1,48 @@
+@if (orders().length > 0) {
+  <div class="orders-head">
+    <p class="eyebrow">Track Packages</p>
+    <h1 class="orders-title">Your Orders</h1>
+    <p class="orders-count">{{ orders().length }} order{{ orders().length !== 1 ? 's' : '' }}</p>
+  </div>
+
+  <div class="orders-list">
+    @for (order of orders(); track order.id) {
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <span class="order-id">Order #{{ order.id }}</span>
+            <span class="order-date">Placed {{ placedDateLabel(order) }}</span>
+          </div>
+          <span class="order-total">{{ order.total | currency: order.currency }}</span>
+        </div>
+
+        <div class="order-items">
+          @for (item of order.items; track item.productId) {
+            <span class="order-item">
+              {{ item.icon }} {{ item.name }} × {{ item.quantity }}
+            </span>
+          }
+        </div>
+
+        <div class="status-tracker">
+          @for (step of statusSteps; track step; let i = $index) {
+            <div class="status-step" [class.done]="i <= stepIndex(order)">
+              <div class="status-dot"></div>
+              <span class="status-label">{{ step }}</span>
+              @if (i < statusSteps.length - 1) {
+                <div class="status-line" [class.done]="i < stepIndex(order)"></div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="empty-state">
+    <p class="empty-icon">📦</p>
+    <h1>No orders yet.</h1>
+    <p>Once you check out, your orders and their delivery status will show up here.</p>
+    <a routerLink="/shop" class="empty-btn">Go to Shop</a>
+  </div>
+}
