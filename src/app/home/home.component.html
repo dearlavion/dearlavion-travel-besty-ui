@@ -28,20 +28,22 @@
   </div>
 
   <div class="hero-visual">
-    <div class="gallery-card">
+    <div class="gallery-wrap">
       <div class="gallery-tag">
         @for (item of heroGalleryItems; track item.label; let i = $index) {
           <span class="gallery-tag-label" [style.animation-delay.s]="i * -3">{{ item.label }}</span>
         }
       </div>
-      @for (item of heroGalleryItems; track item.label; let i = $index) {
-        <img
-          [src]="item.image"
-          [alt]="item.label"
-          class="gallery-image"
-          [style.animation-delay.s]="i * -3"
-        />
-      }
+      <div class="gallery-card">
+        @for (item of heroGalleryItems; track item.label; let i = $index) {
+          <img
+            [src]="item.image"
+            [alt]="item.label"
+            class="gallery-image"
+            [style.animation-delay.s]="i * -3"
+          />
+        }
+      </div>
     </div>
   </div>
 </div>
