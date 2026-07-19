@@ -2,7 +2,7 @@
   <div class="kit-page">
     <div class="kit-head">
       <p class="eyebrow">Your kit</p>
-      <h1 class="kit-title">Your Travel Kit</h1>
+      <h1 class="kit-title">{{ builtKit.title ?? 'Your Travel Kit' }}</h1>
       <p class="kit-summary">{{ builtKit.summary }}</p>
       <p class="kit-count">{{ displayItems().length }} items, hand-picked for this trip</p>
     </div>

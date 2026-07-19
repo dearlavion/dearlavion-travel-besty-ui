@@ -605,6 +605,11 @@ section {
   background: var(--tint-yellow);
   border: 2px solid transparent;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .kit-card:hover {

@@ -1,7 +1,9 @@
 import { Component, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FooterComponent } from '../common/footer/footer.component';
+import { TripAnswers, buildTravelKit } from '../travel/kit-recommendation';
+import { TravelKitService } from '../travel/travel-kit.service';
 
 interface Step {
   num: string;
@@ -9,9 +11,14 @@ interface Step {
   text: string;
 }
 
-interface KitCard {
+interface KitCardDef {
   image: string;
   name: string;
+  tag: string;
+  answers: TripAnswers;
+}
+
+interface KitCard extends KitCardDef {
   meta: string;
 }
 
@@ -54,7 +61,11 @@ const RING_START_ANGLE = -90; // first item straight up, rest follow clockwise
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
-  constructor(private readonly sanitizer: DomSanitizer) {
+  constructor(
+    private readonly sanitizer: DomSanitizer,
+    private readonly router: Router,
+    private readonly travelKitService: TravelKitService,
+  ) {
     this.bagItems = this.buildBagItems();
     this.bagLayout = signal(this.buildLayout());
   }
@@ -226,28 +237,45 @@ export class HomeComponent {
   ];
 
   // Dummy photos until real kit imagery is in the media store — seeded so each card stays stable across reloads.
-  protected readonly kitCards: KitCard[] = [
+  // `answers` feeds the same buildTravelKit() engine the quiz uses, so clicking a card lands on
+  // /my-kit with the identical results UI, just pre-built from a fixed trip profile instead of
+  // the quiz's answers. `meta`'s item count is derived from that same engine (below) rather than
+  // hand-typed, so it can't drift out of sync with the kit the card actually opens again — it
+  // previously read "14 items"/"18 items"/"30 items" while the real built kits were 20/20/21.
+  private readonly kitCardDefs: KitCardDef[] = [
     {
       image: 'https://picsum.photos/seed/beach-essentials/600/420',
       name: 'Beach Essentials',
-      meta: '14 items · warm climates',
+      tag: 'warm climates',
+      answers: { destination: 'Beach', season: 'Summer', party: 'Solo', duration: 'Quick escape' },
     },
     {
       image: 'https://picsum.photos/seed/backpacker-kit/600/420',
       name: 'Backpacker Kit',
-      meta: '22 items · long stays',
+      tag: 'long stays',
+      answers: { destination: 'Mountain', season: 'Summer', party: 'Solo', duration: 'Living it' },
     },
     {
       image: 'https://picsum.photos/seed/winter-city-break/600/420',
       name: 'Winter City Break',
-      meta: '18 items · short stays',
+      tag: 'short stays',
+      answers: { destination: 'City', season: 'Winter', party: 'Solo', duration: 'Quick escape' },
     },
     {
       image: 'https://picsum.photos/seed/group-travel-bundle/600/420',
       name: 'Group Travel Bundle',
-      meta: '30 items · 2–6 people',
+      tag: '2–6 people',
+      // Season deliberately set to Rainy (not reused by any other homepage card) so this kit's
+      // item list doesn't overlap as heavily with Winter City Break just because both happen to
+      // be city-adjacent — the four cards together now cover all 3 destinations and all 3 seasons.
+      answers: { destination: 'Beach', season: 'Rainy', party: 'Group', duration: 'A proper break' },
     },
   ];
+
+  protected readonly kitCards: KitCard[] = this.kitCardDefs.map((def) => ({
+    ...def,
+    meta: `${buildTravelKit(def.answers).length} items · ${def.tag}`,
+  }));
 
   // Doubled so the marquee's translateX(-50%) keyframe lands exactly on a repeat of the
   // original set, making the loop seamless instead of jumping/blanking at the restart.
@@ -259,4 +287,20 @@ export class HomeComponent {
     { icon: '🏙️', label: 'City', destination: 'City' },
     { icon: '🧳', label: 'Group Travel', destination: null },
   ];
+
+  // Same TravelKitService the quiz's reveal step uses — populating it here before navigating
+  // means /my-kit renders through the exact same @if(kit(); as builtKit) path either way.
+  protected viewKit(kit: KitCard): void {
+    const { destination, season, party, duration } = kit.answers;
+    const partyPart = party === 'Group' ? ' with the group' : '';
+    // Duration labels ("A proper break") read as standalone answer choices, not clause
+    // fragments — drop a leading "a " so it doesn't collide with the "your" already in front.
+    const durationPhrase = duration.toLowerCase().replace(/^a /, '');
+    this.travelKitService.setKit({
+      items: buildTravelKit(kit.answers),
+      summary: `Built for your ${durationPhrase} ${season.toLowerCase()} trip to the ${destination.toLowerCase()}${partyPart} — here's everything you'll need.`,
+      title: kit.name,
+    });
+    this.router.navigateByUrl('/my-kit');
+  }
 }
