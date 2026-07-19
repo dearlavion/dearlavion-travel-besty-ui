@@ -22,7 +22,7 @@
 .page-title {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 44px;
+  font-size: clamp(28px, 2.6vw + 18px, 44px);
   color: var(--color-ink);
 }
 
@@ -361,8 +361,5 @@
 @media (max-width: 560px) {
   .grid {
     grid-template-columns: 1fr;
-  }
-  .page-title {
-    font-size: 32px;
   }
 }

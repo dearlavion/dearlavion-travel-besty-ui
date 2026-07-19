@@ -16,7 +16,7 @@
 .kit-title {
   font-family: var(--font-heading);
   font-weight: 400;
-  font-size: 34px;
+  font-size: clamp(24px, 1.6vw + 18px, 34px);
   color: var(--color-ink);
   margin: 10px 0 12px;
 }

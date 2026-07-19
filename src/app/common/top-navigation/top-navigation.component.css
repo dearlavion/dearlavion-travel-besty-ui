@@ -103,8 +103,33 @@
   line-height: 1;
 }
 
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.mobile-menu {
+  display: none;
+}
+
 @media (max-width: 700px) {
+  /* Mobile header collapses down to just the cart icon + burger menu — everything else
+     (Home/Travel/Shop/Profile/About, Login, Build Travel Kit) lives inside the burger panel. */
   .navlinks {
+    display: none;
+  }
+
+  .nav-cta-ghost,
+  .nav-cta-primary {
     display: none;
   }
 
@@ -112,20 +137,54 @@
     padding: 20px 20px;
   }
 
-  .nav-cta {
-    padding: 9px 14px;
-    font-size: 12.5px;
-    white-space: nowrap;
-  }
-
   .cart-link {
     width: 32px;
     height: 32px;
   }
-}
 
-@media (max-width: 420px) {
-  .nav-cta-ghost {
-    display: none;
+  .menu-toggle {
+    display: flex;
+  }
+
+  .mobile-menu {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid var(--color-line);
+    box-shadow: 0 20px 40px -20px rgba(58, 46, 46, 0.3);
+    padding: 4px 24px 20px;
+    z-index: 10;
+  }
+
+  .mobile-menu a {
+    padding: 15px 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-ink-soft);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .mobile-menu a.active,
+  .mobile-menu a:hover {
+    color: var(--color-coral-deep);
+  }
+
+  .mobile-menu-cta {
+    margin-top: 14px;
+    text-align: center;
+    background: var(--color-coral);
+    color: #fff !important;
+    border-radius: 999px;
+    padding: 13px !important;
+    border-bottom: none !important;
+    font-weight: 700 !important;
+  }
+
+  .mobile-menu-cta:hover {
+    background: var(--color-coral-deep);
   }
 }

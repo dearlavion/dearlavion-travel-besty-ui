@@ -94,6 +94,14 @@
   }
   .profile-nav {
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .profile-nav-link {
+    padding: 9px 12px;
+    font-size: 13px;
   }
 }

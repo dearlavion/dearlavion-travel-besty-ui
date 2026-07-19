@@ -36,10 +36,21 @@
 html {
   scroll-behavior: smooth;
   height: 100%;
+  /* Several decorative elements (hero background blobs, the home ribbon marquee, etc.)
+     deliberately bleed past their container edge for visual effect. That's fine on desktop where
+     there's slack around the centered content, but on narrow/mobile viewports it was creating a
+     real horizontal scrollbar. Clipping at the true viewport edge keeps the same visual look
+     (nothing was meant to be reachable by scrolling right) without touching any component. */
+  overflow-x: hidden;
+  /* Prevents iOS Safari from auto-bumping the base font size when rotating to landscape, which
+     otherwise fights with the fluid clamp()-based type scale used across the site. */
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-body);

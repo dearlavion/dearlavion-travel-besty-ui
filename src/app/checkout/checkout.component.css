@@ -24,7 +24,7 @@
 .checkout-title {
   font-family: var(--font-heading);
   font-weight: 400;
-  font-size: 32px;
+  font-size: clamp(23px, 1.4vw + 18px, 32px);
   color: var(--color-ink);
 }
 

@@ -42,5 +42,40 @@
     </a>
     <a routerLink="/login" class="nav-cta nav-cta-ghost">Login</a>
     <a routerLink="/travel" class="nav-cta nav-cta-primary">Build Travel Kit</a>
+
+    <button
+      type="button"
+      class="menu-toggle"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-label="Toggle menu"
+    >
+      @if (mobileMenuOpen()) {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      } @else {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      }
+    </button>
   </div>
+
+  @if (mobileMenuOpen()) {
+    <div class="mobile-menu">
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeMobileMenu()"
+        >Home</a
+      >
+      <a routerLink="/travel" routerLinkActive="active" (click)="closeMobileMenu()">Travel</a>
+      <a routerLink="/shop" routerLinkActive="active" (click)="closeMobileMenu()">Shop</a>
+      <a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">Profile</a>
+      <a routerLink="/about" routerLinkActive="active" (click)="closeMobileMenu()">About</a>
+      <a routerLink="/login" class="mobile-menu-cta" (click)="closeMobileMenu()">Login</a>
+    </div>
+  }
 </nav>
