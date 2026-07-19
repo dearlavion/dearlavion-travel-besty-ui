@@ -708,3 +708,12 @@ section {
     align-items: flex-start;
   }
 }
+
+@media (max-width: 640px) {
+  /* Placed after the 860px block so it wins the cascade at narrow widths — both media
+     conditions match on mobile, and the 860px rule (2 columns) would otherwise win by
+     source order. */
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}
