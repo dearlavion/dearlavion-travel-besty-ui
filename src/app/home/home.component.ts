@@ -235,7 +235,7 @@ export class HomeComponent {
   // hero3.png is pending — drop it into public/homepage/ once it's ready.
   protected readonly heroGalleryItems: HeroGalleryItem[] = [
     { image: 'homepage/hero2.png', label: 'Beach Kit' },
-    { image: 'homepage/hero3.jpg', label: 'Mountain Ready Kit' },
+    { image: 'homepage/hero3.jpg', label: 'Airport Ready Kit' },
     { image: 'homepage/hero1.png', label: 'Hello New York' },
   ];
 
