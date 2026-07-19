@@ -21,6 +21,11 @@ interface CategoryChip {
   destination: string | null;
 }
 
+interface HeroGalleryItem {
+  image: string;
+  label: string;
+}
+
 interface BagItem {
   label: string;
   bg: string;
@@ -212,6 +217,13 @@ export class HomeComponent {
   ];
 
   protected readonly trustPills = ['Field-tested items', '4,200+ kits built', 'One-stop essentials'];
+
+  // hero3.png is pending — drop it into public/homepage/ once it's ready.
+  protected readonly heroGalleryItems: HeroGalleryItem[] = [
+    { image: 'homepage/hero2.png', label: 'Beach Kit' },
+    { image: 'homepage/hero3.jpg', label: 'Mountain Ready Kit' },
+    { image: 'homepage/hero1.png', label: 'Hello New York' },
+  ];
 
   // Dummy photos until real kit imagery is in the media store — seeded so each card stays stable across reloads.
   protected readonly kitCards: KitCard[] = [

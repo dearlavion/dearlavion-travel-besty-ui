@@ -28,20 +28,20 @@
   </div>
 
   <div class="hero-visual">
-    <div class="bouquet-card">
-      <div class="bouquet-tag">freshly gathered 🌱</div>
-      <div class="stems">
-        <div class="stem s1"></div>
-        <div class="stem s2"></div>
-        <div class="stem s3"></div>
-        <div class="stem s4"></div>
+    <div class="gallery-card">
+      <div class="gallery-tag">
+        @for (item of heroGalleryItems; track item.label; let i = $index) {
+          <span class="gallery-tag-label" [style.animation-delay.s]="i * -3">{{ item.label }}</span>
+        }
       </div>
-      <div class="bouquet-fields">
-        <div class="bfield"><span class="k">Destination</span><span class="v">Beach</span></div>
-        <div class="bfield"><span class="k">Season</span><span class="v">Summer</span></div>
-        <div class="bfield"><span class="k">Party</span><span class="v">Solo</span></div>
-      </div>
-      <div class="dot-row">4 items picked</div>
+      @for (item of heroGalleryItems; track item.label; let i = $index) {
+        <img
+          [src]="item.image"
+          [alt]="item.label"
+          class="gallery-image"
+          [style.animation-delay.s]="i * -3"
+        />
+      }
     </div>
   </div>
 </div>
