@@ -87,6 +87,16 @@ export const PRODUCTS: Product[] = [
   { id: 'extended-medication-organizer', name: 'Extended Medication Organizer', category: 'Health', seasons: [], destinations: [], parties: [], price: 12.5, currency: 'USD', popular: false, tested: true, icon: '💊', active: true, description: 'A full month of daily compartments.', stock: 9, soldOut: false },
   { id: 'packing-cubes-full-set', name: 'Packing Cubes (Full Set)', category: 'Gear', seasons: [], destinations: [], parties: [], price: 34.0, currency: 'USD', popular: false, tested: true, icon: '🧳', active: true, description: 'Complete system for extended travel.', stock: 0, soldOut: true },
   { id: 'foldable-spare-duffel', name: 'Foldable Spare Duffel', category: 'Gear', seasons: [], destinations: [], parties: [], price: 19.0, currency: 'USD', popular: true, tested: true, icon: '🎒', active: true, description: 'Packs flat, unfolds for souvenirs on the way home.', stock: 20, soldOut: false },
+
+  // Added for the "Beach Starter Pack" popular kit — distinct form factors from the closest
+  // existing items (stick vs. 50ml liquid sunscreen; no water bottle previously in the catalog).
+  { id: 'reef-safe-stick-sunscreen', name: 'Reef-Safe Stick Sunscreen SPF30+', category: 'Toiletries', seasons: ['Summer'], destinations: ['Beach'], parties: [], price: 9.0, currency: 'USD', popular: false, tested: true, icon: '🧴', active: true, description: 'Solid, mess-free sunscreen stick — easy to reapply on the go.', stock: 40, soldOut: false },
+  { id: 'collapsible-silicone-water-bottle', name: 'Collapsible Silicone Water Bottle', category: 'Comfort', seasons: [], destinations: [], parties: [], price: 15.0, currency: 'USD', popular: false, tested: true, icon: '🥤', active: true, description: 'Squashes flat when empty, holds 500ml when full.', stock: 35, soldOut: false },
+
+  // Added for the "Airport Carry-On" popular kit — nothing in the catalog covered flight-specific
+  // comfort/circulation items.
+  { id: 'compression-socks-flight', name: 'Compression Socks (Flight)', category: 'Clothing', seasons: [], destinations: [], parties: [], price: 14.0, currency: 'USD', popular: false, tested: true, icon: '🧦', active: true, description: 'Graduated compression to reduce leg fatigue and swelling on long flights.', stock: 45, soldOut: false },
+  { id: 'travel-pillow-eye-mask-set', name: 'Travel Pillow & Eye Mask Set', category: 'Comfort', seasons: [], destinations: [], parties: [], price: 22.0, currency: 'USD', popular: false, tested: true, icon: '😴', active: true, description: 'Memory-foam neck pillow paired with a contoured eye mask for real airport sleep.', stock: 30, soldOut: false },
 ];
 
 const DESTINATION_TINT: Partial<Record<ProductDestination, string>> = {

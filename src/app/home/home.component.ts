@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, signal, viewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FooterComponent } from '../common/footer/footer.component';
@@ -71,6 +71,12 @@ export class HomeComponent {
   ) {
     this.bagItems = this.buildBagItems();
     this.bagLayout = signal(this.buildLayout());
+
+    afterNextRender(() => {
+      this.measureMarquee();
+      window.addEventListener('resize', () => this.measureMarquee());
+      requestAnimationFrame((t) => this.runMarqueeLoop(t));
+    });
   }
 
   protected readonly bagOpen = signal(false);
@@ -266,9 +272,82 @@ export class HomeComponent {
     }),
   );
 
-  // Doubled so the marquee's translateX(-50%) keyframe lands exactly on a repeat of the
-  // original set, making the loop seamless instead of jumping/blanking at the restart.
+  // Doubled so that once `offset` wraps past one full set's width, the duplicated second set is
+  // already sitting in view — the wrap-to-0 reset lands on an identical-looking frame instead of
+  // jumping/blanking.
   protected readonly kitCardsLoop = computed<KitCard[]>(() => [...this.kitCards(), ...this.kitCards()]);
+
+  // ── Popular-kits marquee: auto-scrolls continuously (JS rAF loop, not CSS @keyframes, so the
+  // arrow/dot controls below can nudge the same position the autoplay is animating) ─────────────
+  protected readonly trackRef = viewChild<ElementRef<HTMLDivElement>>('track');
+  protected readonly offset = signal(0);
+  protected readonly paused = signal(false);
+  private cardStep = 0; // one card's width + gap, in px — measured from the live DOM
+  private loopWidth = 0; // width of one full (non-doubled) set of cards
+  private lastFrameTime = 0;
+
+  protected readonly activeKitIndex = computed(() => {
+    // Read `offset()` unconditionally (before any early return) so this computed always
+    // registers it as a dependency — otherwise the very first evaluation (which hits the
+    // `!this.cardStep` guard before `measureMarquee()` has run) would never read `offset()` at
+    // all, and later `offset` changes wouldn't invalidate this computed's cached `0`.
+    const offset = this.offset();
+    const count = this.kitCards().length;
+    if (!count || !this.cardStep) return 0;
+    return Math.round(offset / this.cardStep) % count;
+  });
+
+  private measureMarquee(): void {
+    const track = this.trackRef()?.nativeElement;
+    const firstCard = track?.children[0] as HTMLElement | undefined;
+    if (!track || !firstCard) return;
+    const gap = parseFloat(getComputedStyle(track).columnGap || '0');
+    this.cardStep = firstCard.getBoundingClientRect().width + gap;
+    this.loopWidth = this.cardStep * this.kitCards().length;
+  }
+
+  private runMarqueeLoop(time: number): void {
+    if (this.lastFrameTime && !this.paused() && this.loopWidth > 0) {
+      const deltaSeconds = (time - this.lastFrameTime) / 1000;
+      const pxPerSecond = this.loopWidth / 32; // full loop every ~32s, matching the old CSS pace
+      this.offset.update((current) => {
+        const next = current + pxPerSecond * deltaSeconds;
+        return next >= this.loopWidth ? next - this.loopWidth : next;
+      });
+    }
+    this.lastFrameTime = time;
+    requestAnimationFrame((t) => this.runMarqueeLoop(t));
+  }
+
+  private wrapOffsetBy(delta: number): void {
+    if (!this.loopWidth) return;
+    this.offset.update((current) => {
+      const next = (current + delta) % this.loopWidth;
+      return next < 0 ? next + this.loopWidth : next;
+    });
+  }
+
+  protected nudgeMarquee(direction: 1 | -1): void {
+    if (!this.cardStep) return;
+    this.wrapOffsetBy(direction * this.cardStep);
+  }
+
+  protected jumpToKit(index: number): void {
+    if (!this.cardStep) return;
+    this.offset.set(index * this.cardStep);
+  }
+
+  // Lets a mouse wheel or trackpad gesture over the carousel drive it directly, instead of
+  // scrolling the page — autoplay is already paused by the (mouseenter) handler on
+  // `.kits-marquee` for the whole time the cursor is here, so no separate pause bookkeeping is
+  // needed. Trackpad users mostly send deltaX; plain mouse wheels send deltaY — whichever axis
+  // has the bigger magnitude wins, so both gestures feel natural.
+  protected onKitsWheel(event: WheelEvent): void {
+    if (!this.loopWidth) return;
+    event.preventDefault();
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    this.wrapOffsetBy(delta);
+  }
 
   protected readonly categoryChips: CategoryChip[] = [
     { icon: '🏖️', label: 'Beach', destination: 'Beach' },
