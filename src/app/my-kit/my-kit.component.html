@@ -17,9 +17,9 @@
             [attr.aria-expanded]="isExpanded(item.productId)"
           >
             <span class="item-label">{{ item.label }}</span>
-            @if (item.product) {
+            @if (item.suggestions.length > 0) {
               <span class="item-toggle" [class.open]="isExpanded(item.productId)">
-                View suggested product
+                View suggestions
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M6 9l6 6 6-6"
@@ -33,31 +33,44 @@
             }
           </button>
 
-          @if (item.product && isExpanded(item.productId)) {
-            <div class="mini-product">
-              <div class="mini-image" [style.background]="getProductTint(item.product)">
-                @if (item.product.image) {
-                  <img [src]="item.product.image" [alt]="item.product.name" class="mini-photo" />
-                } @else {
-                  <span>{{ item.product.icon }}</span>
-                }
-              </div>
-              <div class="mini-body">
-                <div class="mini-name">{{ item.product.name }}</div>
-                <div class="mini-price">{{ item.product.price | currency: item.product.currency }}</div>
-              </div>
-              <div class="mini-actions">
-                <button
-                  type="button"
-                  class="mini-add-btn"
-                  [class.added]="isAdded(item.productId)"
-                  [disabled]="item.product.soldOut"
-                  (click)="addToCart(item.productId)"
+          @if (item.suggestions.length > 0 && isExpanded(item.productId)) {
+            <div class="mini-suggestions">
+              @for (product of item.suggestions; track product.id) {
+                <div class="mini-product">
+                  <div class="mini-image" [style.background]="getProductTint(product)">
+                    @if (product.image) {
+                      <img [src]="product.image" [alt]="product.name" class="mini-photo" />
+                    } @else {
+                      <span>{{ product.icon }}</span>
+                    }
+                  </div>
+                  <div class="mini-body">
+                    <div class="mini-name">{{ product.name }}</div>
+                    <div class="mini-price">{{ product.price | currency: product.currency }}</div>
+                  </div>
+                  <div class="mini-actions">
+                    <button
+                      type="button"
+                      class="mini-add-btn"
+                      [class.added]="isAdded(product.id)"
+                      [disabled]="product.soldOut"
+                      (click)="addToCart(product.id)"
+                    >
+                      {{ product.soldOut ? 'Sold Out' : isAdded(product.id) ? 'Added ✓' : 'Add to Cart' }}
+                    </button>
+                    <a [routerLink]="['/product', product.id]" class="mini-view-btn">View</a>
+                  </div>
+                </div>
+              }
+              @if (item.hasMoreSuggestions) {
+                <a
+                  class="load-more-link"
+                  routerLink="/shop"
+                  [queryParams]="{ search: item.moreSuggestionsCategory }"
                 >
-                  {{ item.product.soldOut ? 'Sold Out' : isAdded(item.productId) ? 'Added ✓' : 'Add to Cart' }}
-                </button>
-                <a [routerLink]="['/product', item.product.id]" class="mini-view-btn">View</a>
-              </div>
+                  Load more suggestions →
+                </a>
+              }
             </div>
           }
         </div>

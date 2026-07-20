@@ -15,7 +15,9 @@ import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 interface DisplayItem {
   label: string;
   productId: string;
-  product: Product | undefined;
+  suggestions: Product[]; // primary match first (if it resolves), then related — capped at MAX_SUGGESTIONS
+  hasMoreSuggestions: boolean;
+  moreSuggestionsCategory: string | null;
   tint: string;
 }
 
@@ -30,6 +32,11 @@ const PASTEL_TINTS = [
   'var(--tint-blue)',
   'var(--tint-violet)',
 ];
+
+const MAX_SUGGESTIONS = 3;
+// Generous enough to cover this catalog's largest single category, so "hasMoreSuggestions" is
+// based on the true related-product count rather than an artificially truncated lookup.
+const RELATED_LOOKUP_LIMIT = 20;
 
 @Component({
   selector: 'app-my-kit',
@@ -74,12 +81,19 @@ export class MyKitComponent {
   protected readonly displayItems = computed<DisplayItem[]>(() => {
     const kit = this.kit();
     if (!kit) return [];
-    return kit.items.map((item, index) => ({
-      label: item.label,
-      productId: item.productId,
-      product: this.catalog.getById(item.productId),
-      tint: PASTEL_TINTS[index % PASTEL_TINTS.length],
-    }));
+    return kit.items.map((item, index) => {
+      const primary = this.catalog.getById(item.productId);
+      const related = primary ? this.catalog.getRelated(primary, RELATED_LOOKUP_LIMIT) : [];
+      const suggestions = primary ? [primary, ...related].slice(0, MAX_SUGGESTIONS) : [];
+      return {
+        label: item.label,
+        productId: item.productId,
+        suggestions,
+        hasMoreSuggestions: related.length > MAX_SUGGESTIONS - 1,
+        moreSuggestionsCategory: primary?.category ?? null,
+        tint: PASTEL_TINTS[index % PASTEL_TINTS.length],
+      };
+    });
   });
 
   protected isExpanded(productId: string): boolean {
@@ -123,7 +137,7 @@ export class MyKitComponent {
     return {
       title: k.title ?? 'Your Travel Kit',
       summary: k.summary,
-      items: this.displayItems().map((d) => ({ label: d.label, product: d.product })),
+      items: this.displayItems().map((d) => ({ label: d.label, product: d.suggestions[0] })),
     };
   }
 

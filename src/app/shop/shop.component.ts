@@ -108,6 +108,14 @@ export class ShopComponent implements OnInit {
     if (destinationParam === 'Beach' || destinationParam === 'Mountain' || destinationParam === 'City') {
       this.destinations.set(new Set([destinationParam]));
     }
+
+    // My Kit's "Load more suggestions" link passes a product category through here — `filtered`
+    // already matches search terms against category text, so pre-filling the search box is
+    // enough to land the user on the full set of that category's products.
+    const searchParam = this.route.snapshot.queryParamMap.get('search');
+    if (searchParam) {
+      this.search.set(searchParam);
+    }
   }
 
   protected isSeasonSelected(season: ProductSeason): boolean {
