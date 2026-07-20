@@ -1,26 +1,15 @@
 import { afterNextRender, Component, computed, ElementRef, signal, viewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
-import { KitItem, TripAnswers } from '../travel/kit-recommendation';
-import { TravelKitService } from '../travel/travel-kit.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
+import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
 
 interface Step {
   num: string;
   title: string;
   text: string;
-}
-
-interface KitCard {
-  id: string;
-  image: string;
-  name: string;
-  tag: string;
-  meta: string;
-  answers: TripAnswers;
-  productIds: string[];
 }
 
 interface CategoryChip {
@@ -64,8 +53,6 @@ const RING_START_ANGLE = -90; // first item straight up, rest follow clockwise
 export class HomeComponent {
   constructor(
     private readonly sanitizer: DomSanitizer,
-    private readonly router: Router,
-    private readonly travelKitService: TravelKitService,
     private readonly popularKitsService: PopularKitsService,
     private readonly catalog: ProductCatalogService,
   ) {
@@ -245,37 +232,18 @@ export class HomeComponent {
     { image: 'homepage/hero1.png', label: 'Hello New York' },
   ];
 
-  // Sourced from PopularKitsService (admin-editable, localStorage-backed) rather than hardcoded
-  // here — admins curate this "Popular kits" collection, including its exact product list, from
-  // /admin/popular-kits. `answers` (destination/season/party/duration) is cosmetic-only now —
-  // it just feeds the "Built for your ... trip" summary text; the actual contents come entirely
-  // from `productIds`, so `meta`'s item count can never drift out of sync with what the kit
-  // actually opens to.
-  protected readonly kitCards = computed<KitCard[]>(() =>
-    this.popularKitsService.kits().map((kit) => {
-      const answers: TripAnswers = {
-        destination: kit.destination,
-        season: kit.season,
-        party: kit.party,
-        duration: kit.duration,
-      };
-      const linkedCount = kit.productIds.filter((id) => this.catalog.getById(id)).length;
-      return {
-        id: kit.id,
-        image: kit.image,
-        name: kit.name,
-        tag: kit.tag,
-        answers,
-        productIds: kit.productIds,
-        meta: `${linkedCount} items · ${kit.tag}`,
-      };
-    }),
+  // Sourced from PopularKitsService (admin-editable, localStorage-backed) via the shared
+  // toPopularKitCard() helper — also used by TravelComponent's gallery — rather than hardcoded
+  // here. Admins curate this "Popular kits" collection, including its exact product list, from
+  // /admin/popular-kits.
+  protected readonly kitCards = computed<PopularKitCard[]>(() =>
+    this.popularKitsService.kits().map((kit) => toPopularKitCard(kit, this.catalog)),
   );
 
   // Doubled so that once `offset` wraps past one full set's width, the duplicated second set is
   // already sitting in view — the wrap-to-0 reset lands on an identical-looking frame instead of
   // jumping/blanking.
-  protected readonly kitCardsLoop = computed<KitCard[]>(() => [...this.kitCards(), ...this.kitCards()]);
+  protected readonly kitCardsLoop = computed<PopularKitCard[]>(() => [...this.kitCards(), ...this.kitCards()]);
 
   // ── Popular-kits marquee: auto-scrolls continuously (JS rAF loop, not CSS @keyframes, so the
   // arrow/dot controls below can nudge the same position the autoplay is animating) ─────────────
@@ -355,26 +323,4 @@ export class HomeComponent {
     { icon: '🏙️', label: 'City', destination: 'City' },
     { icon: '🧳', label: 'Group Travel', destination: null },
   ];
-
-  // Same TravelKitService the quiz's reveal step uses — populating it here before navigating
-  // means /my-kit renders through the exact same @if(kit(); as builtKit) path either way.
-  protected viewKit(kit: KitCard): void {
-    const { destination, season, party, duration } = kit.answers;
-    const partyPart = party === 'Group' ? ' with the group' : '';
-    // Duration labels ("A proper break") read as standalone answer choices, not clause
-    // fragments — drop a leading "a " so it doesn't collide with the "your" already in front.
-    const durationPhrase = duration.toLowerCase().replace(/^a /, '');
-    // Skip any productId whose product has since been deleted from the catalog rather than
-    // showing a broken entry with no name/price/image.
-    const items: KitItem[] = kit.productIds
-      .map((id) => this.catalog.getById(id))
-      .filter((product) => !!product)
-      .map((product) => ({ label: product.name, productId: product.id }));
-    this.travelKitService.setKit({
-      items,
-      summary: `Built for your ${durationPhrase} ${season.toLowerCase()} trip to the ${destination.toLowerCase()}${partyPart} — here's everything you'll need.`,
-      title: kit.name,
-    });
-    this.router.navigateByUrl('/my-kit');
-  }
 }

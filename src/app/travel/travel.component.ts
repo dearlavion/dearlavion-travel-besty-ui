@@ -1,5 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { FooterComponent } from '../common/footer/footer.component';
+import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
+import { ProductCatalogService } from '../shop/product-catalog.service';
+import { PopularKitCard, toPopularKitCard } from './popular-kit-view';
 import { buildTravelKit, Destination, Duration, Party, Season } from './kit-recommendation';
 import { TravelKitService } from './travel-kit.service';
 
@@ -9,12 +14,15 @@ const AUTO_ADVANCE_DELAY_MS = 350;
 @Component({
   selector: 'app-travel',
   standalone: true,
+  imports: [FormsModule, RouterLink, FooterComponent],
   templateUrl: './travel.component.html',
   styleUrl: './travel.component.css',
 })
 export class TravelComponent {
   private readonly router = inject(Router);
   private readonly travelKitService = inject(TravelKitService);
+  private readonly popularKitsService = inject(PopularKitsService);
+  private readonly catalog = inject(ProductCatalogService);
 
   protected readonly step = signal(0);
   protected readonly totalSteps = TOTAL_STEPS;
@@ -108,4 +116,20 @@ export class TravelComponent {
   private autoAdvance(): void {
     setTimeout(() => this.goNext(), AUTO_ADVANCE_DELAY_MS);
   }
+
+  // ── Popular Kits gallery — browsable alternative to the wizard above, sourced from the same
+  // admin-curated PopularKitsService as the homepage marquee (via the shared popular-kit-view
+  // helpers) so both surfaces always agree on a kit's contents. ──────────────────────────────────
+  protected readonly gallerySearch = signal('');
+
+  protected readonly popularKitCards = computed<PopularKitCard[]>(() =>
+    this.popularKitsService.kits().map((kit) => toPopularKitCard(kit, this.catalog)),
+  );
+
+  protected readonly filteredPopularKits = computed<PopularKitCard[]>(() => {
+    const term = this.gallerySearch().trim().toLowerCase();
+    const cards = this.popularKitCards();
+    if (!term) return cards;
+    return cards.filter((card) => card.name.toLowerCase().includes(term) || card.tag.toLowerCase().includes(term));
+  });
 }

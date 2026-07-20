@@ -645,6 +645,7 @@ section {
 }
 
 .kit-card {
+  display: block;
   flex: 0 0 22vw;
   min-width: 260px;
   overflow: hidden;
@@ -656,6 +657,8 @@ section {
   font: inherit;
   text-align: left;
   cursor: pointer;
+  color: inherit;
+  text-decoration: none;
 }
 
 .kit-card:hover {

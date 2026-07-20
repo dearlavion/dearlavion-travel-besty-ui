@@ -338,6 +338,125 @@
   background: var(--color-coral-deep);
 }
 
+.gallery-section {
+  max-width: 1160px;
+  margin: 70px auto 0;
+  padding: 0 32px 80px;
+}
+
+.section-head {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto 32px;
+}
+
+.section-eyebrow {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-leaf);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(22px, 1.4vw + 16px, 30px);
+  color: var(--color-ink);
+}
+
+.section-sub {
+  font-size: 14.5px;
+  color: var(--color-ink-soft);
+  margin-top: 10px;
+}
+
+.gallery-search {
+  max-width: 480px;
+  margin: 0 auto 32px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--tint-cream);
+  border-radius: 999px;
+  padding: 12px 20px;
+}
+
+.gallery-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.gallery-search input::placeholder {
+  color: var(--color-ink-soft);
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.gallery-card {
+  display: block;
+  overflow: hidden;
+  background: var(--tint-yellow);
+  border: 2px solid transparent;
+  border-radius: 18px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.gallery-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 42px -20px rgba(58, 46, 46, 0.22);
+}
+
+.gallery-card-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 600 / 420;
+  object-fit: cover;
+  border-bottom: 2px solid var(--color-ink);
+}
+
+.gallery-card-info {
+  padding: 16px 18px 20px;
+}
+
+.gallery-card-name {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 16px;
+  margin-bottom: 4px;
+  color: var(--color-ink);
+}
+
+.gallery-card-meta {
+  font-size: 12.5px;
+  color: var(--color-ink-soft);
+  font-weight: 600;
+}
+
+.gallery-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-ink-soft);
+}
+
 @media (max-width: 600px) {
   .carousel-track {
     height: 600px;
@@ -347,5 +466,11 @@
   }
   .q-text {
     font-size: 21px;
+  }
+  .gallery-section {
+    margin-top: 50px;
+  }
+  .gallery-grid {
+    grid-template-columns: 1fr;
   }
 }

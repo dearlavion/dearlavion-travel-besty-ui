@@ -1,8 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { TravelKitService } from '../travel/travel-kit.service';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
+import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
+import { buildKitFromPopularKit } from '../travel/popular-kit-view';
 import { Product, getProductTint } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { CartService } from '../cart/cart.service';
@@ -36,13 +39,29 @@ const PASTEL_TINTS = [
   styleUrl: './my-kit.component.css',
 })
 export class MyKitComponent {
+  private readonly route = inject(ActivatedRoute);
   private readonly travelKitService = inject(TravelKitService);
+  private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
   private readonly cart = inject(CartService);
   private readonly savedKitsService = inject(SavedKitsService);
+  private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
-  protected readonly kit = this.travelKitService.currentKit;
+
+  // At /popular/:id, resolve straight from PopularKitsService (stable, refresh-safe, shareable —
+  // no reliance on prior in-memory state). At /my-kit (no :id param), fall back to whatever the
+  // quiz's reveal step last stashed in TravelKitService — that flow has no stable identity to put
+  // in a URL, so it stays session-only.
+  protected readonly kit = computed<BuiltKit | null>(() => {
+    const id = this.paramMap()?.get('id');
+    if (id) {
+      const popularKit = this.popularKitsService.getById(id);
+      return popularKit ? buildKitFromPopularKit(popularKit, this.catalog) : null;
+    }
+    return this.travelKitService.currentKit();
+  });
+
   protected readonly expandedIds = signal<ReadonlySet<string>>(new Set());
   protected readonly addedIds = signal<ReadonlySet<string>>(new Set());
 

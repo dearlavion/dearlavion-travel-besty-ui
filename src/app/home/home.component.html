@@ -241,13 +241,13 @@
   >
     <div class="kits-track" #track [style.transform]="'translateX(-' + offset() + 'px)'">
       @for (kit of kitCardsLoop(); track $index) {
-        <button type="button" class="kit-card" (click)="viewKit(kit)">
+        <a class="kit-card" [routerLink]="['/popular', kit.id]">
           <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
           <div class="kit-info">
             <div class="kit-name">{{ kit.name }}</div>
             <div class="kit-meta">{{ kit.meta }}</div>
           </div>
-        </button>
+        </a>
       }
     </div>
   </div>

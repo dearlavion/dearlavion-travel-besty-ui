@@ -27,6 +27,7 @@ export const routes: Routes = [
   { path: 'shop', component: ShopComponent },
   { path: 'product/:id', component: ProductDetailComponent },
   { path: 'my-kit', component: MyKitComponent },
+  { path: 'popular/:id', component: MyKitComponent },
   {
     path: 'profile',
     component: ProfileShellComponent,
