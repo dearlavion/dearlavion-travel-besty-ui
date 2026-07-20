@@ -31,6 +31,10 @@ footer {
   gap: 8px;
 }
 
+.logo .mark {
+  flex-shrink: 0;
+}
+
 .foot-links {
   display: flex;
   gap: 44px;
