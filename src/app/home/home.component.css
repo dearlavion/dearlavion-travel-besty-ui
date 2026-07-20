@@ -153,8 +153,8 @@
 
 .gallery-tag {
   position: absolute;
-  top: -16px;
-  left: 28px;
+  bottom: -16px;
+  right: 28px;
   z-index: 2;
   width: 200px;
   height: 32px;
