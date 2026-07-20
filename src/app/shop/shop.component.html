@@ -20,71 +20,77 @@
 
   <div class="filter-groups">
     <div class="filter-row">
-      <span class="filter-row-label">Sort</span>
-      <select class="sort-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
-        <option value="default">Featured</option>
-        <option value="popular">Most Popular</option>
-        <option value="price-low">Price: Low to High</option>
-        <option value="price-high">Price: High to Low</option>
-        <option value="name">Name: A to Z</option>
-      </select>
-
-      <span class="filter-row-label" style="margin-left: 14px">Season</span>
-      <div class="filter-dropdown">
-        <button
-          type="button"
-          class="dropdown-toggle"
-          [class.active]="seasons().size > 0"
-          (click)="toggleSeasonMenu()"
-        >
-          {{ seasonButtonLabel() }}
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="chevron" [class.open]="seasonMenuOpen()">
-            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-        @if (seasonMenuOpen()) {
-          <div class="dropdown-panel">
-            @for (opt of seasonOptions; track opt.value) {
-              <label class="dropdown-option">
-                <input
-                  type="checkbox"
-                  [checked]="isSeasonSelected(opt.value)"
-                  (change)="toggleSeason(opt.value)"
-                />
-                <span>{{ opt.label }}</span>
-              </label>
-            }
-          </div>
-        }
+      <div class="filter-item">
+        <span class="filter-row-label">Sort</span>
+        <select class="sort-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+          <option value="default">Featured</option>
+          <option value="popular">Most Popular</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+          <option value="name">Name: A to Z</option>
+        </select>
       </div>
 
-      <span class="filter-row-label" style="margin-left: 14px">Destination</span>
-      <div class="filter-dropdown">
-        <button
-          type="button"
-          class="dropdown-toggle"
-          [class.active]="destinations().size > 0"
-          (click)="toggleDestinationMenu()"
-        >
-          {{ destinationButtonLabel() }}
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="chevron" [class.open]="destinationMenuOpen()">
-            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </button>
-        @if (destinationMenuOpen()) {
-          <div class="dropdown-panel">
-            @for (opt of destinationOptions; track opt.value) {
-              <label class="dropdown-option">
-                <input
-                  type="checkbox"
-                  [checked]="isDestinationSelected(opt.value)"
-                  (change)="toggleDestination(opt.value)"
-                />
-                <span>{{ opt.label }}</span>
-              </label>
-            }
-          </div>
-        }
+      <div class="filter-item">
+        <span class="filter-row-label">Season</span>
+        <div class="filter-dropdown">
+          <button
+            type="button"
+            class="dropdown-toggle"
+            [class.active]="seasons().size > 0"
+            (click)="toggleSeasonMenu()"
+          >
+            {{ seasonButtonLabel() }}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="chevron" [class.open]="seasonMenuOpen()">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          @if (seasonMenuOpen()) {
+            <div class="dropdown-panel">
+              @for (opt of seasonOptions; track opt.value) {
+                <label class="dropdown-option">
+                  <input
+                    type="checkbox"
+                    [checked]="isSeasonSelected(opt.value)"
+                    (change)="toggleSeason(opt.value)"
+                  />
+                  <span>{{ opt.label }}</span>
+                </label>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="filter-item">
+        <span class="filter-row-label">Destination</span>
+        <div class="filter-dropdown">
+          <button
+            type="button"
+            class="dropdown-toggle"
+            [class.active]="destinations().size > 0"
+            (click)="toggleDestinationMenu()"
+          >
+            {{ destinationButtonLabel() }}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="chevron" [class.open]="destinationMenuOpen()">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          @if (destinationMenuOpen()) {
+            <div class="dropdown-panel">
+              @for (opt of destinationOptions; track opt.value) {
+                <label class="dropdown-option">
+                  <input
+                    type="checkbox"
+                    [checked]="isDestinationSelected(opt.value)"
+                    (change)="toggleDestination(opt.value)"
+                  />
+                  <span>{{ opt.label }}</span>
+                </label>
+              }
+            </div>
+          }
+        </div>
       </div>
     </div>
   </div>

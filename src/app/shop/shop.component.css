@@ -79,6 +79,11 @@
   align-items: center;
 }
 
+.filter-item {
+  display: flex;
+  align-items: center;
+}
+
 .filter-row-label {
   font-size: 12px;
   font-weight: 700;
@@ -361,5 +366,28 @@
 @media (max-width: 560px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Stack Sort/Season/Destination as full-width rows in source order instead of letting them
+     wrap individually mid-row, which mixed labels and controls from different filters onto the
+     same line. */
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-item {
+    justify-content: space-between;
+  }
+
+  .filter-item .sort-select,
+  .filter-item .filter-dropdown {
+    flex: 1;
+    max-width: 220px;
+  }
+
+  .filter-item .dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
   }
 }
