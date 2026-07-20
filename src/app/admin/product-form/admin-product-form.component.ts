@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.service';
-import { ProductDestination, ProductParty, ProductSeason } from '../../shop/product-catalog';
+import { Product, ProductDestination, ProductParty, ProductSeason } from '../../shop/product-catalog';
 
 interface ProductFormModel {
   name: string;
@@ -19,6 +19,7 @@ interface ProductFormModel {
   soldOut: boolean;
   tested: boolean;
   active: boolean;
+  linkedProductIds: string[];
 }
 
 function emptyForm(): ProductFormModel {
@@ -36,6 +37,7 @@ function emptyForm(): ProductFormModel {
     soldOut: false,
     tested: true,
     active: true,
+    linkedProductIds: [],
   };
 }
 
@@ -70,6 +72,26 @@ export class AdminProductFormComponent {
 
   protected readonly form = signal<ProductFormModel>(emptyForm());
   protected readonly notFound = signal(false);
+  protected readonly productSearch = signal('');
+
+  // Products matching the current search, for the "link a product" checklist — excludes this
+  // product itself (in edit mode) and anything already linked.
+  protected readonly searchResults = computed<Product[]>(() => {
+    const term = this.productSearch().trim().toLowerCase();
+    const linked = new Set(this.form().linkedProductIds);
+    const selfId = this.editingId();
+    const list = this.catalog.products().filter((p) => p.id !== selfId && !linked.has(p.id));
+    if (!term) return list;
+    return list.filter((p) => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term));
+  });
+
+  // Currently-linked products, resolved to full Product records for display (in the order they
+  // were added) — filters out any id whose product has since been deleted elsewhere in admin.
+  protected readonly linkedProducts = computed<Product[]>(() =>
+    this.form()
+      .linkedProductIds.map((id) => this.catalog.getById(id))
+      .filter((p): p is Product => !!p),
+  );
 
   constructor() {
     const id = this.editingId();
@@ -90,6 +112,7 @@ export class AdminProductFormComponent {
           soldOut: existing.soldOut,
           tested: existing.tested,
           active: existing.active,
+          linkedProductIds: [...(existing.linkedProductIds ?? [])],
         });
       } else {
         this.notFound.set(true);
@@ -125,6 +148,14 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, parties: toggleInArray(f.parties, party) }));
   }
 
+  protected addLinkedProduct(id: string): void {
+    this.form.update((f) => (f.linkedProductIds.includes(id) ? f : { ...f, linkedProductIds: [...f.linkedProductIds, id] }));
+  }
+
+  protected removeLinkedProduct(id: string): void {
+    this.form.update((f) => ({ ...f, linkedProductIds: f.linkedProductIds.filter((pid) => pid !== id) }));
+  }
+
   protected save(): void {
     const f = this.form();
     const fields = {
@@ -142,6 +173,7 @@ export class AdminProductFormComponent {
       soldOut: f.soldOut,
       tested: f.tested,
       active: f.active,
+      linkedProductIds: f.linkedProductIds,
     };
 
     const id = this.editingId();

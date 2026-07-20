@@ -34,21 +34,29 @@ export class ProductCatalogService {
     return this.products().find((p) => p.id === id);
   }
 
-  // Same category first, then same destination/season, excluding the product itself.
-  // Mirrors the pure getRelatedProducts() logic in product-catalog.ts, but reads the live
-  // signal so admin edits/deletes are reflected instead of the frozen seed array.
+  // Admin-curated explicit links first (in the order the admin added them), then same category,
+  // then same destination/season, excluding the product itself and anything already included by
+  // a higher tier. Mirrors the pure getRelatedProducts() logic in product-catalog.ts for the
+  // automatic tiers, but reads the live signal so admin edits/deletes are reflected instead of
+  // the frozen seed array.
   getRelated(product: Product, limit = 4): Product[] {
     const others = this.products().filter((p) => p.id !== product.id);
 
-    const sameCategory = others.filter((p) => p.category === product.category);
-    const sameTrip = others.filter(
+    const linked = (product.linkedProductIds ?? [])
+      .map((id) => others.find((p) => p.id === id))
+      .filter((p): p is Product => !!p);
+    const linkedIds = new Set(linked.map((p) => p.id));
+
+    const remaining = others.filter((p) => !linkedIds.has(p.id));
+    const sameCategory = remaining.filter((p) => p.category === product.category);
+    const sameTrip = remaining.filter(
       (p) =>
         p.category !== product.category &&
         ((product.destinations.length > 0 && p.destinations.some((d) => product.destinations.includes(d))) ||
           (product.seasons.length > 0 && p.seasons.some((s) => product.seasons.includes(s)))),
     );
 
-    return [...sameCategory, ...sameTrip].slice(0, limit);
+    return [...linked, ...sameCategory, ...sameTrip].slice(0, limit);
   }
 
   addProduct(input: NewProduct): Product {

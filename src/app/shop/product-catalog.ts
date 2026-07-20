@@ -23,6 +23,9 @@ export interface Product {
   active: boolean; // publish/visibility — independent of stock/soldOut
   stock: number; // frontend-only inventory concept, backend doesn't model this yet
   soldOut: boolean; // frontend-only; listed but temporarily unavailable to buy
+  linkedProductIds?: string[]; // admin-curated explicit "suggested with" links — take priority
+  // over ProductCatalogService.getRelated()'s automatic category/trip matching in My Kit's
+  // suggestions panel. Undefined/omitted on most seed products = no manual overrides, same as [].
 }
 
 export const PRODUCTS: Product[] = [
