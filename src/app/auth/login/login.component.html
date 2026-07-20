@@ -1,37 +1,48 @@
 <app-auth-overlay eyebrow="Welcome back" title="Log in">
-  <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)">
-    <div class="form-field">
-      <label for="email">Email</label>
-      <input
-        id="email"
-        type="email"
-        name="email"
-        [(ngModel)]="email"
-        required
-        email
-        placeholder="you@example.com"
-      />
-    </div>
-
-    <div class="form-field">
-      <label for="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        name="password"
-        [(ngModel)]="password"
-        required
-        minlength="6"
-        placeholder="••••••••"
-      />
-    </div>
-
-    <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
-
-    <button type="submit" class="auth-submit-btn" [disabled]="submitting()">
-      {{ submitting() ? 'Logging in…' : 'Log In' }}
+  @if (isRealBackend) {
+    <p class="auth-note">
+      Connected to the real backend — the store-engine has no email/password login of its own yet,
+      so pick a dev-auth-stub identity instead.
+    </p>
+    <button type="button" class="auth-submit-btn" (click)="loginAsAdmin()">Continue as Admin</button>
+    <button type="button" class="auth-submit-btn stub-secondary" (click)="loginAsTraveler()">
+      Continue as Traveler
     </button>
-  </form>
+  } @else {
+    <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)">
+      <div class="form-field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          email
+          placeholder="you@example.com"
+        />
+      </div>
 
-  <p class="auth-links">Don't have an account? <a routerLink="/signup">Sign up</a></p>
+      <div class="form-field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          required
+          minlength="6"
+          placeholder="••••••••"
+        />
+      </div>
+
+      <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+
+      <button type="submit" class="auth-submit-btn" [disabled]="submitting()">
+        {{ submitting() ? 'Logging in…' : 'Log In' }}
+      </button>
+    </form>
+
+    <p class="auth-links">Don't have an account? <a routerLink="/signup">Sign up</a></p>
+  }
 </app-auth-overlay>

@@ -1,8 +1,11 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
+import { environment } from '../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-cart';
+const API_BASE = `${environment.apiUrl}/cart`;
 
 export interface CartLine {
   productId: string;
@@ -11,6 +14,10 @@ export interface CartLine {
 
 export interface CartDisplayLine extends CartLine {
   product: Product;
+}
+
+interface ApiCartView {
+  items: { productId: string; quantity: number }[];
 }
 
 // SSR prerenders /shop and other routes touch this service transitively — Node has no
@@ -30,8 +37,19 @@ function loadStoredLines(): CartLine[] | null {
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private readonly catalog = inject(ProductCatalogService);
+  private readonly http = inject(HttpClient);
 
-  private readonly items = signal<CartLine[]>(loadStoredLines() ?? []);
+  // Kept as the single source of truth in both modes — real mode just re-syncs it from the
+  // backend's response after every mutation (dropping the server's embedded `product`/`lineTotal`
+  // since `lines`/`subtotal` below already re-derive those locally from ProductCatalogService).
+  // This means `lines`/`itemCount`/`subtotal` need zero changes between modes.
+  private readonly items = signal<CartLine[]>(environment.useMockData ? (loadStoredLines() ?? []) : []);
+
+  constructor() {
+    if (!environment.useMockData) {
+      this.http.get<ApiCartView>(API_BASE).subscribe((res) => this.applyServerView(res));
+    }
+  }
 
   // Drops lines whose product was deleted from the catalog — mirrors MyKitComponent's
   // existing pattern of degrading gracefully instead of crashing.
@@ -51,6 +69,13 @@ export class CartService {
     const product = this.catalog.getById(productId);
     if (!product || product.soldOut) return;
 
+    if (!environment.useMockData) {
+      this.http
+        .post<ApiCartView>(`${API_BASE}/items`, { productId, quantity })
+        .subscribe((res) => this.applyServerView(res));
+      return;
+    }
+
     const existing = this.items().find((line) => line.productId === productId);
     if (existing) {
       this.updateQuantity(productId, existing.quantity + quantity);
@@ -66,6 +91,14 @@ export class CartService {
       this.removeItem(productId);
       return;
     }
+
+    if (!environment.useMockData) {
+      this.http
+        .put<ApiCartView>(`${API_BASE}/items/${productId}`, { quantity })
+        .subscribe((res) => this.applyServerView(res));
+      return;
+    }
+
     this.items.update((list) =>
       list.map((line) => (line.productId === productId ? { ...line, quantity } : line)),
     );
@@ -73,13 +106,27 @@ export class CartService {
   }
 
   removeItem(productId: string): void {
+    if (!environment.useMockData) {
+      this.http.delete<ApiCartView>(`${API_BASE}/items/${productId}`).subscribe((res) => this.applyServerView(res));
+      return;
+    }
+
     this.items.update((list) => list.filter((line) => line.productId !== productId));
     this.persist();
   }
 
   clear(): void {
+    if (!environment.useMockData) {
+      this.http.delete<ApiCartView>(API_BASE).subscribe((res) => this.applyServerView(res));
+      return;
+    }
+
     this.items.set([]);
     this.persist();
+  }
+
+  private applyServerView(res: ApiCartView): void {
+    this.items.set(res.items.map((i) => ({ productId: i.productId, quantity: i.quantity })));
   }
 
   private persist(): void {

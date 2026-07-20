@@ -1,15 +1,22 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
+import { Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from './popular-kit-view';
 import { buildTravelKit, Destination, Duration, Party, Season } from './kit-recommendation';
 import { TravelKitService } from './travel-kit.service';
+import { environment } from '../../environments/environment';
 
 const TOTAL_STEPS = 5;
 const AUTO_ADVANCE_DELAY_MS = 350;
+
+interface SurveyRecommendationsResponse {
+  products: Product[];
+}
 
 @Component({
   selector: 'app-travel',
@@ -20,6 +27,7 @@ const AUTO_ADVANCE_DELAY_MS = 350;
 })
 export class TravelComponent {
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
   private readonly travelKitService = inject(TravelKitService);
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
@@ -106,6 +114,26 @@ export class TravelComponent {
       return;
     }
 
+    if (!environment.useMockData) {
+      const partySize = party === 'Group' ? this.partySize() : undefined;
+      this.http
+        .post<SurveyRecommendationsResponse>(`${environment.apiUrl}/survey/recommendations`, {
+          destination,
+          season,
+          party,
+          partySize,
+          duration,
+        })
+        .subscribe((res) => {
+          this.travelKitService.setKit({
+            items: res.products.map((p) => ({ label: p.name, productId: p.id })),
+            summary: this.revealSummary(),
+          });
+          this.router.navigate(['/my-kit']);
+        });
+      return;
+    }
+
     this.travelKitService.setKit({
       items: buildTravelKit({ destination, season, party, duration }),
       summary: this.revealSummary(),
@@ -123,7 +151,10 @@ export class TravelComponent {
   protected readonly gallerySearch = signal('');
 
   protected readonly popularKitCards = computed<PopularKitCard[]>(() =>
-    this.popularKitsService.kits().map((kit) => toPopularKitCard(kit, this.catalog)),
+    this.popularKitsService
+      .kits()
+      .filter((kit) => kit.active !== false)
+      .map((kit) => toPopularKitCard(kit, this.catalog)),
   );
 
   protected readonly filteredPopularKits = computed<PopularKitCard[]>(() => {

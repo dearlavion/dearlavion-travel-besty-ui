@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 export interface UserProfile {
   displayName: string;
@@ -6,14 +8,15 @@ export interface UserProfile {
 }
 
 const STORAGE_KEY = 'travel-besty-profile';
+const API_BASE = `${environment.apiUrl}/profile`;
 
 const DEFAULT_PROFILE: UserProfile = {
   displayName: 'Traveler',
   avatar: '🧳',
 };
 
-// This app has no real auth/user accounts (login is fully mocked) — this is a purely cosmetic,
-// localStorage-backed "profile" so the dashboard sidebar has something real to show/edit.
+// Mock mode: no real auth/user accounts — purely cosmetic, localStorage-backed. Real-backend
+// mode: GET/PUT /profile (auth-scoped to whichever dev-auth-stub identity is logged in).
 function loadStored(): UserProfile {
   if (typeof window === 'undefined') return DEFAULT_PROFILE;
   const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -27,9 +30,23 @@ function loadStored(): UserProfile {
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-  readonly profile = signal<UserProfile>(loadStored());
+  private readonly http = inject(HttpClient);
+
+  readonly profile = signal<UserProfile>(environment.useMockData ? loadStored() : DEFAULT_PROFILE);
+
+  constructor() {
+    if (!environment.useMockData) {
+      this.http.get<UserProfile>(API_BASE).subscribe((res) => this.profile.set(res));
+    }
+  }
 
   update(patch: Partial<UserProfile>): void {
+    if (!environment.useMockData) {
+      this.profile.update((p) => ({ ...p, ...patch }));
+      this.http.put<UserProfile>(API_BASE, patch).subscribe((res) => this.profile.set(res));
+      return;
+    }
+
     this.profile.update((p) => ({ ...p, ...patch }));
     this.persist();
   }

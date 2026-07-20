@@ -51,6 +51,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "dev": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -63,6 +74,9 @@
             },
             "development": {
               "buildTarget": "dearlavion-travel-besty-ui:build:development"
+            },
+            "dev": {
+              "buildTarget": "dearlavion-travel-besty-ui:build:dev"
             }
           },
           "defaultConfiguration": "development"

@@ -237,7 +237,10 @@ export class HomeComponent {
   // here. Admins curate this "Popular kits" collection, including its exact product list, from
   // /admin/popular-kits.
   protected readonly kitCards = computed<PopularKitCard[]>(() =>
-    this.popularKitsService.kits().map((kit) => toPopularKitCard(kit, this.catalog)),
+    this.popularKitsService
+      .kits()
+      .filter((kit) => kit.active !== false)
+      .map((kit) => toPopularKitCard(kit, this.catalog)),
   );
 
   // Doubled so that once `offset` wraps past one full set's width, the duplicated second set is

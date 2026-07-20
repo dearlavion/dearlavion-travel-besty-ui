@@ -1,7 +1,14 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
 import { Product, PRODUCTS } from './product-catalog';
+import { environment } from '../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-products';
+// Reads go through the public, unauthenticated endpoint — most consumers (Shop, Product Detail,
+// My Kit suggestions) are anonymous-accessible pages, and this endpoint doesn't need a token.
+// Only writes require the admin-guarded endpoint below.
+const PUBLIC_BASE = `${environment.apiUrl}/products`;
+const ADMIN_BASE = `${environment.apiUrl}/admin/products`;
 
 // SSR prerenders /shop (see app.routes.server.ts) and Node has no localStorage — every
 // read/write here must go through this guard or the build breaks.
@@ -26,12 +33,31 @@ function slugify(name: string): string {
 
 export type NewProduct = Omit<Product, 'id'>;
 
+interface ProductListResponse {
+  content: Product[];
+  page: number;
+  size: number;
+  total: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductCatalogService {
-  readonly products = signal<Product[]>(loadStoredProducts() ?? PRODUCTS);
+  private readonly http = inject(HttpClient);
 
+  readonly products = signal<Product[]>(environment.useMockData ? (loadStoredProducts() ?? PRODUCTS) : []);
+
+  constructor() {
+    if (!environment.useMockData) {
+      this.http
+        .get<ProductListResponse>(PUBLIC_BASE, { params: { size: 200 } })
+        .subscribe((res) => this.products.set(res.content));
+    }
+  }
+
+  // Checks `slug` too — PopularKit.productIds/Product.linkedProductIds reference products by
+  // slug in real-backend mode, not the Mongo id that Product.id holds there.
   getById(id: string): Product | undefined {
-    return this.products().find((p) => p.id === id);
+    return this.products().find((p) => p.id === id || p.slug === id);
   }
 
   // Admin-curated explicit links first (in the order the admin added them), then same category,
@@ -43,7 +69,7 @@ export class ProductCatalogService {
     const others = this.products().filter((p) => p.id !== product.id);
 
     const linked = (product.linkedProductIds ?? [])
-      .map((id) => others.find((p) => p.id === id))
+      .map((id) => others.find((p) => p.id === id || p.slug === id))
       .filter((p): p is Product => !!p);
     const linkedIds = new Set(linked.map((p) => p.id));
 
@@ -60,6 +86,15 @@ export class ProductCatalogService {
   }
 
   addProduct(input: NewProduct): Product {
+    if (!environment.useMockData) {
+      this.http.post<Product>(ADMIN_BASE, input).subscribe((created) => {
+        this.products.update((list) => [...list, created]);
+      });
+      // Callers don't use the return value (fire-and-forget, same as the HTTP path above) — this
+      // placeholder just satisfies the synchronous signature mock mode still needs.
+      return { ...input, id: slugify(input.name) };
+    }
+
     const baseSlug = slugify(input.name) || 'product';
     const existingIds = new Set(this.products().map((p) => p.id));
     let id = baseSlug;
@@ -76,11 +111,28 @@ export class ProductCatalogService {
   }
 
   updateProduct(id: string, patch: Partial<Omit<Product, 'id'>>): void {
+    if (!environment.useMockData) {
+      this.products.update((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+      this.http.patch<Product>(`${ADMIN_BASE}/${id}`, patch).subscribe((updated) => {
+        this.products.update((list) => list.map((p) => (p.id === id ? updated : p)));
+      });
+      return;
+    }
+
     this.products.update((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
     this.persist();
   }
 
   deleteProduct(id: string): void {
+    if (!environment.useMockData) {
+      // Backend soft-deletes (active:false, record kept) rather than removing it — mirror that
+      // locally instead of dropping the row, so the local view matches server truth.
+      this.http.delete(`${ADMIN_BASE}/${id}`).subscribe(() => {
+        this.products.update((list) => list.map((p) => (p.id === id ? { ...p, active: false } : p)));
+      });
+      return;
+    }
+
     this.products.update((list) => list.filter((p) => p.id !== id));
     this.persist();
   }

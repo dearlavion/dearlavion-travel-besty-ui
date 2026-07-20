@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 export interface OrderItem {
   productId: string;
@@ -20,12 +22,15 @@ export interface Order {
 export type OrderStatus = 'Processing' | 'Shipped' | 'Out for Delivery' | 'Delivered';
 
 const STORAGE_KEY = 'travel-besty-orders';
+const API_BASE = `${environment.apiUrl}/orders`;
 
 const STATUS_STEPS: OrderStatus[] = ['Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
 
-// No real backend/shipping carrier — status is a pure function of elapsed time since the order
-// was placed, so a demo order visibly "progresses" the longer you leave it, without needing any
-// stored/mutable status field. Thresholds are short (minutes, not days) so it's demoable.
+// No real shipping carrier — status is a pure function of elapsed time since the order was
+// placed, so a demo order visibly "progresses" the longer you leave it, without needing any
+// stored/mutable status field. Thresholds are short (minutes, not days) so it's demoable. The
+// backend's own order-status.util.ts ports this exact formula, so real-backend mode doesn't need
+// to consume any server-computed status — this stays correct either way.
 export function computeOrderStatus(placedAt: string): OrderStatus {
   const minutesElapsed = (Date.now() - new Date(placedAt).getTime()) / 60000;
   if (minutesElapsed < 1) return 'Processing';
@@ -53,12 +58,53 @@ function loadStored(): Order[] {
   }
 }
 
-/** Persists placed orders to localStorage so /profile/track-packages can list them later. */
+interface ApiOrder {
+  id: string;
+  reference: string;
+  placedAt: string;
+  items: OrderItem[];
+  total: number;
+  currency: string;
+}
+
+// The backend's own Mongo `id` is opaque; `reference` (e.g. "TB-123456") is the human-facing order
+// number this app has always used as its `id` — map it through so nothing downstream (Track
+// Packages, confirmation screen) needs to change.
+function mapFromApi(raw: ApiOrder): Order {
+  return { id: raw.reference, placedAt: raw.placedAt, items: raw.items, total: raw.total, currency: raw.currency };
+}
+
+/** Persists placed orders so /profile/track-packages can list them later — localStorage in mock
+ * mode, the backend's `/orders` (auth-scoped) collection in real-backend mode. */
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
-  readonly orders = signal<Order[]>(loadStored());
+  private readonly http = inject(HttpClient);
+
+  readonly orders = signal<Order[]>(environment.useMockData ? loadStored() : []);
+
+  constructor() {
+    if (!environment.useMockData) {
+      this.http.get<ApiOrder[]>(API_BASE).subscribe((res) => this.orders.set(res.map(mapFromApi)));
+    }
+  }
 
   addOrder(order: Order): void {
+    if (!environment.useMockData) {
+      this.orders.update((list) => [order, ...list]);
+      this.http
+        .post<ApiOrder>(API_BASE, {
+          items: order.items,
+          total: order.total,
+          currency: order.currency,
+          reference: order.id,
+        })
+        .subscribe((created) => {
+          const mapped = mapFromApi(created);
+          this.orders.update((list) => list.map((o) => (o.id === order.id ? mapped : o)));
+        });
+      return;
+    }
+
     // Newest first.
     this.orders.update((list) => [order, ...list]);
     this.persist();

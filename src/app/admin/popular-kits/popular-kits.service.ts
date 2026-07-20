@@ -1,7 +1,15 @@
-import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
 import { Destination, Duration, Party, Season } from '../../travel/kit-recommendation';
+import { environment } from '../../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-popular-kits';
+// Reads go through the public, unauthenticated endpoint (active kits only) — Home/Travel are
+// anonymous-accessible pages and shouldn't need a token just to browse. Only writes require the
+// admin-guarded endpoint below (which also sees inactive kits, but nothing in this app currently
+// re-surfaces that — a soft-deleted kit becomes invisible here too, matching Products' tradeoff).
+const PUBLIC_BASE = `${environment.apiUrl}/popular-kits`;
+const ADMIN_BASE = `${environment.apiUrl}/admin/popular-kits`;
 
 export interface PopularKit {
   id: string;
@@ -16,6 +24,7 @@ export interface PopularKit {
   party: Party;
   duration: Duration;
   productIds: string[];
+  active?: boolean; // backend-only concept (soft delete); undefined/mock kits are always active
 }
 
 export type NewPopularKit = Omit<PopularKit, 'id'>;
@@ -203,15 +212,62 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+interface ApiPopularKit {
+  id: string;
+  slug: string;
+  name: string;
+  tag?: string;
+  image?: string;
+  destination?: string;
+  season?: string;
+  party?: string;
+  duration?: string;
+  productIds?: string[];
+  active?: boolean;
+}
+
+// The backend's own Mongo `id` is opaque; `slug` is the stable, admin-facing identifier (and
+// what update/delete accept in place of it), so it doubles as our routing id — keeps
+// /popular/:id and /admin/popular-kits/:id/edit URLs readable instead of Mongo hashes.
+function mapFromApi(raw: ApiPopularKit): PopularKit {
+  return {
+    id: raw.slug,
+    image: raw.image ?? '',
+    name: raw.name,
+    tag: raw.tag ?? '',
+    destination: (raw.destination as Destination) ?? 'Beach',
+    season: (raw.season as Season) ?? 'Summer',
+    party: (raw.party as Party) ?? 'Solo',
+    duration: (raw.duration as Duration) ?? 'Quick escape',
+    productIds: raw.productIds ?? [],
+    active: raw.active,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class PopularKitsService {
-  readonly kits = signal<PopularKit[]>(loadStoredKits() ?? SEED_KITS);
+  private readonly http = inject(HttpClient);
+
+  readonly kits = signal<PopularKit[]>(environment.useMockData ? (loadStoredKits() ?? SEED_KITS) : []);
+
+  constructor() {
+    if (!environment.useMockData) {
+      this.http.get<ApiPopularKit[]>(PUBLIC_BASE).subscribe((res) => this.kits.set(res.map(mapFromApi)));
+    }
+  }
 
   getById(id: string): PopularKit | undefined {
     return this.kits().find((k) => k.id === id);
   }
 
   addKit(input: NewPopularKit): PopularKit {
+    if (!environment.useMockData) {
+      this.http.post<ApiPopularKit>(ADMIN_BASE, input).subscribe((created) => {
+        this.kits.update((list) => [...list, mapFromApi(created)]);
+      });
+      return { ...input, id: slugify(input.name) };
+    }
+
     const baseSlug = slugify(input.name) || 'kit';
     const existingIds = new Set(this.kits().map((k) => k.id));
     let id = baseSlug;
@@ -228,11 +284,27 @@ export class PopularKitsService {
   }
 
   updateKit(id: string, patch: Partial<Omit<PopularKit, 'id'>>): void {
+    if (!environment.useMockData) {
+      this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, ...patch } : k)));
+      this.http.patch<ApiPopularKit>(`${ADMIN_BASE}/${id}`, patch).subscribe((updated) => {
+        const mapped = mapFromApi(updated);
+        this.kits.update((list) => list.map((k) => (k.id === id ? mapped : k)));
+      });
+      return;
+    }
+
     this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, ...patch } : k)));
     this.persist();
   }
 
   deleteKit(id: string): void {
+    if (!environment.useMockData) {
+      this.http.delete(`${ADMIN_BASE}/${id}`).subscribe(() => {
+        this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, active: false } : k)));
+      });
+      return;
+    }
+
     this.kits.update((list) => list.filter((k) => k.id !== id));
     this.persist();
   }

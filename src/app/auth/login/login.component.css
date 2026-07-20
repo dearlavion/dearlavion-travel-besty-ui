@@ -9,3 +9,15 @@
 .forgot-link:hover {
   color: var(--color-coral-deep);
 }
+
+.stub-secondary {
+  background: none;
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-line);
+  margin-top: 10px;
+}
+
+.stub-secondary:hover {
+  border-color: var(--color-ink);
+  background: none;
+}

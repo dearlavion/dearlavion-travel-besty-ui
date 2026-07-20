@@ -7,7 +7,10 @@ export type ProductDestination = 'Beach' | 'Mountain' | 'City';
 export type ProductParty = 'Solo' | 'Group';
 
 export interface Product {
-  id: string; // slug — this app's routing key; stands in for the backend's separate slug field
+  id: string; // mock mode: a slug (this app's routing key). Real-backend mode: the backend's own
+  // Mongo id (required by admin update/delete) — see `slug` below for the readable identifier.
+  slug?: string; // real-backend mode only. PopularKit.productIds/linkedProductIds reference
+  // products by slug, not the Mongo id — ProductCatalogService.getById() checks both.
   name: string;
   category: string;
   description: string;
