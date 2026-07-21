@@ -1,15 +1,12 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthOverlayComponent } from '../../common/auth-overlay/auth-overlay.component';
 import { AuthService } from '../auth.service';
 import { environment } from '../../../environments/environment';
 
-// Mock mode (yarn start): no real backend — submit just simulates a short request and lands back
-// on the homepage. Real-backend mode (yarn start:dev): the store-engine backend delegates JWT
-// verification to a separate auth-service this app doesn't talk to, so there's no real
-// email/password flow here yet — instead pick which dev-auth-stub identity to become (see
-// AuthService).
+// Real-backend mode (yarn start:dev): submit logs in against auth-service-v2 via AuthService.login().
+// Mock mode (yarn start): no backend — pick a local stub identity (admin/traveler) to become.
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -21,28 +18,34 @@ export class LoginComponent {
   email = '';
   password = '';
   protected readonly submitting = signal(false);
+  protected readonly error = signal('');
   protected readonly isRealBackend = !environment.useMockData;
 
-  constructor(
-    private router: Router,
-    private authService: AuthService,
-  ) {}
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   protected submit(form: NgForm): void {
     if (!form.valid) {
       return;
     }
     this.submitting.set(true);
-    setTimeout(() => this.router.navigate(['/']), 500);
+    this.error.set('');
+    this.authService.login(this.email, this.password).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: (err) => {
+        this.submitting.set(false);
+        this.error.set(err?.status === 401 ? 'Invalid email or password.' : 'Could not log in. Please try again.');
+      },
+    });
   }
 
   protected loginAsAdmin(): void {
-    this.authService.loginAs('u9', 'admin');
+    this.authService.loginAs('u9', 'admin', 'ADMIN');
     this.router.navigate(['/']);
   }
 
   protected loginAsTraveler(): void {
-    this.authService.loginAs('u1', 'traveler');
+    this.authService.loginAs('u1', 'traveler', 'USER');
     this.router.navigate(['/']);
   }
 }

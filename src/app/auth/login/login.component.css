@@ -21,3 +21,13 @@
   border-color: var(--color-ink);
   background: none;
 }
+
+.auth-error {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(224, 90, 90, 0.1);
+  color: #b23b3b;
+  font-size: 13px;
+  font-weight: 600;
+}

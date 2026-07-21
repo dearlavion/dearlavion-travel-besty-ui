@@ -2,8 +2,15 @@
   @if (!done()) {
     <form #signupForm="ngForm" (ngSubmit)="submit(signupForm)">
       <div class="form-field">
-        <label for="name">Name</label>
-        <input id="name" type="text" name="name" [(ngModel)]="name" required placeholder="Your name" />
+        <label for="username">Username</label>
+        <input
+          id="username"
+          type="text"
+          name="username"
+          [(ngModel)]="username"
+          required
+          placeholder="Pick a username"
+        />
       </div>
 
       <div class="form-field">
@@ -31,6 +38,10 @@
           placeholder="At least 6 characters"
         />
       </div>
+
+      @if (error()) {
+        <p class="auth-error">{{ error() }}</p>
+      }
 
       <button type="submit" class="auth-submit-btn" [disabled]="submitting()">
         {{ submitting() ? 'Creating account…' : 'Create Account' }}

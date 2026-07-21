@@ -1,25 +1,15 @@
 <app-auth-overlay eyebrow="Welcome back" title="Log in">
   @if (isRealBackend) {
-    <p class="auth-note">
-      Connected to the real backend — the store-engine has no email/password login of its own yet,
-      so pick a dev-auth-stub identity instead.
-    </p>
-    <button type="button" class="auth-submit-btn" (click)="loginAsAdmin()">Continue as Admin</button>
-    <button type="button" class="auth-submit-btn stub-secondary" (click)="loginAsTraveler()">
-      Continue as Traveler
-    </button>
-  } @else {
     <form #loginForm="ngForm" (ngSubmit)="submit(loginForm)">
       <div class="form-field">
-        <label for="email">Email</label>
+        <label for="email">Email or Username</label>
         <input
           id="email"
-          type="email"
+          type="text"
           name="email"
           [(ngModel)]="email"
           required
-          email
-          placeholder="you@example.com"
+          placeholder="you@example.com or username"
         />
       </div>
 
@@ -38,11 +28,23 @@
 
       <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
 
+      @if (error()) {
+        <p class="auth-error">{{ error() }}</p>
+      }
+
       <button type="submit" class="auth-submit-btn" [disabled]="submitting()">
         {{ submitting() ? 'Logging in…' : 'Log In' }}
       </button>
     </form>
 
     <p class="auth-links">Don't have an account? <a routerLink="/signup">Sign up</a></p>
+  } @else {
+    <p class="auth-note">
+      Running in mock mode with no backend — pick a local stub identity to explore the app.
+    </p>
+    <button type="button" class="auth-submit-btn" (click)="loginAsAdmin()">Continue as Admin</button>
+    <button type="button" class="auth-submit-btn stub-secondary" (click)="loginAsTraveler()">
+      Continue as Traveler
+    </button>
   }
 </app-auth-overlay>

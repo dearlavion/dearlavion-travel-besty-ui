@@ -7,4 +7,9 @@ export const environment = {
   production: false,
   useMockData: false,
   apiUrl: 'http://localhost:4000',
+  // Real auth-service-v2 (username/email + password login, issues the JWT store-engine verifies).
+  authUrl: 'http://localhost:9081',
+  // Which tenant this app is — sent as the X-Customer header on auth calls (one auth instance
+  // serves many customers, each with its own authentication-<customer> DB).
+  customer: 'travel-besty',
 };

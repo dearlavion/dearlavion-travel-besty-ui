@@ -5,4 +5,8 @@ export const environment = {
   production: false,
   useMockData: true,
   apiUrl: '',
+  // Empty in mock mode — login uses the local stub identities (no real auth-service call).
+  authUrl: '',
+  // Tenant id sent as X-Customer on real auth calls (unused in mock mode).
+  customer: 'travel-besty',
 };
