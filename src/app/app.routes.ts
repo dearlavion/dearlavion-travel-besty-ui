@@ -20,6 +20,7 @@ import { AdminInventoryComponent } from './admin/inventory/admin-inventory.compo
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
+import { requireLoginGuard } from './auth/require-login.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -31,6 +32,7 @@ export const routes: Routes = [
   {
     path: 'profile',
     component: ProfileShellComponent,
+    canActivate: [requireLoginGuard],
     children: [
       { path: '', redirectTo: 'collection', pathMatch: 'full' },
       { path: 'collection', component: MyCollectionComponent },
@@ -47,6 +49,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminShellComponent,
+    canActivate: [requireLoginGuard],
     children: [
       { path: '', redirectTo: 'products', pathMatch: 'full' },
       { path: 'products', component: AdminProductListComponent },

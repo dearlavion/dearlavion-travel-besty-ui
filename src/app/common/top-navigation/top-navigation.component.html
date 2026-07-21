@@ -40,7 +40,11 @@
         <span class="cart-badge">{{ cart.itemCount() }}</span>
       }
     </a>
-    <a routerLink="/login" class="nav-cta nav-cta-ghost">Login</a>
+    @if (authService.token()) {
+      <button type="button" class="nav-cta nav-cta-ghost" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" class="nav-cta nav-cta-ghost">Login</a>
+    }
     <a routerLink="/travel" class="nav-cta nav-cta-primary">Build Travel Kit</a>
 
     <button
@@ -75,7 +79,11 @@
       <a routerLink="/shop" routerLinkActive="active" (click)="closeMobileMenu()">Shop</a>
       <a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">Profile</a>
       <a routerLink="/about" routerLinkActive="active" (click)="closeMobileMenu()">About</a>
-      <a routerLink="/login" class="mobile-menu-cta" (click)="closeMobileMenu()">Login</a>
+      @if (authService.token()) {
+        <button type="button" class="mobile-menu-cta" (click)="logout()">Logout</button>
+      } @else {
+        <a routerLink="/login" class="mobile-menu-cta" (click)="closeMobileMenu()">Login</a>
+      }
     </div>
   }
 </nav>

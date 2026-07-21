@@ -2,6 +2,7 @@ import { Component, HostListener, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
 import { CartService } from '../../cart/cart.service';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-top-navigation',
@@ -12,14 +13,21 @@ import { CartService } from '../../cart/cart.service';
 })
 export class TopNavigationComponent {
   protected readonly cart = inject(CartService);
+  protected readonly authService = inject(AuthService);
   protected readonly mobileMenuOpen = signal(false);
 
-  constructor(router: Router) {
+  constructor(private readonly router: Router) {
     // Closes the mobile menu automatically whenever a navigation completes — covers cases like
     // browser back/forward, not just the explicit (click) handler on each link.
     router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
       this.mobileMenuOpen.set(false);
     });
+  }
+
+  protected logout(): void {
+    this.authService.logout();
+    this.closeMobileMenu();
+    this.router.navigateByUrl('/');
   }
 
   protected toggleMobileMenu(): void {
