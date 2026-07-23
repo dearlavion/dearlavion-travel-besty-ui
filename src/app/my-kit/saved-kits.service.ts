@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { BuiltKit } from '../travel/travel-kit.service';
+import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
 export interface SavedKit {
@@ -31,12 +32,16 @@ function loadStored(): SavedKit[] {
 @Injectable({ providedIn: 'root' })
 export class SavedKitsService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
 
   readonly kits = signal<SavedKit[]>(environment.useMockData ? loadStored() : []);
 
   constructor() {
-    if (!environment.useMockData) {
-      this.http.get<SavedKit[]>(API_BASE).subscribe((res) => this.kits.set(res));
+    // /kits is auth-guarded — skip the request when logged out (guaranteed 403 otherwise) and
+    // always attach an error handler, since an unhandled subscribe error becomes an uncaught
+    // exception rather than just a rejected promise.
+    if (!environment.useMockData && this.auth.token()) {
+      this.http.get<SavedKit[]>(API_BASE).subscribe({ next: (res) => this.kits.set(res), error: () => {} });
     }
   }
 
@@ -44,8 +49,9 @@ export class SavedKitsService {
     const cleanName = name.trim() || 'My kit';
 
     if (!environment.useMockData) {
-      this.http.post<SavedKit>(API_BASE, { name: cleanName, kit }).subscribe((created) => {
-        this.kits.update((list) => [created, ...list]);
+      this.http.post<SavedKit>(API_BASE, { name: cleanName, kit }).subscribe({
+        next: (created) => this.kits.update((list) => [created, ...list]),
+        error: () => {},
       });
       // Callers only read `.name` off the return value (for a confirmation toast) — safe to hand
       // back a placeholder since the real entry lands in `kits` once the POST resolves.
@@ -67,7 +73,7 @@ export class SavedKitsService {
   delete(id: string): void {
     if (!environment.useMockData) {
       this.kits.update((list) => list.filter((k) => k.id !== id));
-      this.http.delete(`${API_BASE}/${id}`).subscribe();
+      this.http.delete(`${API_BASE}/${id}`).subscribe({ error: () => {} });
       return;
     }
 

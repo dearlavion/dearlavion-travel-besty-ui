@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
 export interface UserProfile {
@@ -31,19 +32,23 @@ function loadStored(): UserProfile {
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
 
   readonly profile = signal<UserProfile>(environment.useMockData ? loadStored() : DEFAULT_PROFILE);
 
   constructor() {
-    if (!environment.useMockData) {
-      this.http.get<UserProfile>(API_BASE).subscribe((res) => this.profile.set(res));
+    // /profile is auth-guarded — skip the request when logged out (guaranteed 403 otherwise) and
+    // always attach an error handler, since an unhandled subscribe error becomes an uncaught
+    // exception rather than just a rejected promise.
+    if (!environment.useMockData && this.auth.token()) {
+      this.http.get<UserProfile>(API_BASE).subscribe({ next: (res) => this.profile.set(res), error: () => {} });
     }
   }
 
   update(patch: Partial<UserProfile>): void {
     if (!environment.useMockData) {
       this.profile.update((p) => ({ ...p, ...patch }));
-      this.http.put<UserProfile>(API_BASE, patch).subscribe((res) => this.profile.set(res));
+      this.http.put<UserProfile>(API_BASE, patch).subscribe({ next: (res) => this.profile.set(res), error: () => {} });
       return;
     }
 

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
+import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-cart';
@@ -40,6 +41,7 @@ function loadStoredLines(): CartLine[] | null {
 export class CartService {
   private readonly productItems = inject(ProductItemService);
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
 
   // Kept as the single source of truth in both modes — real mode just re-syncs it from the
   // backend's response after every mutation (dropping the server's embedded `product`/`lineTotal`
@@ -48,8 +50,16 @@ export class CartService {
   private readonly items = signal<CartLine[]>(environment.useMockData ? (loadStoredLines() ?? []) : []);
 
   constructor() {
-    if (!environment.useMockData) {
-      this.http.get<ApiCartView>(API_BASE).subscribe((res) => this.applyServerView(res));
+    // /cart is auth-guarded — CartService is injected app-wide (e.g. the nav's cart badge), so
+    // this constructor runs on every page in real-backend mode, logged in or not (including SSR,
+    // which never has a token). Skip the request entirely when logged out rather than firing a
+    // guaranteed 403, and always attach an error handler — an unhandled subscribe error becomes an
+    // uncaught exception (crashes the SSR/dev-server process), not just a rejected promise.
+    if (!environment.useMockData && this.auth.token()) {
+      this.http.get<ApiCartView>(API_BASE).subscribe({
+        next: (res) => this.applyServerView(res),
+        error: () => {},
+      });
     }
   }
 
@@ -74,7 +84,7 @@ export class CartService {
     if (!environment.useMockData) {
       this.http
         .post<ApiCartView>(`${API_BASE}/items`, { productId, quantity })
-        .subscribe((res) => this.applyServerView(res));
+        .subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
       return;
     }
 
@@ -97,7 +107,7 @@ export class CartService {
     if (!environment.useMockData) {
       this.http
         .put<ApiCartView>(`${API_BASE}/items/${productId}`, { quantity })
-        .subscribe((res) => this.applyServerView(res));
+        .subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
       return;
     }
 
@@ -109,7 +119,9 @@ export class CartService {
 
   removeItem(productId: string): void {
     if (!environment.useMockData) {
-      this.http.delete<ApiCartView>(`${API_BASE}/items/${productId}`).subscribe((res) => this.applyServerView(res));
+      this.http
+        .delete<ApiCartView>(`${API_BASE}/items/${productId}`)
+        .subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
       return;
     }
 
@@ -119,7 +131,7 @@ export class CartService {
 
   clear(): void {
     if (!environment.useMockData) {
-      this.http.delete<ApiCartView>(API_BASE).subscribe((res) => this.applyServerView(res));
+      this.http.delete<ApiCartView>(API_BASE).subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
       return;
     }
 

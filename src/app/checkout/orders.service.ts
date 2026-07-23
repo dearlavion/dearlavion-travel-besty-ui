@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
 export interface OrderItem {
@@ -79,12 +80,19 @@ function mapFromApi(raw: ApiOrder): Order {
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
 
   readonly orders = signal<Order[]>(environment.useMockData ? loadStored() : []);
 
   constructor() {
-    if (!environment.useMockData) {
-      this.http.get<ApiOrder[]>(API_BASE).subscribe((res) => this.orders.set(res.map(mapFromApi)));
+    // /orders is auth-guarded — skip the request when logged out (guaranteed 403 otherwise) and
+    // always attach an error handler, since an unhandled subscribe error becomes an uncaught
+    // exception rather than just a rejected promise.
+    if (!environment.useMockData && this.auth.token()) {
+      this.http.get<ApiOrder[]>(API_BASE).subscribe({
+        next: (res) => this.orders.set(res.map(mapFromApi)),
+        error: () => {},
+      });
     }
   }
 
@@ -98,9 +106,12 @@ export class OrdersService {
           currency: order.currency,
           reference: order.id,
         })
-        .subscribe((created) => {
-          const mapped = mapFromApi(created);
-          this.orders.update((list) => list.map((o) => (o.id === order.id ? mapped : o)));
+        .subscribe({
+          next: (created) => {
+            const mapped = mapFromApi(created);
+            this.orders.update((list) => list.map((o) => (o.id === order.id ? mapped : o)));
+          },
+          error: () => {},
         });
       return;
     }
