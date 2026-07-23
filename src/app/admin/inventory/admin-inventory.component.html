@@ -1,7 +1,7 @@
 <div class="list-head">
   <div>
     <h1>Inventory</h1>
-    <p class="sub">Stock levels across {{ catalog.products().length }} products</p>
+    <p class="sub">Stock levels across {{ productItems.views().length }} items</p>
   </div>
 </div>
 
@@ -70,7 +70,7 @@
             </button>
           </td>
           <td class="actions-cell">
-            <a [routerLink]="['/admin/products', product.id, 'edit']" class="edit-link">Edit</a>
+            <a [routerLink]="['/admin/products', product.productId, 'edit']" class="edit-link">Edit</a>
           </td>
         </tr>
       } @empty {

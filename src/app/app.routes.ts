@@ -14,6 +14,7 @@ import { CheckoutComponent } from './checkout/checkout.component';
 import { AdminShellComponent } from './admin/admin-shell/admin-shell.component';
 import { AdminProductListComponent } from './admin/product-list/admin-product-list.component';
 import { AdminProductFormComponent } from './admin/product-form/admin-product-form.component';
+import { AdminProductItemFormComponent } from './admin/product-item-form/admin-product-item-form.component';
 import { AdminPopularKitsComponent } from './admin/popular-kits/admin-popular-kits.component';
 import { AdminPopularKitFormComponent } from './admin/popular-kits/admin-popular-kit-form.component';
 import { AdminInventoryComponent } from './admin/inventory/admin-inventory.component';
@@ -55,6 +56,8 @@ export const routes: Routes = [
       { path: 'products', component: AdminProductListComponent },
       { path: 'products/new', component: AdminProductFormComponent },
       { path: 'products/:id/edit', component: AdminProductFormComponent },
+      { path: 'products/:productId/items/new', component: AdminProductItemFormComponent },
+      { path: 'products/:productId/items/:itemId/edit', component: AdminProductItemFormComponent },
       { path: 'popular-kits', component: AdminPopularKitsComponent },
       { path: 'popular-kits/new', component: AdminPopularKitFormComponent },
       { path: 'popular-kits/:id/edit', component: AdminPopularKitFormComponent },

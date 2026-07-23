@@ -4,7 +4,7 @@ import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductDestination, ProductSeason, getProductTint } from './product-catalog';
-import { ProductCatalogService } from './product-catalog.service';
+import { ProductItemService, ProductItemView } from './product-item.service';
 import { CartService } from '../cart/cart.service';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
@@ -39,7 +39,7 @@ function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlyS
   styleUrl: './shop.component.css',
 })
 export class ShopComponent implements OnInit {
-  private readonly catalog = inject(ProductCatalogService);
+  private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
 
   protected readonly search = signal('');
@@ -65,13 +65,14 @@ export class ShopComponent implements OnInit {
     return selected.size > 0 ? [...selected].join(', ') : 'All';
   });
 
-  protected readonly filtered = computed(() => {
+  protected readonly filtered = computed<ProductItemView[]>(() => {
     const term = this.search().trim().toLowerCase();
     const seasons = this.seasons();
     const destinations = this.destinations();
 
-    let list = this.catalog.products().filter((p) => {
-      if (!p.active) return false;
+    // `views()` is already active-only/purchasable-only (see ProductItemService) — no separate
+    // `.active` check needed here, unlike the old Product-based filter.
+    let list = this.productItems.views().filter((p) => {
       if (!matchesFilter(p.seasons, seasons)) return false;
       if (!matchesFilter(p.destinations, destinations)) return false;
       if (

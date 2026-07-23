@@ -1,0 +1,98 @@
+@if (notFound()) {
+  <div class="not-found">
+    <p>We couldn't find that product.</p>
+    <a routerLink="/admin/products" class="back-link">← Back to Products</a>
+  </div>
+} @else {
+  <a [routerLink]="['/admin/products', productId(), 'edit']" class="back-link">← Back to {{ product()?.name }}</a>
+  <h1>{{ isEditMode() ? 'Edit Item' : 'Add Item' }}</h1>
+  <p class="sub">{{ product()?.icon }} {{ product()?.name }}</p>
+
+  <form class="item-form" (ngSubmit)="save()">
+    <div class="field-row">
+      <label>
+        <span>Brand (optional)</span>
+        <input
+          type="text"
+          placeholder="e.g. Samsonite — blank for the standard item"
+          [ngModel]="form().brand"
+          (ngModelChange)="updateField('brand', $event)"
+          name="brand"
+        />
+      </label>
+
+      <label>
+        <span>Price</span>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          required
+          [ngModel]="form().price"
+          (ngModelChange)="updateField('price', $event)"
+          name="price"
+        />
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label>
+        <span>Icon (emoji, optional — falls back to the product's icon)</span>
+        <input
+          type="text"
+          [ngModel]="form().icon"
+          (ngModelChange)="updateField('icon', $event)"
+          name="icon"
+        />
+      </label>
+
+      <label>
+        <span>Stock</span>
+        <input
+          type="number"
+          min="0"
+          [ngModel]="form().stock"
+          (ngModelChange)="updateField('stock', $event)"
+          name="stock"
+        />
+      </label>
+    </div>
+
+    <label class="field-full">
+      <span>Image URL (optional — falls back to the icon above)</span>
+      <input
+        type="text"
+        placeholder="https://..."
+        [ngModel]="form().image"
+        (ngModelChange)="updateField('image', $event)"
+        name="image"
+      />
+    </label>
+
+    <label class="checkbox-field">
+      <input
+        type="checkbox"
+        [ngModel]="form().soldOut"
+        (ngModelChange)="updateField('soldOut', $event)"
+        name="soldOut"
+      />
+      <span>Mark as sold out</span>
+    </label>
+
+    <div class="form-actions">
+      @if (isEditMode()) {
+        @if (confirmingDelete()) {
+          <span class="confirm-row">
+            Delete this item?
+            <button type="button" class="confirm-yes" (click)="confirmDelete()">Yes</button>
+            <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+          </span>
+        } @else {
+          <button type="button" class="delete-link" (click)="requestDelete()">Delete Item</button>
+        }
+      }
+      <a [routerLink]="['/admin/products', productId(), 'edit']" class="cancel-btn">Cancel</a>
+      <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Item' : '+ Add Item' }}</button>
+    </div>
+  </form>
+}

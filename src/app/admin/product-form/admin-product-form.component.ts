@@ -1,22 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.service';
 import { Product, ProductDestination, ProductParty, ProductSeason } from '../../shop/product-catalog';
+import { ProductItemService } from '../../shop/product-item.service';
 
 interface ProductFormModel {
   name: string;
   category: string;
   description: string;
-  price: number;
   icon: string;
-  image: string;
   seasons: ProductSeason[];
   destinations: ProductDestination[];
   parties: ProductParty[];
-  stock: number;
-  soldOut: boolean;
   tested: boolean;
   active: boolean;
   linkedProductIds: string[];
@@ -27,14 +25,10 @@ function emptyForm(): ProductFormModel {
     name: '',
     category: '',
     description: '',
-    price: 0,
     icon: '🧳',
-    image: '',
     seasons: [],
     destinations: [],
     parties: [],
-    stock: 0,
-    soldOut: false,
     tested: true,
     active: true,
     linkedProductIds: [],
@@ -45,15 +39,14 @@ const SEASON_OPTIONS: ProductSeason[] = ['Summer', 'Winter', 'Rainy'];
 const DESTINATION_OPTIONS: ProductDestination[] = ['Beach', 'Mountain', 'City'];
 const PARTY_OPTIONS: ProductParty[] = ['Solo', 'Group'];
 
-// Every product in this mock catalog uses the same currency — not worth exposing as a form field.
-const DEFAULT_CURRENCY = 'USD';
-
 // Shared add/edit form — no `:id` param means add mode, same toSignal(paramMap) pattern
-// ProductDetailComponent uses to detect route param changes.
+// ProductDetailComponent uses to detect route param changes. Purchase data (price/stock/etc) is
+// no longer part of this form directly — every product needs at least one ProductItem, added/edited
+// on their own page (AdminProductItemFormComponent) reached from the item table below.
 @Component({
   selector: 'app-admin-product-form',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CurrencyPipe],
   templateUrl: './admin-product-form.component.html',
   styleUrl: './admin-product-form.component.css',
 })
@@ -61,6 +54,7 @@ export class AdminProductFormComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly catalog = inject(ProductCatalogService);
+  protected readonly productItems = inject(ProductItemService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly editingId = computed(() => this.paramMap()?.get('id') ?? null);
@@ -102,18 +96,15 @@ export class AdminProductFormComponent {
           name: existing.name,
           category: existing.category,
           description: existing.description,
-          price: existing.price,
           icon: existing.icon,
-          image: existing.image ?? '',
           seasons: [...existing.seasons],
           destinations: [...existing.destinations],
           parties: [...existing.parties],
-          stock: existing.stock,
-          soldOut: existing.soldOut,
           tested: existing.tested,
           active: existing.active,
           linkedProductIds: [...(existing.linkedProductIds ?? [])],
         });
+        this.productItems.loadAdminItems(id);
       } else {
         this.notFound.set(true);
       }
@@ -162,15 +153,10 @@ export class AdminProductFormComponent {
       name: f.name.trim(),
       category: f.category.trim(),
       description: f.description.trim(),
-      price: Number(f.price) || 0,
       icon: f.icon.trim() || '🧳',
-      image: f.image.trim() || undefined,
-      currency: DEFAULT_CURRENCY,
       seasons: f.seasons,
       destinations: f.destinations,
       parties: f.parties,
-      stock: Math.max(0, Number(f.stock) || 0),
-      soldOut: f.soldOut,
       tested: f.tested,
       active: f.active,
       linkedProductIds: f.linkedProductIds,
@@ -180,12 +166,34 @@ export class AdminProductFormComponent {
     if (id) {
       // `popular` isn't a form field — leave it untouched on edit rather than resetting it.
       this.catalog.updateProduct(id, fields);
-    } else {
-      const payload: NewProduct = { ...fields, popular: false };
-      this.catalog.addProduct(payload);
+      this.router.navigateByUrl('/admin/products');
+      return;
     }
 
+    const payload: NewProduct = { ...fields, popular: false };
+    this.catalog.addProduct(payload);
+    // Back to the list, same as edit mode — not straight to this product's own Edit page: in
+    // real-backend mode the backend-assigned id/slug isn't reliably known until the POST
+    // resolves, so treat "add item(s)" as a distinct next step via the list's Edit link.
     this.router.navigateByUrl('/admin/products');
+  }
+
+  // ── ProductItem deletion (inline, quick action) — add/edit happens on their own page,
+  // AdminProductItemFormComponent, reached via the item table's Add/Edit links below. ───────────
+
+  protected readonly confirmingDeleteItemId = signal<string | null>(null);
+
+  protected requestDeleteItem(id: string): void {
+    this.confirmingDeleteItemId.set(id);
+  }
+
+  protected cancelDeleteItem(): void {
+    this.confirmingDeleteItemId.set(null);
+  }
+
+  protected confirmDeleteItem(id: string): void {
+    this.productItems.deactivateItem(id);
+    this.confirmingDeleteItemId.set(null);
   }
 }
 

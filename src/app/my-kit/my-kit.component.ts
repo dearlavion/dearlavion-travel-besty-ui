@@ -6,8 +6,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { buildKitFromPopularKit } from '../travel/popular-kit-view';
-import { Product, getProductTint } from '../shop/product-catalog';
+import { getProductTint } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
+import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
 import { SavedKitsService } from './saved-kits.service';
 import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
@@ -15,7 +16,9 @@ import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 interface DisplayItem {
   label: string;
   productId: string;
-  suggestions: Product[]; // primary match first (if it resolves), then related — capped at MAX_SUGGESTIONS
+  // Each generic Product suggestion resolved down to its own purchasable default item — primary
+  // match first (if it resolves), then related — capped at MAX_SUGGESTIONS.
+  suggestions: ProductItemView[];
   hasMoreSuggestions: boolean;
   moreSuggestionsCategory: string | null;
   tint: string;
@@ -50,6 +53,7 @@ export class MyKitComponent {
   private readonly travelKitService = inject(TravelKitService);
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
+  private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
   private readonly savedKitsService = inject(SavedKitsService);
   private readonly paramMap = toSignal(this.route.paramMap);
@@ -84,12 +88,19 @@ export class MyKitComponent {
     return kit.items.map((item, index) => {
       const primary = this.catalog.getById(item.productId);
       const related = primary ? this.catalog.getRelated(primary, RELATED_LOOKUP_LIMIT) : [];
-      const suggestions = primary ? [primary, ...related].slice(0, MAX_SUGGESTIONS) : [];
+      // Resolve each generic Product suggestion down to its purchasable default item — full
+      // unification guarantees every product has one, but a suggestion is dropped if its item
+      // somehow can't resolve rather than rendering a broken card.
+      const candidates = primary ? [primary, ...related] : [];
+      const resolved = candidates
+        .map((p) => this.productItems.getDefault(p.id))
+        .filter((v): v is ProductItemView => !!v);
+      const suggestions = resolved.slice(0, MAX_SUGGESTIONS);
       return {
         label: item.label,
         productId: item.productId,
         suggestions,
-        hasMoreSuggestions: related.length > MAX_SUGGESTIONS - 1,
+        hasMoreSuggestions: resolved.length > MAX_SUGGESTIONS,
         moreSuggestionsCategory: primary?.category ?? null,
         tint: PASTEL_TINTS[index % PASTEL_TINTS.length],
       };

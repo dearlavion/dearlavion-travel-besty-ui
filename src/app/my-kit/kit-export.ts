@@ -1,10 +1,10 @@
-import type { Product } from '../shop/product-catalog';
+import type { ProductItemView } from '../shop/product-item.service';
 
 /** A kit flattened for export (email / PDF). */
 export interface KitExport {
   title: string;
   summary: string;
-  items: { label: string; product?: Product }[];
+  items: { label: string; product?: ProductItemView }[];
 }
 
 function itemLines(k: KitExport): string[] {

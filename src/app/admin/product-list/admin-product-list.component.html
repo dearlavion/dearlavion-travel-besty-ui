@@ -29,49 +29,53 @@
       </tr>
     </thead>
     <tbody>
-      @for (product of filtered(); track product.id) {
-        <tr [class.sold-out-row]="product.soldOut" [class.inactive-row]="!product.active">
-          <td class="icon-cell">{{ product.icon }}</td>
-          <td class="name-cell">{{ product.name }}</td>
-          <td>{{ product.category }}</td>
-          <td>{{ product.price | currency: product.currency }}</td>
-          <td>
-            <input
-              type="number"
-              min="0"
-              class="stock-input"
-              [ngModel]="product.stock"
-              (ngModelChange)="setStock(product.id, $event)"
-            />
-          </td>
-          <td class="status-cell">
-            <button
-              type="button"
-              class="status-badge"
-              [class.sold-out]="product.soldOut"
-              (click)="toggleSoldOut(product.id, !product.soldOut)"
-            >
-              {{ product.soldOut ? 'Sold Out' : 'In Stock' }}
-            </button>
-            <button
-              type="button"
-              class="status-badge"
-              [class.inactive]="!product.active"
-              (click)="toggleActive(product.id, !product.active)"
-            >
-              {{ product.active ? 'Active' : 'Inactive' }}
-            </button>
-          </td>
+      @for (row of rows(); track row.product.id) {
+        <tr [class.sold-out-row]="row.defaultItem?.soldOut" [class.inactive-row]="!row.product.active">
+          <td class="icon-cell">{{ row.product.icon }}</td>
+          <td class="name-cell">{{ row.product.name }}</td>
+          <td>{{ row.product.category }}</td>
+          @if (row.defaultItem; as item) {
+            <td>{{ item.price | currency: item.currency }}</td>
+            <td>
+              <input
+                type="number"
+                min="0"
+                class="stock-input"
+                [ngModel]="item.stock"
+                (ngModelChange)="setStock(item.id, $event)"
+              />
+            </td>
+            <td class="status-cell">
+              <button
+                type="button"
+                class="status-badge"
+                [class.sold-out]="item.soldOut"
+                (click)="toggleSoldOut(item.id, !item.soldOut)"
+              >
+                {{ item.soldOut ? 'Sold Out' : 'In Stock' }}
+              </button>
+              <button
+                type="button"
+                class="status-badge"
+                [class.inactive]="!row.product.active"
+                (click)="toggleActive(row.product.id, !row.product.active)"
+              >
+                {{ row.product.active ? 'Active' : 'Inactive' }}
+              </button>
+            </td>
+          } @else {
+            <td class="no-item-cell" colspan="3">No purchasable item yet — add one from Edit.</td>
+          }
           <td class="actions-cell">
-            @if (confirmingDeleteId() === product.id) {
+            @if (confirmingDeleteId() === row.product.id) {
               <span class="confirm-row">
                 Delete?
-                <button type="button" class="confirm-yes" (click)="confirmDelete(product.id)">Yes</button>
+                <button type="button" class="confirm-yes" (click)="confirmDelete(row.product.id)">Yes</button>
                 <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
               </span>
             } @else {
-              <a [routerLink]="['/admin/products', product.id, 'edit']" class="edit-link">Edit</a>
-              <button type="button" class="delete-link" (click)="requestDelete(product.id)">Delete</button>
+              <a [routerLink]="['/admin/products', row.product.id, 'edit']" class="edit-link">Edit</a>
+              <button type="button" class="delete-link" (click)="requestDelete(row.product.id)">Delete</button>
             }
           </td>
         </tr>

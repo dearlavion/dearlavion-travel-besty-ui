@@ -1,19 +1,21 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Product } from '../shop/product-catalog';
-import { ProductCatalogService } from '../shop/product-catalog.service';
+import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { environment } from '../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-cart';
 const API_BASE = `${environment.apiUrl}/cart`;
 
+// `productId` here is a ProductItem id (a purchasable SKU), not a generic Product id — matches
+// the real backend's cart, which resolved to ProductItemService the same way (see
+// dearlavion-store-engine/src/cart/cart.service.ts).
 export interface CartLine {
   productId: string;
   quantity: number;
 }
 
 export interface CartDisplayLine extends CartLine {
-  product: Product;
+  product: ProductItemView;
 }
 
 interface ApiCartView {
@@ -36,7 +38,7 @@ function loadStoredLines(): CartLine[] | null {
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private readonly catalog = inject(ProductCatalogService);
+  private readonly productItems = inject(ProductItemService);
   private readonly http = inject(HttpClient);
 
   // Kept as the single source of truth in both modes — real mode just re-syncs it from the
@@ -55,7 +57,7 @@ export class CartService {
   // existing pattern of degrading gracefully instead of crashing.
   readonly lines = computed<CartDisplayLine[]>(() =>
     this.items()
-      .map((line) => ({ ...line, product: this.catalog.getById(line.productId) }))
+      .map((line) => ({ ...line, product: this.productItems.getById(line.productId) }))
       .filter((line): line is CartDisplayLine => !!line.product),
   );
 
@@ -66,7 +68,7 @@ export class CartService {
   );
 
   addItem(productId: string, quantity = 1): void {
-    const product = this.catalog.getById(productId);
+    const product = this.productItems.getById(productId);
     if (!product || product.soldOut) return;
 
     if (!environment.useMockData) {

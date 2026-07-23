@@ -1,13 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ProductCatalogService } from '../../shop/product-catalog.service';
+import { ProductItemService } from '../../shop/product-item.service';
 
 type InventoryFilter = 'all' | 'low' | 'sold-out';
 
-// Products at or below this stock count (and not already sold out) get flagged as "low stock".
+// Items at or below this stock count (and not already sold out) get flagged as "low stock".
 const LOW_STOCK_THRESHOLD = 5;
 
+// Stock/soldOut now live on ProductItem, not Product — this page tracks purchasable items
+// (`views()`, same active catalog Shop renders), not generic products. An item deactivated via
+// the per-product CRUD on the edit page (task 99) simply drops off this list, same as Shop.
 @Component({
   selector: 'app-admin-inventory',
   standalone: true,
@@ -16,12 +19,12 @@ const LOW_STOCK_THRESHOLD = 5;
   styleUrl: './admin-inventory.component.css',
 })
 export class AdminInventoryComponent {
-  protected readonly catalog = inject(ProductCatalogService);
+  protected readonly productItems = inject(ProductItemService);
   protected readonly filter = signal<InventoryFilter>('all');
   protected readonly lowStockThreshold = LOW_STOCK_THRESHOLD;
 
   protected readonly stats = computed(() => {
-    const list = this.catalog.products();
+    const list = this.productItems.views();
     const soldOut = list.filter((p) => p.soldOut).length;
     const lowStock = list.filter((p) => !p.soldOut && p.stock <= LOW_STOCK_THRESHOLD).length;
     return {
@@ -33,7 +36,7 @@ export class AdminInventoryComponent {
   });
 
   protected readonly filtered = computed(() => {
-    const list = this.catalog.products();
+    const list = this.productItems.views();
     const f = this.filter();
     if (f === 'low') return list.filter((p) => !p.soldOut && p.stock <= LOW_STOCK_THRESHOLD);
     if (f === 'sold-out') return list.filter((p) => p.soldOut);
@@ -46,10 +49,10 @@ export class AdminInventoryComponent {
 
   protected setStock(id: string, value: string): void {
     const stock = Math.max(0, Number(value) || 0);
-    this.catalog.updateProduct(id, { stock });
+    this.productItems.updateItem(id, { stock });
   }
 
   protected toggleSoldOut(id: string, soldOut: boolean): void {
-    this.catalog.updateProduct(id, { soldOut });
+    this.productItems.updateItem(id, { soldOut });
   }
 }

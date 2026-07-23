@@ -31,41 +31,15 @@
       </label>
     </div>
 
-    <div class="field-row">
-      <label>
-        <span>Category</span>
-        <input
-          type="text"
-          required
-          placeholder="e.g. Electronics"
-          [ngModel]="form().category"
-          (ngModelChange)="updateField('category', $event)"
-          name="category"
-        />
-      </label>
-
-      <label>
-        <span>Price</span>
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          required
-          [ngModel]="form().price"
-          (ngModelChange)="updateField('price', $event)"
-          name="price"
-        />
-      </label>
-    </div>
-
     <label class="field-full">
-      <span>Image URL (optional — falls back to the icon above)</span>
+      <span>Category</span>
       <input
         type="text"
-        placeholder="https://..."
-        [ngModel]="form().image"
-        (ngModelChange)="updateField('image', $event)"
-        name="image"
+        required
+        placeholder="e.g. Electronics"
+        [ngModel]="form().category"
+        (ngModelChange)="updateField('category', $event)"
+        name="category"
       />
     </label>
 
@@ -115,49 +89,26 @@
       </div>
     </div>
 
-    <div class="field-row">
-      <label>
-        <span>Stock</span>
+    <div class="field-full checkbox-stack">
+      <label class="checkbox-field">
         <input
-          type="number"
-          min="0"
-          [ngModel]="form().stock"
-          (ngModelChange)="updateField('stock', $event)"
-          name="stock"
+          type="checkbox"
+          [ngModel]="form().tested"
+          (ngModelChange)="updateField('tested', $event)"
+          name="tested"
         />
+        <span>Field-tested</span>
       </label>
 
-      <div class="field-full checkbox-stack">
-        <label class="checkbox-field">
-          <input
-            type="checkbox"
-            [ngModel]="form().soldOut"
-            (ngModelChange)="updateField('soldOut', $event)"
-            name="soldOut"
-          />
-          <span>Mark as sold out</span>
-        </label>
-
-        <label class="checkbox-field">
-          <input
-            type="checkbox"
-            [ngModel]="form().tested"
-            (ngModelChange)="updateField('tested', $event)"
-            name="tested"
-          />
-          <span>Field-tested</span>
-        </label>
-
-        <label class="checkbox-field">
-          <input
-            type="checkbox"
-            [ngModel]="form().active"
-            (ngModelChange)="updateField('active', $event)"
-            name="active"
-          />
-          <span>Active (visible on the storefront)</span>
-        </label>
-      </div>
+      <label class="checkbox-field">
+        <input
+          type="checkbox"
+          [ngModel]="form().active"
+          (ngModelChange)="updateField('active', $event)"
+          name="active"
+        />
+        <span>Active (visible on the storefront)</span>
+      </label>
     </div>
 
     <div class="field-full">
@@ -209,4 +160,65 @@
       <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Changes' : 'Add Product' }}</button>
     </div>
   </form>
+
+  @if (isEditMode()) {
+    <div class="field-full items-section">
+      <div class="items-section-head">
+        <span>Product Items ({{ productItems.adminItems().length }})</span>
+        <a [routerLink]="['/admin/products', editingId(), 'items', 'new']" class="add-item-link">+ Add Item</a>
+      </div>
+      <p class="items-hint">
+        Every product needs at least one purchasable item — this is what Shop, Cart, and Checkout
+        actually sell. Add a brand/variant name to offer more than one.
+      </p>
+
+      @if (productItems.adminItems().length > 0) {
+        <div class="table-wrap">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Brand</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of productItems.adminItems(); track item.id) {
+                <tr [class.inactive-row]="!item.active">
+                  <td class="icon-cell">{{ item.icon || form().icon }}</td>
+                  <td>{{ item.brand || 'Standard' }}</td>
+                  <td>{{ item.price | currency: item.currency }}</td>
+                  <td>{{ item.stock }}</td>
+                  <td>
+                    <span class="status-badge" [class.sold-out]="item.soldOut">
+                      {{ !item.active ? 'Inactive' : item.soldOut ? 'Sold Out' : 'In Stock' }}
+                    </span>
+                  </td>
+                  <td class="actions-cell">
+                    @if (confirmingDeleteItemId() === item.id) {
+                      <span class="confirm-row">
+                        Delete?
+                        <button type="button" class="confirm-yes" (click)="confirmDeleteItem(item.id)">Yes</button>
+                        <button type="button" class="confirm-cancel" (click)="cancelDeleteItem()">Cancel</button>
+                      </span>
+                    } @else {
+                      <a [routerLink]="['/admin/products', editingId(), 'items', item.id, 'edit']" class="edit-link">Edit</a>
+                      @if (item.active) {
+                        <button type="button" class="delete-link" (click)="requestDeleteItem(item.id)">Delete</button>
+                      }
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="items-hint">Save this product first — you'll add its purchasable item(s) right after.</p>
+  }
 }

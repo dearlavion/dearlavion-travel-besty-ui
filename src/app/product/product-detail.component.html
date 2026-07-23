@@ -4,13 +4,17 @@
 
     <div class="product-layout">
       <div class="product-image" [style.background]="getProductTint(p)">
-        @if (p.soldOut) {
-          <div class="sold-out-badge">Sold Out</div>
-        } @else if (p.popular) {
-          <div class="popular-badge">🔥 Popular</div>
-        }
-        @if (p.image) {
-          <img [src]="p.image" [alt]="p.name" class="product-photo" />
+        @if (selectedItem(); as item) {
+          @if (item.soldOut) {
+            <div class="sold-out-badge">Sold Out</div>
+          } @else if (p.popular) {
+            <div class="popular-badge">🔥 Popular</div>
+          }
+          @if (item.image) {
+            <img [src]="item.image" [alt]="p.name" class="product-photo" />
+          } @else {
+            <span class="product-icon">{{ item.icon }}</span>
+          }
         } @else {
           <span class="product-icon">{{ p.icon }}</span>
         }
@@ -19,7 +23,9 @@
       <div class="product-info">
         <p class="product-cat">{{ p.category }}</p>
         <h1 class="product-name">{{ p.name }}</h1>
-        <p class="product-price">{{ p.price | currency: p.currency }}</p>
+        @if (selectedItem(); as item) {
+          <p class="product-price">{{ item.price | currency: item.currency }}</p>
+        }
         <p class="product-desc">{{ p.description }}</p>
 
         <div class="tag-row">
@@ -37,14 +43,33 @@
           }
         </div>
 
+        @if (items().length > 1) {
+          <div class="variant-row">
+            @for (item of items(); track item.id) {
+              <button
+                type="button"
+                class="variant-chip"
+                [class.active]="selectedItem()?.id === item.id"
+                [disabled]="item.soldOut"
+                (click)="selectItem(item.id)"
+              >
+                {{ item.brand || 'Standard' }} — {{ item.price | currency: item.currency }}
+                @if (item.soldOut) {
+                  (Sold Out)
+                }
+              </button>
+            }
+          </div>
+        }
+
         <button
           type="button"
           class="add-btn"
           [class.added]="added()"
-          [disabled]="p.soldOut"
+          [disabled]="!selectedItem() || selectedItem()!.soldOut"
           (click)="addToCart()"
         >
-          {{ p.soldOut ? 'Sold Out' : added() ? 'Added to cart ✓' : 'Add to Cart' }}
+          {{ !selectedItem() || selectedItem()!.soldOut ? 'Sold Out' : added() ? 'Added to cart ✓' : 'Add to Cart' }}
         </button>
       </div>
     </div>
@@ -54,7 +79,7 @@
         <p class="related-title">You might also like</p>
         <div class="related-grid">
           @for (item of relatedProducts(); track item.id) {
-            <a class="related-card" [routerLink]="['/product', item.id]">
+            <a class="related-card" [routerLink]="['/product', item.productId]">
               <div class="related-image" [style.background]="getProductTint(item)">
                 @if (item.image) {
                   <img [src]="item.image" [alt]="item.name" class="related-photo" />
