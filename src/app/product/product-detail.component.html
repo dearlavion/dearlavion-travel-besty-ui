@@ -79,7 +79,7 @@
         <p class="related-title">You might also like</p>
         <div class="related-grid">
           @for (item of relatedProducts(); track item.id) {
-            <a class="related-card" [routerLink]="['/product', item.productId]">
+            <a class="related-card" [routerLink]="['/product', item.productId, 'items', item.id]">
               <div class="related-image" [style.background]="getProductTint(item)">
                 @if (item.image) {
                   <img [src]="item.image" [alt]="item.name" class="related-photo" />

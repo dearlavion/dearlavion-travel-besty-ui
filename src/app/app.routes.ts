@@ -28,6 +28,7 @@ export const routes: Routes = [
   { path: 'travel', component: TravelComponent },
   { path: 'shop', component: ShopComponent },
   { path: 'product/:id', component: ProductDetailComponent },
+  { path: 'product/:id/items/:itemId', component: ProductDetailComponent },
   { path: 'my-kit', component: MyKitComponent },
   { path: 'popular/:id', component: MyKitComponent },
   {

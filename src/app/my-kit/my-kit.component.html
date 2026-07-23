@@ -58,7 +58,7 @@
                     >
                       {{ product.soldOut ? 'Sold Out' : isAdded(product.id) ? 'Added ✓' : 'Add to Cart' }}
                     </button>
-                    <a [routerLink]="['/product', product.productId]" class="mini-view-btn">View</a>
+                    <a [routerLink]="['/product', product.productId, 'items', product.id]" class="mini-view-btn">View</a>
                   </div>
                 </div>
               }

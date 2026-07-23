@@ -6,6 +6,7 @@ import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { ProductItemService } from '../../shop/product-item.service';
 
 interface ItemFormModel {
+  name: string;
   brand: string;
   price: number;
   currency: string;
@@ -16,7 +17,7 @@ interface ItemFormModel {
 }
 
 function emptyItemForm(): ItemFormModel {
-  return { brand: '', price: 0, currency: 'USD', image: '', icon: '', stock: 0, soldOut: false };
+  return { name: '', brand: '', price: 0, currency: 'USD', image: '', icon: '', stock: 0, soldOut: false };
 }
 
 // Own page (not inline on the product edit form) — reached via "+ Add Item"/"Edit" on
@@ -41,38 +42,58 @@ export class AdminProductItemFormComponent {
   protected readonly isEditMode = computed(() => this.itemId() !== null);
 
   protected readonly product = computed(() => this.catalog.getById(this.productId()));
-  protected readonly notFound = signal(false);
+  // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,
+  // so a plain signal set once (before the catalog fetch resolves) would get permanently stuck
+  // showing "not found" even after the data arrives. `catalog.loaded()` tells "still loading"
+  // apart from "genuinely missing".
+  protected readonly notFound = computed(() => this.catalog.loaded() && !this.product());
 
   protected readonly form = signal<ItemFormModel>(emptyItemForm());
   protected readonly confirmingDelete = signal(false);
 
+  // Live preview of this item's resolved identity as the admin types — Name falls back to the
+  // parent product's name (same rule the Shop-facing aggregate applies), Brand falls back to
+  // "Standard" (this item's the product's sole/default variant, same label used elsewhere).
+  protected readonly effectiveName = computed(() => this.form().name.trim() || this.product()?.name || '');
+  protected readonly effectiveBrand = computed(() => this.form().brand.trim() || 'Standard');
+
   private formLoaded = false;
 
   constructor() {
-    if (!this.product()) {
-      this.notFound.set(true);
-      return;
-    }
+    // Doesn't depend on the generic Product having loaded — items are looked up by productId
+    // (a plain string from the route), not through ProductCatalogService.
     this.productItems.loadAdminItems(this.productId());
 
-    // Real-backend mode loads `adminItems` asynchronously (HTTP) — populate the form the moment
-    // the target item shows up rather than assuming it's already there synchronously (mock mode's
-    // loadAdminItems is synchronous, so this fires on the very first run there).
+    // Real-backend mode loads `adminItems`/`catalog.products()` asynchronously (HTTP) — populate
+    // the form the moment the data shows up rather than assuming it's already there synchronously
+    // (mock mode is synchronous, so this fires on the very first run there either way).
     effect(() => {
+      if (this.formLoaded) return;
+
       const itemId = this.itemId();
-      if (!itemId || this.formLoaded) return;
-      const item = this.productItems.adminItems().find((i) => i.id === itemId);
-      if (!item) return;
+      if (itemId) {
+        const item = this.productItems.adminItems().find((i) => i.id === itemId);
+        if (!item) return;
+        this.formLoaded = true;
+        this.form.set({
+          name: item.name,
+          brand: item.brand ?? '',
+          price: item.price,
+          currency: item.currency,
+          image: item.image ?? '',
+          icon: item.icon ?? '',
+          stock: item.stock,
+          soldOut: item.soldOut,
+        });
+        return;
+      }
+
+      // Add mode: name is required, so default it to the product's own name — the admin can
+      // still change it before saving.
+      const product = this.product();
+      if (!product) return;
       this.formLoaded = true;
-      this.form.set({
-        brand: item.brand ?? '',
-        price: item.price,
-        currency: item.currency,
-        image: item.image ?? '',
-        icon: item.icon ?? '',
-        stock: item.stock,
-        soldOut: item.soldOut,
-      });
+      this.form.update((f) => ({ ...f, name: product.name }));
     });
   }
 
@@ -84,6 +105,7 @@ export class AdminProductItemFormComponent {
     const productId = this.productId();
     const f = this.form();
     const fields = {
+      name: f.name.trim() || this.product()?.name || '',
       brand: f.brand.trim() || undefined,
       price: Math.max(0, Number(f.price) || 0),
       currency: f.currency.trim() || 'USD',

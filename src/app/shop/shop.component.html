@@ -105,7 +105,7 @@
     <div class="no-results">No items match your filters yet — try clearing search or filters.</div>
   } @else {
     @for (product of filtered(); track product.id) {
-      <a class="card" [class.sold-out]="product.soldOut" [routerLink]="['/product', product.productId]">
+      <a class="card" [class.sold-out]="product.soldOut" [routerLink]="['/product', product.productId, 'items', product.id]">
         <div class="card-image" [style.background]="getProductTint(product)">
           @if (product.soldOut) {
             <div class="sold-out-badge">Sold Out</div>

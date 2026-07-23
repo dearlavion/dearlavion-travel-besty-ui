@@ -46,11 +46,22 @@ export class ProductCatalogService {
 
   readonly products = signal<Product[]>(environment.useMockData ? (loadStoredProducts() ?? PRODUCTS) : []);
 
+  // True once `products` reflects real data — immediately in mock mode, only after the GET
+  // resolves (success or failure) in real mode. Lets consumers (e.g. admin edit pages) tell "not
+  // loaded yet" apart from "genuinely doesn't exist" instead of a one-shot check racing the fetch.
+  readonly loaded = signal(environment.useMockData);
+
   constructor() {
     if (!environment.useMockData) {
       this.http
         .get<ProductListResponse>(PUBLIC_BASE, { params: { size: 200 } })
-        .subscribe((res) => this.products.set(res.content));
+        .subscribe({
+          next: (res) => {
+            this.products.set(res.content);
+            this.loaded.set(true);
+          },
+          error: () => this.loaded.set(true),
+        });
     }
   }
 

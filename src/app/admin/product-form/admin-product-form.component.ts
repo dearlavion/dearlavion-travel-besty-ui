@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -65,7 +65,14 @@ export class AdminProductFormComponent {
   protected readonly partyOptions = PARTY_OPTIONS;
 
   protected readonly form = signal<ProductFormModel>(emptyForm());
-  protected readonly notFound = signal(false);
+  // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,
+  // so a plain signal set once (before the catalog fetch resolves) would get permanently stuck
+  // showing "not found" even after the data arrives. `catalog.loaded()` tells "still loading"
+  // apart from "genuinely missing".
+  protected readonly notFound = computed(() => {
+    const id = this.editingId();
+    return id !== null && this.catalog.loaded() && !this.catalog.getById(id);
+  });
   protected readonly productSearch = signal('');
 
   // Products matching the current search, for the "link a product" checklist — excludes this
@@ -87,28 +94,37 @@ export class AdminProductFormComponent {
       .filter((p): p is Product => !!p),
   );
 
+  private formLoaded = false;
+
   constructor() {
     const id = this.editingId();
-    if (id) {
+    if (!id) return; // add mode — nothing to load
+
+    // Doesn't depend on the generic Product having loaded — items are looked up by productId (a
+    // plain route string), not through ProductCatalogService.
+    this.productItems.loadAdminItems(id);
+
+    // Real-backend mode loads `catalog.products()` asynchronously — populate the form the moment
+    // this product shows up rather than assuming it's already there synchronously (mock mode's
+    // catalog is synchronous, so this fires on the very first run there).
+    effect(() => {
+      if (this.formLoaded) return;
       const existing = this.catalog.getById(id);
-      if (existing) {
-        this.form.set({
-          name: existing.name,
-          category: existing.category,
-          description: existing.description,
-          icon: existing.icon,
-          seasons: [...existing.seasons],
-          destinations: [...existing.destinations],
-          parties: [...existing.parties],
-          tested: existing.tested,
-          active: existing.active,
-          linkedProductIds: [...(existing.linkedProductIds ?? [])],
-        });
-        this.productItems.loadAdminItems(id);
-      } else {
-        this.notFound.set(true);
-      }
-    }
+      if (!existing) return;
+      this.formLoaded = true;
+      this.form.set({
+        name: existing.name,
+        category: existing.category,
+        description: existing.description,
+        icon: existing.icon,
+        seasons: [...existing.seasons],
+        destinations: [...existing.destinations],
+        parties: [...existing.parties],
+        tested: existing.tested,
+        active: existing.active,
+        linkedProductIds: [...(existing.linkedProductIds ?? [])],
+      });
+    });
   }
 
   protected updateField<K extends keyof ProductFormModel>(key: K, value: ProductFormModel[K]): void {

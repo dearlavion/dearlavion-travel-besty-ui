@@ -6,9 +6,24 @@
 } @else {
   <a [routerLink]="['/admin/products', productId(), 'edit']" class="back-link">← Back to {{ product()?.name }}</a>
   <h1>{{ isEditMode() ? 'Edit Item' : 'Add Item' }}</h1>
-  <p class="sub">{{ product()?.icon }} {{ product()?.name }}</p>
+  <dl class="item-identity">
+    <div><dt>Name</dt><dd>{{ product()?.icon }} {{ effectiveName() }}</dd></div>
+    <div><dt>Brand</dt><dd>{{ effectiveBrand() }}</dd></div>
+    <div><dt>Parent product</dt><dd>{{ productId() }}</dd></div>
+  </dl>
 
   <form class="item-form" (ngSubmit)="save()">
+    <label class="field-full">
+      <span>Name</span>
+      <input
+        type="text"
+        required
+        [ngModel]="form().name"
+        (ngModelChange)="updateField('name', $event)"
+        name="name"
+      />
+    </label>
+
     <div class="field-row">
       <label>
         <span>Brand (optional)</span>

@@ -37,6 +37,9 @@ export interface ProductItem {
   id: string;
   productId: string;
   brand?: string;
+  // This item's own display name (e.g. "Samsonite Passport Wallet") — required, matching the
+  // backend schema; the admin form defaults it to the parent product's name unless overridden.
+  name: string;
   price: number;
   currency: string;
   image?: string;
@@ -126,73 +129,73 @@ export const PRODUCTS: Product[] = [
 // exactly. Admins can add real brand variants on top via /admin/products/:id (each with its own
 // price/stock/image/brand).
 export const PRODUCT_ITEMS: ProductItem[] = [
-  { id: '1', productId: 'passport-wallet', price: 18.0, currency: 'USD', icon: '📘', stock: 42, soldOut: false, active: true },
-  { id: '2', productId: 'fast-charge-cable-set', price: 14.5, currency: 'USD', icon: '🔌', stock: 58, soldOut: false, active: true },
-  { id: '3', productId: 'travel-medication-case', price: 9.99, currency: 'USD', icon: '💊', stock: 33, soldOut: false, active: true },
-  { id: '4', productId: 'compact-first-aid-kit', price: 16.0, currency: 'USD', icon: '🩹', stock: 47, soldOut: false, active: true },
-  { id: '5', productId: 'document-organizer-wallet', price: 22.0, currency: 'USD', icon: '📄', stock: 19, soldOut: false, active: true },
+  { id: '1', productId: 'passport-wallet', name: 'Passport Wallet', price: 18.0, currency: 'USD', icon: '📘', stock: 42, soldOut: false, active: true },
+  { id: '2', productId: 'fast-charge-cable-set', name: 'Fast-Charge Cable Set', price: 14.5, currency: 'USD', icon: '🔌', stock: 58, soldOut: false, active: true },
+  { id: '3', productId: 'travel-medication-case', name: 'Travel Medication Case', price: 9.99, currency: 'USD', icon: '💊', stock: 33, soldOut: false, active: true },
+  { id: '4', productId: 'compact-first-aid-kit', name: 'Compact First-Aid Kit', price: 16.0, currency: 'USD', icon: '🩹', stock: 47, soldOut: false, active: true },
+  { id: '5', productId: 'document-organizer-wallet', name: 'Document Organizer Wallet', price: 22.0, currency: 'USD', icon: '📄', stock: 19, soldOut: false, active: true },
 
-  { id: '6', productId: 'ripple-swimsuit', price: 34.0, currency: 'USD', icon: '🩱', stock: 24, soldOut: false, active: true },
-  { id: '7', productId: 'quick-dry-mini-towel', price: 12.0, currency: 'USD', icon: '🏖️', stock: 61, soldOut: false, active: true },
-  { id: '8', productId: 'woven-flip-flops', price: 19.5, currency: 'USD', icon: '🩴', stock: 38, soldOut: false, active: true },
-  { id: '9', productId: 'waterproof-phone-pouch', price: 8.5, currency: 'USD', icon: '📱', stock: 52, soldOut: false, active: true },
-  { id: '10', productId: 'after-sun-aloe-gel', price: 11.0, currency: 'USD', icon: '🌿', stock: 27, soldOut: false, active: true },
+  { id: '6', productId: 'ripple-swimsuit', name: 'Ripple Swimsuit', price: 34.0, currency: 'USD', icon: '🩱', stock: 24, soldOut: false, active: true },
+  { id: '7', productId: 'quick-dry-mini-towel', name: 'Quick-Dry Mini Towel', price: 12.0, currency: 'USD', icon: '🏖️', stock: 61, soldOut: false, active: true },
+  { id: '8', productId: 'woven-flip-flops', name: 'Woven Flip-Flops', price: 19.5, currency: 'USD', icon: '🩴', stock: 38, soldOut: false, active: true },
+  { id: '9', productId: 'waterproof-phone-pouch', name: 'Waterproof Phone Pouch', price: 8.5, currency: 'USD', icon: '📱', stock: 52, soldOut: false, active: true },
+  { id: '10', productId: 'after-sun-aloe-gel', name: 'After-Sun Aloe Gel', price: 11.0, currency: 'USD', icon: '🌿', stock: 27, soldOut: false, active: true },
 
-  { id: '11', productId: 'trailhead-hiking-boots', price: 89.0, currency: 'USD', icon: '🥾', stock: 14, soldOut: false, active: true },
-  { id: '12', productId: 'carbon-trekking-poles', price: 42.0, currency: 'USD', icon: '🥢', stock: 21, soldOut: false, active: true },
-  { id: '13', productId: 'ridgeline-daypack-18l', price: 38.0, currency: 'USD', icon: '🎒', stock: 29, soldOut: false, active: true },
-  { id: '14', productId: 'insect-repellent-spray', price: 7.5, currency: 'USD', icon: '🦟', stock: 64, soldOut: false, active: true },
-  { id: '15', productId: 'rechargeable-headlamp', price: 24.0, currency: 'USD', icon: '🔦', stock: 18, soldOut: false, active: true },
+  { id: '11', productId: 'trailhead-hiking-boots', name: 'Trailhead Hiking Boots', price: 89.0, currency: 'USD', icon: '🥾', stock: 14, soldOut: false, active: true },
+  { id: '12', productId: 'carbon-trekking-poles', name: 'Carbon Trekking Poles', price: 42.0, currency: 'USD', icon: '🥢', stock: 21, soldOut: false, active: true },
+  { id: '13', productId: 'ridgeline-daypack-18l', name: 'Ridgeline Daypack 18L', price: 38.0, currency: 'USD', icon: '🎒', stock: 29, soldOut: false, active: true },
+  { id: '14', productId: 'insect-repellent-spray', name: 'Insect Repellent Spray', price: 7.5, currency: 'USD', icon: '🦟', stock: 64, soldOut: false, active: true },
+  { id: '15', productId: 'rechargeable-headlamp', name: 'Rechargeable Headlamp', price: 24.0, currency: 'USD', icon: '🔦', stock: 18, soldOut: false, active: true },
 
-  { id: '16', productId: 'everyday-walking-sneakers', price: 64.0, currency: 'USD', icon: '👟', stock: 16, soldOut: false, active: true },
-  { id: '17', productId: 'crossbody-city-bag', price: 36.0, currency: 'USD', icon: '👜', stock: 23, soldOut: false, active: true },
-  { id: '18', productId: 'slim-power-bank-10000mah', price: 27.0, currency: 'USD', icon: '🔋', stock: 40, soldOut: false, active: true },
-  { id: '19', productId: 'offline-city-map-pack', price: 4.99, currency: 'USD', icon: '🗺️', stock: 99, soldOut: false, active: true },
-  { id: '20', productId: 'foldable-laundry-bag', price: 9.0, currency: 'USD', icon: '🧺', stock: 31, soldOut: false, active: true },
+  { id: '16', productId: 'everyday-walking-sneakers', name: 'Everyday Walking Sneakers', price: 64.0, currency: 'USD', icon: '👟', stock: 16, soldOut: false, active: true },
+  { id: '17', productId: 'crossbody-city-bag', name: 'Crossbody City Bag', price: 36.0, currency: 'USD', icon: '👜', stock: 23, soldOut: false, active: true },
+  { id: '18', productId: 'slim-power-bank-10000mah', name: 'Slim Power Bank 10000mAh', price: 27.0, currency: 'USD', icon: '🔋', stock: 40, soldOut: false, active: true },
+  { id: '19', productId: 'offline-city-map-pack', name: 'Offline City Map Pack', price: 4.99, currency: 'USD', icon: '🗺️', stock: 99, soldOut: false, active: true },
+  { id: '20', productId: 'foldable-laundry-bag', name: 'Foldable Laundry Bag', price: 9.0, currency: 'USD', icon: '🧺', stock: 31, soldOut: false, active: true },
 
-  { id: '21', productId: '50ml-sunscreen-spf50', price: 9.5, currency: 'USD', icon: '🧴', stock: 55, soldOut: false, active: true },
-  { id: '22', productId: 'polarized-sunglasses', price: 29.0, currency: 'USD', icon: '🕶️', stock: 26, soldOut: false, active: true },
-  { id: '23', productId: 'packable-wide-brim-hat', price: 21.0, currency: 'USD', icon: '👒', stock: 20, soldOut: false, active: true },
-  { id: '24', productId: 'breathable-linen-set', price: 45.0, currency: 'USD', icon: '👕', stock: 12, soldOut: false, active: true },
-  { id: '25', productId: 'cooling-neck-towel', price: 10.5, currency: 'USD', icon: '🧣', stock: 44, soldOut: false, active: true },
+  { id: '21', productId: '50ml-sunscreen-spf50', name: '50ml Sunscreen SPF50', price: 9.5, currency: 'USD', icon: '🧴', stock: 55, soldOut: false, active: true },
+  { id: '22', productId: 'polarized-sunglasses', name: 'Polarized Sunglasses', price: 29.0, currency: 'USD', icon: '🕶️', stock: 26, soldOut: false, active: true },
+  { id: '23', productId: 'packable-wide-brim-hat', name: 'Packable Wide-Brim Hat', price: 21.0, currency: 'USD', icon: '👒', stock: 20, soldOut: false, active: true },
+  { id: '24', productId: 'breathable-linen-set', name: 'Breathable Linen Set', price: 45.0, currency: 'USD', icon: '👕', stock: 12, soldOut: false, active: true },
+  { id: '25', productId: 'cooling-neck-towel', name: 'Cooling Neck Towel', price: 10.5, currency: 'USD', icon: '🧣', stock: 44, soldOut: false, active: true },
 
-  { id: '26', productId: 'thermal-base-layer-set', price: 39.0, currency: 'USD', icon: '🥼', stock: 17, soldOut: false, active: true },
-  { id: '27', productId: 'insulated-touch-gloves', price: 18.0, currency: 'USD', icon: '🧤', stock: 30, soldOut: false, active: true },
-  { id: '28', productId: 'ribbed-wool-beanie', price: 15.0, currency: 'USD', icon: '🧢', stock: 35, soldOut: false, active: true },
-  { id: '29', productId: 'lip-skin-balm-duo', price: 8.0, currency: 'USD', icon: '💄', stock: 48, soldOut: false, active: true },
-  { id: '30', productId: 'merino-wool-socks-2pk', price: 16.5, currency: 'USD', icon: '🧦', stock: 53, soldOut: false, active: true },
+  { id: '26', productId: 'thermal-base-layer-set', name: 'Thermal Base Layer Set', price: 39.0, currency: 'USD', icon: '🥼', stock: 17, soldOut: false, active: true },
+  { id: '27', productId: 'insulated-touch-gloves', name: 'Insulated Touch Gloves', price: 18.0, currency: 'USD', icon: '🧤', stock: 30, soldOut: false, active: true },
+  { id: '28', productId: 'ribbed-wool-beanie', name: 'Ribbed Wool Beanie', price: 15.0, currency: 'USD', icon: '🧢', stock: 35, soldOut: false, active: true },
+  { id: '29', productId: 'lip-skin-balm-duo', name: 'Lip & Skin Balm Duo', price: 8.0, currency: 'USD', icon: '💄', stock: 48, soldOut: false, active: true },
+  { id: '30', productId: 'merino-wool-socks-2pk', name: 'Merino Wool Socks (2pk)', price: 16.5, currency: 'USD', icon: '🧦', stock: 53, soldOut: false, active: true },
 
-  { id: '31', productId: 'packable-rain-jacket', price: 48.0, currency: 'USD', icon: '🧥', stock: 13, soldOut: false, active: true },
-  { id: '32', productId: 'compact-travel-umbrella', price: 14.0, currency: 'USD', icon: '☂️', stock: 45, soldOut: false, active: true },
-  { id: '33', productId: 'waterproof-shoe-covers', price: 11.0, currency: 'USD', icon: '👢', stock: 28, soldOut: false, active: true },
-  { id: '34', productId: 'electronics-dry-bag', price: 13.5, currency: 'USD', icon: '💧', stock: 36, soldOut: false, active: true },
-  { id: '35', productId: 'quick-dry-travel-set', price: 32.0, currency: 'USD', icon: '👚', stock: 15, soldOut: false, active: true },
+  { id: '31', productId: 'packable-rain-jacket', name: 'Packable Rain Jacket', price: 48.0, currency: 'USD', icon: '🧥', stock: 13, soldOut: false, active: true },
+  { id: '32', productId: 'compact-travel-umbrella', name: 'Compact Travel Umbrella', price: 14.0, currency: 'USD', icon: '☂️', stock: 45, soldOut: false, active: true },
+  { id: '33', productId: 'waterproof-shoe-covers', name: 'Waterproof Shoe Covers', price: 11.0, currency: 'USD', icon: '👢', stock: 28, soldOut: false, active: true },
+  { id: '34', productId: 'electronics-dry-bag', name: 'Electronics Dry Bag', price: 13.5, currency: 'USD', icon: '💧', stock: 36, soldOut: false, active: true },
+  { id: '35', productId: 'quick-dry-travel-set', name: 'Quick-Dry Travel Set', price: 32.0, currency: 'USD', icon: '👚', stock: 15, soldOut: false, active: true },
 
-  { id: '36', productId: 'personal-safety-whistle', price: 6.0, currency: 'USD', icon: '🔔', stock: 70, soldOut: false, active: true },
-  { id: '37', productId: 'portable-door-alarm', price: 17.0, currency: 'USD', icon: '🚪', stock: 22, soldOut: false, active: true },
-  { id: '38', productId: 'travel-esim-card', price: 19.99, currency: 'USD', icon: '📶', stock: 999, soldOut: false, active: true },
+  { id: '36', productId: 'personal-safety-whistle', name: 'Personal Safety Whistle', price: 6.0, currency: 'USD', icon: '🔔', stock: 70, soldOut: false, active: true },
+  { id: '37', productId: 'portable-door-alarm', name: 'Portable Door Alarm', price: 17.0, currency: 'USD', icon: '🚪', stock: 22, soldOut: false, active: true },
+  { id: '38', productId: 'travel-esim-card', name: 'Travel eSIM Card', price: 19.99, currency: 'USD', icon: '📶', stock: 999, soldOut: false, active: true },
 
-  { id: '39', productId: 'group-first-aid-kit-large', price: 28.0, currency: 'USD', icon: '🧰', stock: 11, soldOut: false, active: true },
-  { id: '40', productId: 'printed-itinerary-set', price: 5.0, currency: 'USD', icon: '🗒️', stock: 63, soldOut: false, active: true },
-  { id: '41', productId: 'multi-port-charging-hub', price: 33.0, currency: 'USD', icon: '🔌', stock: 25, soldOut: false, active: true },
+  { id: '39', productId: 'group-first-aid-kit-large', name: 'Group First-Aid Kit (Large)', price: 28.0, currency: 'USD', icon: '🧰', stock: 11, soldOut: false, active: true },
+  { id: '40', productId: 'printed-itinerary-set', name: 'Printed Itinerary Set', price: 5.0, currency: 'USD', icon: '🗒️', stock: 63, soldOut: false, active: true },
+  { id: '41', productId: 'multi-port-charging-hub', name: 'Multi-Port Charging Hub', price: 33.0, currency: 'USD', icon: '🔌', stock: 25, soldOut: false, active: true },
 
-  { id: '42', productId: 'travel-size-toiletry-kit', price: 15.0, currency: 'USD', icon: '🧴', stock: 57, soldOut: false, active: true },
-  { id: '43', productId: 'versatile-spare-outfit', price: 26.0, currency: 'USD', icon: '👕', stock: 19, soldOut: false, active: true },
+  { id: '42', productId: 'travel-size-toiletry-kit', name: 'Travel-Size Toiletry Kit', price: 15.0, currency: 'USD', icon: '🧴', stock: 57, soldOut: false, active: true },
+  { id: '43', productId: 'versatile-spare-outfit', name: 'Versatile Spare Outfit', price: 26.0, currency: 'USD', icon: '👕', stock: 19, soldOut: false, active: true },
 
-  { id: '44', productId: 'laundry-detergent-sheets', price: 7.0, currency: 'USD', icon: '🧼', stock: 66, soldOut: false, active: true },
-  { id: '45', productId: 'packing-cubes-set-of-3', price: 24.0, currency: 'USD', icon: '🧳', stock: 34, soldOut: false, active: true },
-  { id: '46', productId: 'universal-travel-adapter', price: 21.0, currency: 'USD', icon: '🔋', stock: 41, soldOut: false, active: true },
+  { id: '44', productId: 'laundry-detergent-sheets', name: 'Laundry Detergent Sheets', price: 7.0, currency: 'USD', icon: '🧼', stock: 66, soldOut: false, active: true },
+  { id: '45', productId: 'packing-cubes-set-of-3', name: 'Packing Cubes (Set of 3)', price: 24.0, currency: 'USD', icon: '🧳', stock: 34, soldOut: false, active: true },
+  { id: '46', productId: 'universal-travel-adapter', name: 'Universal Travel Adapter', price: 21.0, currency: 'USD', icon: '🔋', stock: 41, soldOut: false, active: true },
 
-  { id: '47', productId: 'reusable-laundry-bag', price: 8.5, currency: 'USD', icon: '🧺', stock: 32, soldOut: false, active: true },
-  { id: '48', productId: 'extended-medication-organizer', price: 12.5, currency: 'USD', icon: '💊', stock: 9, soldOut: false, active: true },
-  { id: '49', productId: 'packing-cubes-full-set', price: 34.0, currency: 'USD', icon: '🧳', stock: 0, soldOut: true, active: true },
-  { id: '50', productId: 'foldable-spare-duffel', price: 19.0, currency: 'USD', icon: '🎒', stock: 20, soldOut: false, active: true },
+  { id: '47', productId: 'reusable-laundry-bag', name: 'Reusable Laundry Bag', price: 8.5, currency: 'USD', icon: '🧺', stock: 32, soldOut: false, active: true },
+  { id: '48', productId: 'extended-medication-organizer', name: 'Extended Medication Organizer', price: 12.5, currency: 'USD', icon: '💊', stock: 9, soldOut: false, active: true },
+  { id: '49', productId: 'packing-cubes-full-set', name: 'Packing Cubes (Full Set)', price: 34.0, currency: 'USD', icon: '🧳', stock: 0, soldOut: true, active: true },
+  { id: '50', productId: 'foldable-spare-duffel', name: 'Foldable Spare Duffel', price: 19.0, currency: 'USD', icon: '🎒', stock: 20, soldOut: false, active: true },
 
-  { id: '51', productId: 'reef-safe-stick-sunscreen', price: 9.0, currency: 'USD', icon: '🧴', stock: 40, soldOut: false, active: true },
-  { id: '52', productId: 'collapsible-silicone-water-bottle', price: 15.0, currency: 'USD', icon: '🥤', stock: 35, soldOut: false, active: true },
+  { id: '51', productId: 'reef-safe-stick-sunscreen', name: 'Reef-Safe Stick Sunscreen SPF30+', price: 9.0, currency: 'USD', icon: '🧴', stock: 40, soldOut: false, active: true },
+  { id: '52', productId: 'collapsible-silicone-water-bottle', name: 'Collapsible Silicone Water Bottle', price: 15.0, currency: 'USD', icon: '🥤', stock: 35, soldOut: false, active: true },
 
-  { id: '53', productId: 'compression-socks-flight', price: 14.0, currency: 'USD', icon: '🧦', stock: 45, soldOut: false, active: true },
-  { id: '54', productId: 'travel-pillow-eye-mask-set', price: 22.0, currency: 'USD', icon: '😴', stock: 30, soldOut: false, active: true },
+  { id: '53', productId: 'compression-socks-flight', name: 'Compression Socks (Flight)', price: 14.0, currency: 'USD', icon: '🧦', stock: 45, soldOut: false, active: true },
+  { id: '54', productId: 'travel-pillow-eye-mask-set', name: 'Travel Pillow & Eye Mask Set', price: 22.0, currency: 'USD', icon: '😴', stock: 30, soldOut: false, active: true },
 ];
 
 const DESTINATION_TINT: Partial<Record<ProductDestination, string>> = {

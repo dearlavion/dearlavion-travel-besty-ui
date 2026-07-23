@@ -76,7 +76,7 @@ function toView(item: ProductItem, product: Product): ProductItemView {
   return {
     id: item.id,
     productId: item.productId,
-    name: product.name,
+    name: item.name,
     brand: item.brand,
     category: product.category,
     description: product.description,
@@ -98,7 +98,11 @@ function toView(item: ProductItem, product: Product): ProductItemView {
 @Injectable({ providedIn: 'root' })
 export class ProductItemService {
   private readonly http = inject(HttpClient);
-  private readonly catalog = inject(ProductCatalogService);
+  // Only needed for mock mode's local join (see `views` below) — real mode's /product-items
+  // already comes pre-joined from the backend, so injecting this unconditionally would construct
+  // ProductCatalogService (and fire its own GET /products) purely as a side effect, even on pages
+  // like /shop that only ever need items, not generic products.
+  private readonly catalog = environment.useMockData ? inject(ProductCatalogService) : null;
 
   // Mock mode only — the raw, localStorage-backed items admin CRUD (task 99) edits directly.
   // Real mode's admin mutations go straight to the backend; `views` is refetched afterward instead.
@@ -110,7 +114,7 @@ export class ProductItemService {
   // grid never goes stale. Real: a plain fetched signal, refreshed after admin mutations.
   readonly views: Signal<ProductItemView[]> = environment.useMockData
     ? computed(() => {
-        const products = new Map(this.catalog.products().map((p) => [p.id, p] as const));
+        const products = new Map(this.catalog!.products().map((p) => [p.id, p] as const));
         return this.rawItems()
           .filter((item) => item.active)
           .map((item) => {

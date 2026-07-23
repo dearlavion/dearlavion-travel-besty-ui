@@ -27,7 +27,12 @@ export class ProductDetailComponent {
 
   protected readonly getProductTint = getProductTint;
   protected readonly added = signal(false);
-  protected readonly selectedItemId = signal<string | null>(null);
+
+  // Shop/My Kit link straight to a specific item (`/product/:id/items/:itemId`) so clicking a
+  // card lands on that exact variant, not just the product's cheapest/default one. A chip click
+  // within the page overrides it for the rest of the session.
+  private readonly routeItemId = computed(() => this.paramMap()?.get('itemId') ?? null);
+  private readonly userSelectedItemId = signal<string | null>(null);
 
   protected readonly product = computed<Product | undefined>(() => {
     const id = this.paramMap()?.get('id');
@@ -43,11 +48,21 @@ export class ProductDetailComponent {
     return product ? this.productItems.getForProduct(product.id) : [];
   });
 
-  // Whichever variant the shopper picked, falling back to the cheapest (default) one.
+  // Whichever variant the shopper explicitly clicked this session, else whichever the link they
+  // arrived on named, else the cheapest (default) one.
   protected readonly selectedItem = computed<ProductItemView | undefined>(() => {
     const items = this.items();
-    const selectedId = this.selectedItemId();
-    return items.find((i) => i.id === selectedId) ?? items[0];
+    const userChoice = this.userSelectedItemId();
+    if (userChoice) {
+      const found = items.find((i) => i.id === userChoice);
+      if (found) return found;
+    }
+    const routeChoice = this.routeItemId();
+    if (routeChoice) {
+      const found = items.find((i) => i.id === routeChoice);
+      if (found) return found;
+    }
+    return items[0];
   });
 
   protected readonly relatedProducts = computed<ProductItemView[]>(() => {
@@ -62,7 +77,7 @@ export class ProductDetailComponent {
   });
 
   protected selectItem(id: string): void {
-    this.selectedItemId.set(id);
+    this.userSelectedItemId.set(id);
   }
 
   protected addToCart(): void {
