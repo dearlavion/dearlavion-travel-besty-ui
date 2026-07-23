@@ -25,11 +25,20 @@
 </div>
 
 <div class="filter-chips">
-  <button type="button" class="chip" [class.active]="filter() === 'all'" (click)="filter.set('all')">All</button>
-  <button type="button" class="chip" [class.active]="filter() === 'low'" (click)="filter.set('low')">Low Stock</button>
-  <button type="button" class="chip" [class.active]="filter() === 'sold-out'" (click)="filter.set('sold-out')">
+  <button type="button" class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">All</button>
+  <button type="button" class="chip" [class.active]="filter() === 'low'" (click)="setFilter('low')">Low Stock</button>
+  <button type="button" class="chip" [class.active]="filter() === 'sold-out'" (click)="setFilter('sold-out')">
     Sold Out
   </button>
+</div>
+
+<div class="search-bar">
+  <input
+    type="text"
+    placeholder="Search by name, category, or brand..."
+    [ngModel]="search()"
+    (ngModelChange)="setSearch($event)"
+  />
 </div>
 
 <div class="table-wrap">
@@ -45,7 +54,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (product of filtered(); track product.id) {
+      @for (product of pagedItems(); track product.id) {
         <tr [class.low-stock-row]="isLowStock(product.stock, product.soldOut)" [class.sold-out-row]="product.soldOut">
           <td class="icon-cell">{{ product.icon }}</td>
           <td class="name-cell">{{ product.name }}</td>
@@ -75,9 +84,11 @@
         </tr>
       } @empty {
         <tr>
-          <td colspan="6" class="no-results">No products match this filter.</td>
+          <td colspan="6" class="no-results">No products match this filter{{ search() ? ' and search' : '' }}.</td>
         </tr>
       }
     </tbody>
   </table>
 </div>
+
+<app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />

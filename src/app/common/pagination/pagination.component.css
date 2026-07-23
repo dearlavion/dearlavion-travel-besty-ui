@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.page-btn {
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  color: var(--color-ink);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: var(--color-coral);
+}
+
+.page-btn:disabled {
+  color: var(--color-line);
+  cursor: not-allowed;
+}
+
+.page-status {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}

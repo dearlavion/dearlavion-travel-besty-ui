@@ -38,6 +38,26 @@ h1 {
   background: var(--color-coral-deep);
 }
 
+.search-bar {
+  margin-bottom: 24px;
+}
+
+.search-bar input {
+  width: 100%;
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.search-bar input:focus {
+  border-color: var(--color-coral);
+}
+
 .kit-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

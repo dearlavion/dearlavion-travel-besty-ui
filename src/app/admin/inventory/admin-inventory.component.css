@@ -83,6 +83,26 @@ h1 {
   color: #fff;
 }
 
+.search-bar {
+  margin-bottom: 24px;
+}
+
+.search-bar input {
+  width: 100%;
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.search-bar input:focus {
+  border-color: var(--color-coral);
+}
+
 .table-wrap {
   background: #fff;
   border-radius: 20px;
