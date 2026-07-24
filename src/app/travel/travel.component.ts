@@ -9,10 +9,12 @@ import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from './popular-kit-view';
 import { buildTravelKit, Destination, Duration, Party, Season } from './kit-recommendation';
 import { TravelKitService } from './travel-kit.service';
+import { PaginationComponent } from '../common/pagination/pagination.component';
 import { environment } from '../../environments/environment';
 
 const TOTAL_STEPS = 5;
 const AUTO_ADVANCE_DELAY_MS = 350;
+const GALLERY_PAGE_SIZE = 10;
 
 interface SurveyRecommendationsResponse {
   products: Product[];
@@ -21,7 +23,7 @@ interface SurveyRecommendationsResponse {
 @Component({
   selector: 'app-travel',
   standalone: true,
-  imports: [FormsModule, RouterLink, FooterComponent],
+  imports: [FormsModule, RouterLink, FooterComponent, PaginationComponent],
   templateUrl: './travel.component.html',
   styleUrl: './travel.component.css',
 })
@@ -163,4 +165,30 @@ export class TravelComponent {
     if (!term) return cards;
     return cards.filter((card) => card.name.toLowerCase().includes(term) || card.tag.toLowerCase().includes(term));
   });
+
+  protected readonly galleryPage = signal(0); // 0-indexed
+
+  protected readonly galleryTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredPopularKits().length / GALLERY_PAGE_SIZE)),
+  );
+
+  // Clamps in the same read — a new search narrowing the result set falls back to the new last
+  // page instead of showing a blank grid.
+  protected readonly galleryCurrentPage = computed(() =>
+    Math.min(this.galleryPage(), this.galleryTotalPages() - 1),
+  );
+
+  protected readonly pagedPopularKits = computed<PopularKitCard[]>(() => {
+    const start = this.galleryCurrentPage() * GALLERY_PAGE_SIZE;
+    return this.filteredPopularKits().slice(start, start + GALLERY_PAGE_SIZE);
+  });
+
+  protected setGallerySearch(term: string): void {
+    this.gallerySearch.set(term);
+    this.galleryPage.set(0); // a new search invalidates whatever page the visitor was on
+  }
+
+  protected goToGalleryPage(page: number): void {
+    this.galleryPage.set(Math.max(0, Math.min(page, this.galleryTotalPages() - 1)));
+  }
 }

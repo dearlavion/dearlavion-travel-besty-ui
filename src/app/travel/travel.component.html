@@ -220,12 +220,12 @@
       type="text"
       placeholder="Search kits — e.g. beach, hiking, airport..."
       [ngModel]="gallerySearch()"
-      (ngModelChange)="gallerySearch.set($event)"
+      (ngModelChange)="setGallerySearch($event)"
     />
   </div>
 
   <div class="gallery-grid">
-    @for (kit of filteredPopularKits(); track kit.id) {
+    @for (kit of pagedPopularKits(); track kit.id) {
       <a class="gallery-card" [routerLink]="['/popular', kit.id]">
         <img class="gallery-card-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
         <div class="gallery-card-info">
@@ -237,6 +237,12 @@
       <div class="gallery-empty">No kits match your search — try a different word.</div>
     }
   </div>
+
+  <app-pagination
+    [currentPage]="galleryCurrentPage()"
+    [totalPages]="galleryTotalPages()"
+    (pageChange)="goToGalleryPage($event)"
+  />
 </section>
 
 <app-footer tagline="© 2026 Travel Besty. Personalized travel essentials for every trip." />
