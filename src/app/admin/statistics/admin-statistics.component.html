@@ -1,0 +1,99 @@
+<div class="list-head">
+  <div>
+    <h1>Statistics</h1>
+    <p class="sub">{{ totalUnitsSold() }} units sold across {{ statsService.stats().length }} items</p>
+  </div>
+</div>
+
+<div class="stats-columns">
+  <section class="stats-panel">
+    <p class="panel-title">🔥 Best Performing</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Units Sold</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (stat of bestPerforming(); track stat.productItemId) {
+            <tr>
+              <td class="icon-cell">{{ stat.icon }}</td>
+              <td class="name-cell">
+                {{ stat.name }}
+                @if (stat.brand) {
+                  <span class="brand-tag">{{ stat.brand }}</span>
+                }
+              </td>
+              <td class="num-cell">{{ stat.unitsSold }}</td>
+              <td class="num-cell">{{ stat.orderCount }}</td>
+              <td class="num-cell">{{ stat.revenue | currency }}</td>
+              <td class="actions-cell">
+                <a [routerLink]="['/admin/products', stat.productId, 'items', stat.productItemId, 'edit']" class="edit-link">
+                  Edit
+                </a>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="no-results">No sales yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="stats-panel">
+    <p class="panel-title">📉 Least Popular</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Units Sold</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (stat of leastPopular(); track stat.productItemId) {
+            <tr [class.zero-sales-row]="stat.unitsSold === 0">
+              <td class="icon-cell">{{ stat.icon }}</td>
+              <td class="name-cell">
+                {{ stat.name }}
+                @if (stat.brand) {
+                  <span class="brand-tag">{{ stat.brand }}</span>
+                }
+              </td>
+              <td class="num-cell">
+                {{ stat.unitsSold }}
+                @if (stat.unitsSold === 0) {
+                  <span class="never-sold">Never sold</span>
+                }
+              </td>
+              <td class="num-cell">{{ stat.orderCount }}</td>
+              <td class="num-cell">{{ stat.revenue | currency }}</td>
+              <td class="actions-cell">
+                <a [routerLink]="['/admin/products', stat.productId, 'items', stat.productItemId, 'edit']" class="edit-link">
+                  Edit
+                </a>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="no-results">No items yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
