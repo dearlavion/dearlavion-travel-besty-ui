@@ -21,7 +21,7 @@
     <a routerLink="/shop" routerLinkActive="active">Shop</a>
     @if (authService.isAdmin()) {
       <a routerLink="/admin" routerLinkActive="active">Admin</a>
-    } @else {
+    } @else if (authService.token()) {
       <a routerLink="/profile" routerLinkActive="active">Profile</a>
     }
     <a routerLink="/about" routerLinkActive="active">About</a>
@@ -83,7 +83,7 @@
       <a routerLink="/shop" routerLinkActive="active" (click)="closeMobileMenu()">Shop</a>
       @if (authService.isAdmin()) {
         <a routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">Admin</a>
-      } @else {
+      } @else if (authService.token()) {
         <a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">Profile</a>
       }
       <a routerLink="/about" routerLinkActive="active" (click)="closeMobileMenu()">About</a>
