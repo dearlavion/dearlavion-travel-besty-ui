@@ -7,6 +7,8 @@ export const environment = {
   apiUrl: '',
   // Empty in mock mode — login uses the local stub identities (no real auth-service call).
   authUrl: '',
+  // Empty in mock mode — payments are stored locally.
+  paymentUrl: '',
   // Tenant id sent as X-Customer on real auth calls (unused in mock mode).
   customer: 'travel-besty',
 };

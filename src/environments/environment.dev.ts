@@ -7,6 +7,8 @@ export const environment = {
   production: false,
   useMockData: false,
   apiUrl: 'http://localhost:4000',
+  // Manual proof-of-payment verification service.
+  paymentUrl: 'http://localhost:4001',
   // Real auth-service-v2 (username/email + password login, issues the JWT store-engine verifies).
   authUrl: 'http://localhost:9081',
   // Which tenant this app is — sent as the X-Customer header on auth calls (one auth instance

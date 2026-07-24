@@ -3,12 +3,13 @@ import { inject } from '@angular/core';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
-// Attaches the stub-issued Bearer token to every request that goes to the real backend
-// (environment.apiUrl) — only meaningful in real-backend mode; useMockData:true never issues
-// these requests in the first place.
+// Attaches the Bearer token to requests that go to the real backends (store-engine `apiUrl` and
+// the payment-service `paymentUrl`) — only meaningful in real-backend mode; useMockData:true never
+// issues these requests in the first place.
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = inject(AuthService).token();
-  if (token && environment.apiUrl && req.url.startsWith(environment.apiUrl)) {
+  const backends = [environment.apiUrl, environment.paymentUrl].filter(Boolean);
+  if (token && backends.some((base) => req.url.startsWith(base))) {
     return next(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
   }
   return next(req);

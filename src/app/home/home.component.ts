@@ -1,10 +1,10 @@
-import { afterNextRender, Component, computed, ElementRef, signal, viewChild } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
+import { TopSellingService } from './top-selling.service';
 
 interface Step {
   num: string;
@@ -23,13 +23,12 @@ interface HeroGalleryItem {
   label: string;
 }
 
-interface BagItem {
+interface BagItemLayout {
   label: string;
   bg: string;
-  icon: SafeHtml;
-}
-
-interface BagItemLayout extends BagItem {
+  icon: string;
+  productId: string;
+  productItemId: string;
   top: number;
   left: number;
   delay: number;
@@ -42,6 +41,19 @@ interface BagItemLayout extends BagItem {
 // ring an actual circle instead of an ellipse.
 const RING_RADIUS = 34;
 const RING_START_ANGLE = -90; // first item straight up, rest follow clockwise
+const BAG_ITEM_COUNT = 8;
+// Cycled per item, same tint palette used elsewhere (My Kit's pastel item cards) — real products
+// don't carry a "bag illustration" background of their own.
+const BAG_TINTS = [
+  'var(--tint-pink)',
+  'var(--tint-cream)',
+  'var(--tint-yellow)',
+  'var(--tint-green)',
+  'var(--tint-lavender)',
+  'var(--tint-marigold)',
+  'var(--tint-blue)',
+  'var(--tint-violet)',
+];
 
 @Component({
   selector: 'app-home',
@@ -51,13 +63,13 @@ const RING_START_ANGLE = -90; // first item straight up, rest follow clockwise
   styleUrl: './home.component.css',
 })
 export class HomeComponent {
+  private readonly topSelling = inject(TopSellingService);
+
   constructor(
-    private readonly sanitizer: DomSanitizer,
     private readonly popularKitsService: PopularKitsService,
     private readonly catalog: ProductCatalogService,
   ) {
-    this.bagItems = this.buildBagItems();
-    this.bagLayout = signal(this.buildLayout());
+    this.topSelling.load(BAG_ITEM_COUNT);
 
     afterNextRender(() => {
       this.measureMarquee();
@@ -67,8 +79,25 @@ export class HomeComponent {
   }
 
   protected readonly bagOpen = signal(false);
-  protected readonly bagItems: BagItem[];
-  protected readonly bagLayout;
+
+  // Real top-selling items, laid out around the bag ring — see BAG_ITEM_COUNT/BAG_TINTS above.
+  protected readonly bagLayout = computed<BagItemLayout[]>(() => {
+    const items = this.topSelling.items();
+    const step = items.length > 0 ? 360 / items.length : 0;
+    return items.map((item, i) => {
+      const angle = ((RING_START_ANGLE + i * step) * Math.PI) / 180;
+      return {
+        label: item.name,
+        bg: BAG_TINTS[i % BAG_TINTS.length],
+        icon: item.icon ?? '🧳',
+        productId: item.productId,
+        productItemId: item.productItemId,
+        left: 50 + RING_RADIUS * Math.cos(angle),
+        top: 50 + RING_RADIUS * Math.sin(angle),
+        delay: i * 70,
+      };
+    });
+  });
 
   protected toggleBag(): void {
     this.bagOpen.set(!this.bagOpen());
@@ -77,132 +106,6 @@ export class HomeComponent {
   protected onBagSpace(event: Event): void {
     event.preventDefault();
     this.toggleBag();
-  }
-
-  private buildLayout(): BagItemLayout[] {
-    const step = 360 / this.bagItems.length;
-
-    return this.bagItems.map((item, i) => {
-      const angle = ((RING_START_ANGLE + i * step) * Math.PI) / 180;
-      return {
-        ...item,
-        left: 50 + RING_RADIUS * Math.cos(angle),
-        top: 50 + RING_RADIUS * Math.sin(angle),
-        delay: i * 70,
-      };
-    });
-  }
-
-  private trust(svg: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(svg);
-  }
-
-  private buildBagItems(): BagItem[] {
-    return [
-      {
-        label: 'Emergency Kit',
-        bg: 'var(--tint-pink)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <rect x="14" y="24" width="36" height="28" rx="6" fill="#fff" stroke="#E38B4E" stroke-width="3" />
-            <path d="M24 24v-4a8 8 0 0 1 16 0v4" fill="none" stroke="#E38B4E" stroke-width="3" />
-            <rect x="28" y="30" width="8" height="16" fill="#E38B4E" />
-            <rect x="22" y="36" width="20" height="8" fill="#E38B4E" />
-          </svg>
-        `),
-      },
-      {
-        label: 'Toothbrush',
-        bg: 'var(--tint-cream)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <g transform="rotate(-30 32 32)">
-              <rect x="8" y="28" width="36" height="8" rx="4" fill="#B695C4" />
-              <rect x="42" y="23" width="15" height="18" rx="4" fill="#fff" stroke="#B695C4" stroke-width="2" />
-              <line x1="45.5" y1="26" x2="45.5" y2="38" stroke="#B695C4" stroke-width="2" />
-              <line x1="49.5" y1="26" x2="49.5" y2="38" stroke="#B695C4" stroke-width="2" />
-              <line x1="53.5" y1="26" x2="53.5" y2="38" stroke="#B695C4" stroke-width="2" />
-            </g>
-          </svg>
-        `),
-      },
-      {
-        label: 'Slippers',
-        bg: 'var(--tint-yellow)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <ellipse cx="20" cy="40" rx="13" ry="19" fill="#F2AE3E" />
-            <path d="M20 23 L12 34 M20 23 L28 34" stroke="#33502F" stroke-width="3" stroke-linecap="round" fill="none" />
-            <ellipse cx="46" cy="40" rx="13" ry="19" fill="#F2AE3E" />
-            <path d="M46 23 L38 34 M46 23 L54 34" stroke="#33502F" stroke-width="3" stroke-linecap="round" fill="none" />
-          </svg>
-        `),
-      },
-      {
-        label: 'Sunblock',
-        bg: 'var(--tint-green)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <rect x="24" y="12" width="16" height="8" rx="2" fill="#6E9B5C" />
-            <rect x="19" y="20" width="26" height="34" rx="7" fill="#EBF2E4" stroke="#6E9B5C" stroke-width="2" />
-            <circle cx="32" cy="38" r="6" fill="#F2AE3E" />
-            <g stroke="#F2AE3E" stroke-width="2" stroke-linecap="round">
-              <line x1="32" y1="27" x2="32" y2="24" />
-              <line x1="41" y1="38" x2="44" y2="38" />
-              <line x1="23" y1="38" x2="20" y2="38" />
-              <line x1="38.5" y1="31.5" x2="40.5" y2="29.5" />
-              <line x1="25.5" y1="31.5" x2="23.5" y2="29.5" />
-            </g>
-          </svg>
-        `),
-      },
-      {
-        label: 'Whistle',
-        bg: 'var(--tint-pink)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <rect x="32" y="26" width="22" height="16" rx="6" fill="#E38B4E" />
-            <circle cx="24" cy="34" r="14" fill="#F4CBDA" stroke="#E38B4E" stroke-width="3" />
-            <circle cx="24" cy="34" r="5" fill="#E38B4E" />
-          </svg>
-        `),
-      },
-      {
-        label: 'Rubber Shoes',
-        bg: 'var(--tint-cream)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <rect x="14" y="10" width="16" height="8" fill="#33502F" />
-            <path d="M14 14h16v22c0 4 3 7 8 7h18v11H14z" fill="#6E9B5C" />
-          </svg>
-        `),
-      },
-      {
-        label: 'Sunglasses',
-        bg: 'var(--tint-yellow)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <path d="M5 30 L1 26 M59 30 L63 26" stroke="#33502F" stroke-width="3" stroke-linecap="round" fill="none" />
-            <rect x="27" y="30" width="10" height="5" rx="2" fill="#33502F" />
-            <circle cx="18" cy="34" r="13" fill="#33502F" />
-            <circle cx="46" cy="34" r="13" fill="#33502F" />
-            <circle cx="18" cy="34" r="8" fill="#B695C4" opacity="0.55" />
-            <circle cx="46" cy="34" r="8" fill="#B695C4" opacity="0.55" />
-          </svg>
-        `),
-      },
-      {
-        label: 'Bug Spray',
-        bg: 'var(--tint-green)',
-        icon: this.trust(`
-          <svg viewBox="0 0 64 64">
-            <rect x="24" y="26" width="16" height="30" rx="4" fill="#EBF2E4" stroke="#6E9B5C" stroke-width="2" />
-            <rect x="27" y="14" width="10" height="12" rx="2" fill="#6E9B5C" />
-            <rect x="34" y="9" width="12" height="6" rx="2" fill="#33502F" transform="rotate(30 34 9)" />
-          </svg>
-        `),
-      },
-    ];
   }
 
   protected readonly steps: Step[] = [

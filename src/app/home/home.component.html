@@ -170,16 +170,18 @@
     </div>
 
     <div class="bag-items" [class.is-visible]="bagOpen()">
-      @for (item of bagLayout(); track item.label) {
-        <div
+      @for (item of bagLayout(); track item.productItemId) {
+        <a
           class="bag-item"
+          [routerLink]="['/product', item.productId, 'items', item.productItemId]"
+          (click)="$event.stopPropagation()"
           [style.top.%]="item.top"
           [style.left.%]="item.left"
           [style.transition-delay]="bagOpen() ? item.delay + 'ms' : '0ms'"
         >
-          <div class="bag-item-frame" [style.background]="item.bg" [innerHTML]="item.icon"></div>
+          <div class="bag-item-frame" [style.background]="item.bg">{{ item.icon }}</div>
           <div class="bag-item-label">{{ item.label }}</div>
-        </div>
+        </a>
       }
     </div>
   </div>

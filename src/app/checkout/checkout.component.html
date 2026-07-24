@@ -1,10 +1,60 @@
-@if (orderNumber(); as order) {
+@if (step() === 'done') {
   <div class="confirm-state">
     <p class="confirm-icon">🌷</p>
-    <h1>Order placed!</h1>
-    <p class="confirm-sub">Thanks for your order — a confirmation has been sent to {{ email }}.</p>
-    <p class="order-number">Order #{{ order }}</p>
-    <a routerLink="/" class="confirm-btn">Continue Shopping</a>
+    <h1>Payment submitted!</h1>
+    <p class="confirm-sub">
+      Thanks — your payment for order <strong>#{{ orderNumber() }}</strong> is now <strong>pending verification</strong>.
+      We'll confirm it shortly. A receipt goes to {{ email }}.
+    </p>
+    <a routerLink="/profile/track-packages" class="confirm-btn">Track my order</a>
+    <a routerLink="/" class="confirm-link">Continue shopping</a>
+  </div>
+} @else if (step() === 'payment') {
+  <div class="checkout-page checkout-page--narrow">
+    <div class="checkout-head">
+      <p class="eyebrow">Payment</p>
+      <h1 class="checkout-title">Submit your payment</h1>
+      <p class="pay-intro">
+        Order <strong>#{{ orderNumber() }}</strong> is placed. Pay via your chosen method, then submit the details and a
+        screenshot link so we can verify it.
+      </p>
+    </div>
+
+    <form #payForm="ngForm" class="checkout-form" (ngSubmit)="submitPayment(payForm)">
+      <div class="form-field">
+        <label for="method">Payment method</label>
+        <select id="method" name="method" class="select" [ngModel]="method()" (ngModelChange)="method.set($event)" required>
+          @for (m of methods; track m.code) {
+            <option [value]="m.code">{{ m.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="amount">Amount paid ({{ currency() }})</label>
+          <input id="amount" type="number" name="amount" min="0.01" step="0.01" [ngModel]="amountPaid()" (ngModelChange)="amountPaid.set($event)" required />
+        </div>
+        <div class="form-field">
+          <label for="reference">Reference number</label>
+          <input id="reference" type="text" name="reference" [(ngModel)]="referenceNumber" required placeholder="e.g. GCash ref #" />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="proof">Proof of payment (image URL)</label>
+        <input id="proof" type="url" name="proof" [(ngModel)]="proofImageUrl" required placeholder="https://… screenshot link" />
+        <small class="field-hint">Upload your screenshot somewhere (e.g. an image host) and paste the link here.</small>
+      </div>
+
+      @if (payError()) {
+        <p class="pay-error">{{ payError() }}</p>
+      }
+
+      <button type="submit" class="place-order-btn" [disabled]="submitting()">
+        {{ submitting() ? 'Submitting…' : 'Submit payment' }}
+      </button>
+    </form>
   </div>
 } @else if (cart.lines().length === 0) {
   <div class="empty-state">
@@ -50,35 +100,10 @@
           </div>
         </div>
 
-        <h2 class="section-title">Payment</h2>
-
-        <div class="form-field">
-          <label for="cardNumber">Card number</label>
-          <input
-            id="cardNumber"
-            type="text"
-            name="cardNumber"
-            [(ngModel)]="cardNumber"
-            required
-            minlength="12"
-            placeholder="4242 4242 4242 4242"
-          />
-        </div>
-
-        <div class="form-row">
-          <div class="form-field">
-            <label for="cardExpiry">Expiry</label>
-            <input id="cardExpiry" type="text" name="cardExpiry" [(ngModel)]="cardExpiry" required placeholder="MM/YY" />
-          </div>
-          <div class="form-field">
-            <label for="cardCvc">CVC</label>
-            <input id="cardCvc" type="text" name="cardCvc" [(ngModel)]="cardCvc" required minlength="3" placeholder="123" />
-          </div>
-        </div>
-
         <button type="submit" class="place-order-btn" [disabled]="submitting()">
           {{ submitting() ? 'Placing order…' : 'Place Order' }}
         </button>
+        <p class="pay-note">Next you'll submit your payment (GCash, Maya, Maribank, or card) for verification.</p>
       </form>
 
       <div class="order-summary">
