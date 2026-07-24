@@ -6,8 +6,10 @@ import { RouterLink } from '@angular/router';
 import { ProductDestination, ProductSeason, getProductTint } from './product-catalog';
 import { ProductItemService, ProductItemView } from './product-item.service';
 import { CartService } from '../cart/cart.service';
+import { PaginationComponent } from '../common/pagination/pagination.component';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
+const PAGE_SIZE = 50;
 
 const SEASON_OPTIONS: { value: ProductSeason; label: string }[] = [
   { value: 'Summer', label: '☀️ Summer' },
@@ -34,7 +36,7 @@ function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlyS
 @Component({
   selector: 'app-shop',
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, RouterLink],
+  imports: [FormsModule, CurrencyPipe, RouterLink, PaginationComponent],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.css',
 })
@@ -48,6 +50,7 @@ export class ShopComponent implements OnInit {
   protected readonly sortBy = signal<SortOption>('default');
   protected readonly getProductTint = getProductTint;
   protected readonly addedIds = signal<ReadonlySet<string>>(new Set());
+  protected readonly page = signal(0); // 0-indexed
 
   protected readonly seasonOptions = SEASON_OPTIONS;
   protected readonly destinationOptions = DESTINATION_OPTIONS;
@@ -100,6 +103,21 @@ export class ShopComponent implements OnInit {
     return list;
   });
 
+  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filtered().length / PAGE_SIZE)));
+
+  // Clamps in the same read — a new search/filter narrowing the result set falls back to the new
+  // last page instead of showing a blank grid.
+  protected readonly currentPage = computed(() => Math.min(this.page(), this.totalPages() - 1));
+
+  protected readonly pagedItems = computed<ProductItemView[]>(() => {
+    const start = this.currentPage() * PAGE_SIZE;
+    return this.filtered().slice(start, start + PAGE_SIZE);
+  });
+
+  protected goToPage(page: number): void {
+    this.page.set(Math.max(0, Math.min(page, this.totalPages() - 1)));
+  }
+
   constructor(private route: ActivatedRoute) {
     // The one place that needs the whole catalog (browsing/search/filter) — everything else
     // (Product Detail, Cart, My Kit) either uses a targeted per-product fetch or triggers this
@@ -124,6 +142,11 @@ export class ShopComponent implements OnInit {
     }
   }
 
+  protected setSearch(term: string): void {
+    this.search.set(term);
+    this.page.set(0); // a new search invalidates whatever page the shopper was on
+  }
+
   protected isSeasonSelected(season: ProductSeason): boolean {
     return this.seasons().has(season);
   }
@@ -133,6 +156,7 @@ export class ShopComponent implements OnInit {
     if (next.has(season)) next.delete(season);
     else next.add(season);
     this.seasons.set(next);
+    this.page.set(0);
   }
 
   protected isDestinationSelected(destination: ProductDestination): boolean {
@@ -144,6 +168,7 @@ export class ShopComponent implements OnInit {
     if (next.has(destination)) next.delete(destination);
     else next.add(destination);
     this.destinations.set(next);
+    this.page.set(0);
   }
 
   protected toggleSeasonMenu(): void {
