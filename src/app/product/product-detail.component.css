@@ -117,7 +117,18 @@
   color: var(--color-ink-soft);
   line-height: 1.6;
   max-width: 420px;
+  margin-bottom: 20px;
+}
+
+.product-stock {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-leaf);
   margin-bottom: 24px;
+}
+
+.product-stock.stock-out {
+  color: var(--color-coral-deep);
 }
 
 .tag-row {
@@ -142,35 +153,50 @@
   background: var(--tint-green);
 }
 
-.variant-row {
+.purchase-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 16px;
 }
 
-.variant-chip {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-ink-soft);
-  background: #fff;
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   border: 1.5px solid var(--color-line);
   border-radius: 999px;
-  padding: 9px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 4px;
 }
 
-.variant-chip.active {
-  color: var(--color-coral-deep);
-  border-color: var(--color-coral);
+.qty-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
   background: var(--tint-cream);
+  color: var(--color-ink);
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.variant-chip:disabled {
+.qty-btn:hover:not(:disabled) {
+  background: var(--color-coral);
+  color: #fff;
+}
+
+.qty-btn:disabled {
   color: var(--color-line);
   cursor: not-allowed;
-  text-decoration: line-through;
+}
+
+.qty-value {
+  min-width: 28px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-ink);
 }
 
 .add-btn {

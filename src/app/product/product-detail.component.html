@@ -22,52 +22,59 @@
         @if (item.brand) {
           <p class="product-brand">Brand: {{ item.brand }}</p>
         }
-        <p class="product-price">{{ item.price | currency: item.currency }}</p>
         <p class="product-desc">{{ item.description }}</p>
+        <p class="product-price">{{ item.price | currency: item.currency }}</p>
 
-        <div class="tag-row">
-          @for (destination of item.destinations; track destination) {
-            <span class="tag">{{ destination }}</span>
-          }
-          @for (season of item.seasons; track season) {
-            <span class="tag">{{ season }}</span>
-          }
-          @for (party of item.parties; track party) {
-            <span class="tag">{{ party }}</span>
-          }
-          @if (item.tested) {
-            <span class="tag tag-tested">🧪 Field-tested</span>
-          }
-        </div>
+        @if (item.soldOut) {
+          <p class="product-stock stock-out">Sold Out</p>
+        } @else {
+          <p class="product-stock">{{ item.stock }} in stock</p>
+        }
 
-        @if (items().length > 1) {
-          <div class="variant-row">
-            @for (variant of items(); track variant.id) {
-              <button
-                type="button"
-                class="variant-chip"
-                [class.active]="item.id === variant.id"
-                [disabled]="variant.soldOut"
-                (click)="selectItem(variant.id)"
-              >
-                {{ variant.brand || 'Standard' }} — {{ variant.price | currency: variant.currency }}
-                @if (variant.soldOut) {
-                  (Sold Out)
-                }
-              </button>
+        @if (tags().length > 0 || item.tested) {
+          <div class="tag-row">
+            @for (tag of tags(); track tag) {
+              <span class="tag">{{ tag }}</span>
+            }
+            @if (item.tested) {
+              <span class="tag tag-tested">🧪 Field-tested</span>
             }
           </div>
         }
 
-        <button
-          type="button"
-          class="add-btn"
-          [class.added]="added()"
-          [disabled]="item.soldOut"
-          (click)="addToCart()"
-        >
-          {{ item.soldOut ? 'Sold Out' : added() ? 'Added to cart ✓' : 'Add to Cart' }}
-        </button>
+        <div class="purchase-row">
+          <div class="qty-stepper">
+            <button
+              type="button"
+              class="qty-btn"
+              [disabled]="item.soldOut || quantity() <= 1"
+              (click)="decrementQuantity()"
+              aria-label="Decrease quantity"
+            >
+              −
+            </button>
+            <span class="qty-value">{{ quantity() }}</span>
+            <button
+              type="button"
+              class="qty-btn"
+              [disabled]="item.soldOut || quantity() >= item.stock"
+              (click)="incrementQuantity()"
+              aria-label="Increase quantity"
+            >
+              +
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="add-btn"
+            [class.added]="added()"
+            [disabled]="item.soldOut"
+            (click)="addToCart()"
+          >
+            {{ item.soldOut ? 'Sold Out' : added() ? 'Added to cart ✓' : 'Add to Cart' }}
+          </button>
+        </div>
       </div>
     </div>
 

@@ -6,11 +6,13 @@ import { getProductTint } from '../shop/product-catalog';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
 
-// The reusable template for any single product — one route (`/product/:id[/items/:itemId]`), the
-// id(s) decide what renders. Everything the page shows (name/category/description/tags AND
-// price/stock/brand) comes from ProductItemView — the public aggregate already joins in the
-// parent Product's display fields and already excludes items whose parent product is inactive, so
-// this component never needs a separate ProductCatalogService fetch.
+// The reusable template for any single product item — one route (`/product/:id/items/:itemId`,
+// or bare `/product/:id` for the cheapest/default item), the id(s) decide what renders.
+// Everything the page shows (name/category/description/tags AND price/stock/brand) comes from
+// ProductItemView — the public aggregate already joins in the parent Product's display fields and
+// already excludes items whose parent product is inactive, so this component never needs a
+// separate ProductCatalogService fetch. No in-page variant switcher — a sibling brand/variant is a
+// full navigation via "You might also like" instead.
 @Component({
   selector: 'app-product-detail',
   standalone: true,
@@ -26,12 +28,11 @@ export class ProductDetailComponent {
 
   protected readonly getProductTint = getProductTint;
   protected readonly added = signal(false);
+  protected readonly quantity = signal(1);
 
-  // Shop/My Kit link straight to a specific item (`/product/:id/items/:itemId`) so clicking a
-  // card lands on that exact variant, not just the product's cheapest/default one. A chip click
-  // within the page overrides it for the rest of the session.
+  // Shop/My Kit link straight to a specific item (`/product/:id/items/:itemId`) so this page
+  // shows that exact variant, not just the product's cheapest/default one.
   private readonly routeItemId = computed(() => this.paramMap()?.get('itemId') ?? null);
-  private readonly userSelectedItemId = signal<string | null>(null);
 
   constructor() {
     // Targeted fetches (GET /product-items?productId=:id and ?id=:itemId), never the full
@@ -47,28 +48,23 @@ export class ProductDetailComponent {
     });
   }
 
-  // All purchasable variants for this product, cheapest first — usually just the one default item.
+  // Every item under this product — used only to resolve a bare-route fallback and to build "You
+  // might also like" below; there's no in-page picker anymore, so this never drives the page's
+  // own displayed item once a specific one is named in the URL.
   protected readonly items = computed<ProductItemView[]>(() => this.productItems.currentProductItems());
 
-  // Whichever variant the shopper explicitly clicked this session (via the picker, which only
-  // ever offers items already in `items()`), else the directly-fetched single item a Shop/My-Kit
-  // link named, else whichever the sibling list resolves that id to (covers the moment before the
-  // direct fetch resolves), else the cheapest (default) one.
+  // The directly-fetched single item a Shop/My-Kit link named, else whichever the sibling list
+  // resolves that id to (covers the moment before the direct fetch resolves), else the cheapest
+  // (default) one for a bare /product/:id visit.
   protected readonly selectedItem = computed<ProductItemView | undefined>(() => {
-    const items = this.items();
-    const userChoice = this.userSelectedItemId();
-    if (userChoice) {
-      const found = items.find((i) => i.id === userChoice);
-      if (found) return found;
-    }
     const routeChoice = this.routeItemId();
     if (routeChoice) {
       const direct = this.productItems.currentItem();
       if (direct?.id === routeChoice) return direct;
-      const found = items.find((i) => i.id === routeChoice);
+      const found = this.items().find((i) => i.id === routeChoice);
       if (found) return found;
     }
-    return items[0];
+    return this.items()[0];
   });
 
   // Sibling items under the same parent product (other brands/variants), excluding whichever one
@@ -79,16 +75,31 @@ export class ProductDetailComponent {
     return this.items().filter((i) => i.id !== current?.id);
   });
 
-  protected selectItem(id: string): void {
-    this.userSelectedItemId.set(id);
+  // Destination/season/party tags, minus the "applies to everything" placeholder value — showing
+  // "All" three times over doesn't tell a shopper anything.
+  protected readonly tags = computed<string[]>(() => {
+    const item = this.selectedItem();
+    if (!item) return [];
+    const all: string[] = [...item.destinations, ...item.seasons, ...item.parties];
+    return all.filter((tag) => tag !== 'All');
+  });
+
+  protected incrementQuantity(): void {
+    const max = this.selectedItem()?.stock ?? 1;
+    this.quantity.update((q) => Math.min(q + 1, Math.max(max, 1)));
+  }
+
+  protected decrementQuantity(): void {
+    this.quantity.update((q) => Math.max(1, q - 1));
   }
 
   protected addToCart(): void {
     const item = this.selectedItem();
-    if (!item) return;
+    if (!item || item.soldOut) return;
 
-    this.cart.addItem(item.id);
+    this.cart.addItem(item.id, this.quantity());
     this.added.set(true);
+    this.quantity.set(1);
     setTimeout(() => this.added.set(false), 2000);
   }
 }
