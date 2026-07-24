@@ -35,6 +35,21 @@
     </div>
   </div>
 
+  <label class="field">
+    <span>Currency</span>
+    <select
+      class="currency-select"
+      [ngModel]="selectedCurrency()"
+      (ngModelChange)="selectedCurrency.set($event)"
+      name="currency"
+    >
+      @for (option of currencyOptions; track option.code) {
+        <option [value]="option.code">{{ option.label }}</option>
+      }
+    </select>
+    <small class="field-hint">Prices and payments will use this currency. Default is USD.</small>
+  </label>
+
   <div class="form-actions">
     <button type="submit" class="save-btn">Save Changes</button>
     @if (savedMessage()) {

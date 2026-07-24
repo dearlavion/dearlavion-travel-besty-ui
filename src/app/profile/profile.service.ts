@@ -1,11 +1,12 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
 export interface UserProfile {
   displayName: string;
   avatar: string; // emoji
+  currency: string; // ISO 4217, preferred display currency (default USD)
 }
 
 const STORAGE_KEY = 'travel-besty-profile';
@@ -14,6 +15,7 @@ const API_BASE = `${environment.apiUrl}/profile`;
 const DEFAULT_PROFILE: UserProfile = {
   displayName: 'Traveler',
   avatar: '🧳',
+  currency: 'USD',
 };
 
 // Mock mode: no real auth/user accounts — purely cosmetic, localStorage-backed. Real-backend
@@ -35,6 +37,9 @@ export class ProfileService {
   private readonly auth = inject(AuthService);
 
   readonly profile = signal<UserProfile>(environment.useMockData ? loadStored() : DEFAULT_PROFILE);
+
+  /** The user's preferred currency (ISO 4217) — read by price displays / checkout / payments. */
+  readonly currency = computed(() => this.profile().currency);
 
   constructor() {
     // /profile is auth-guarded — skip the request when logged out (guaranteed 403 otherwise) and

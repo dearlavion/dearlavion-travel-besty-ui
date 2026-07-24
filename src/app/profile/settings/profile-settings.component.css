@@ -119,3 +119,26 @@
   font-weight: 700;
   color: var(--color-leaf);
 }
+
+.currency-select {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+}
+
+.currency-select:focus {
+  border-color: var(--color-coral);
+}
+
+.field-hint {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-ink-soft);
+}
