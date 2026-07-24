@@ -50,24 +50,48 @@ export class ProductCatalogService {
   // resolves (success or failure) in real mode. Lets consumers (e.g. admin edit pages) tell "not
   // loaded yet" apart from "genuinely doesn't exist" instead of a one-shot check racing the fetch.
   readonly loaded = signal(environment.useMockData);
+  private fetchAllStarted = environment.useMockData;
 
-  constructor() {
-    if (!environment.useMockData) {
-      this.http
-        .get<ProductListResponse>(PUBLIC_BASE, { params: { size: 200 } })
-        .subscribe({
-          next: (res) => {
-            this.products.set(res.content);
-            this.loaded.set(true);
-          },
-          error: () => this.loaded.set(true),
-        });
+  // Lazily fetches the full product list the first time something actually needs cross-product
+  // lookups (Admin lists, Home/Travel's popular-kit cards, My Kit's related-products, or a
+  // getById()/getRelated() call that needs the broad list to search). A single product's own page
+  // doesn't need this at all — see loadOne()/currentProduct below, which is what
+  // /product/:id[/items/:itemId] uses instead.
+  ensureAllLoaded(): void {
+    if (this.fetchAllStarted) return;
+    this.fetchAllStarted = true;
+    this.http
+      .get<ProductListResponse>(PUBLIC_BASE, { params: { size: 200 } })
+      .subscribe({
+        next: (res) => {
+          this.products.set(res.content);
+          this.loaded.set(true);
+        },
+        error: () => this.loaded.set(true),
+      });
+  }
+
+  // One product, freshly fetched from the targeted GET /products/:id endpoint rather than found
+  // by filtering the full list — this is what ProductDetailComponent uses, so opening a single
+  // product's page never has to pull all 200.
+  readonly currentProduct = signal<Product | undefined>(undefined);
+
+  loadOne(id: string): void {
+    if (environment.useMockData) {
+      this.currentProduct.set(this.getById(id));
+      return;
     }
+    this.currentProduct.set(undefined);
+    this.http.get<Product>(`${PUBLIC_BASE}/${id}`).subscribe({
+      next: (product) => this.currentProduct.set(product),
+      error: () => this.currentProduct.set(undefined),
+    });
   }
 
   // Checks `slug` too — PopularKit.productIds/Product.linkedProductIds reference products by
   // slug in real-backend mode, not the Mongo id that Product.id holds there.
   getById(id: string): Product | undefined {
+    this.ensureAllLoaded();
     return this.products().find((p) => p.id === id || p.slug === id);
   }
 
@@ -77,6 +101,7 @@ export class ProductCatalogService {
   // automatic tiers, but reads the live signal so admin edits/deletes are reflected instead of
   // the frozen seed array.
   getRelated(product: Product, limit = 4): Product[] {
+    this.ensureAllLoaded();
     const others = this.products().filter((p) => p.id !== product.id);
 
     const linked = (product.linkedProductIds ?? [])

@@ -82,6 +82,10 @@ export class AdminPopularKitFormComponent {
   );
 
   constructor() {
+    // Reads catalog.products() directly (the "add a product" search picker below), regardless of
+    // add/edit mode.
+    this.catalog.ensureAllLoaded();
+
     const id = this.editingId();
     if (id) {
       const existing = this.popularKits.getById(id);

@@ -22,8 +22,11 @@
 
       <div class="product-info">
         <p class="product-cat">{{ p.category }}</p>
-        <h1 class="product-name">{{ p.name }}</h1>
+        <h1 class="product-name">{{ selectedItem()?.name ?? p.name }}</h1>
         @if (selectedItem(); as item) {
+          @if (item.brand) {
+            <p class="product-brand">Brand: {{ item.brand }}</p>
+          }
           <p class="product-price">{{ item.price | currency: item.currency }}</p>
         }
         <p class="product-desc">{{ p.description }}</p>

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
@@ -35,21 +35,40 @@ export class ProductDetailComponent {
   private readonly userSelectedItemId = signal<string | null>(null);
 
   protected readonly product = computed<Product | undefined>(() => {
-    const id = this.paramMap()?.get('id');
-    const product = id ? this.catalog.getById(id) : undefined;
+    const product = this.catalog.currentProduct();
     // An inactive product is treated the same as a deleted one on the customer-facing page —
     // admins can still see/reactivate it via the catalog list, just not preview it live.
     return product?.active ? product : undefined;
   });
 
-  // All purchasable variants for this product, cheapest first — usually just the one default item.
-  protected readonly items = computed<ProductItemView[]>(() => {
-    const product = this.product();
-    return product ? this.productItems.getForProduct(product.id) : [];
-  });
+  constructor() {
+    // Targeted fetches (GET /products/:id and GET /product-items?productId=:id), not the full
+    // catalog — this page only ever needs one product and its variants, so it shouldn't pull the
+    // whole catalog (200 products / 500 items) just to render one. Both fire in parallel — the
+    // items fetch doesn't need the generic product to resolve first, since the backend does its
+    // own join server-side.
+    effect(() => {
+      const id = this.paramMap()?.get('id');
+      if (!id) return;
+      this.catalog.loadOne(id);
+      this.productItems.loadForProduct(id);
+    });
+    // The specific item a Shop/My-Kit link named gets its own minimal fetch (?id=itemId, exactly
+    // one result) so the page's primary content (name/price/brand) doesn't wait on the sibling
+    // list above, which only matters for the variant picker/suggestions further down.
+    effect(() => {
+      const itemId = this.routeItemId();
+      if (itemId) this.productItems.loadItem(itemId);
+    });
+  }
 
-  // Whichever variant the shopper explicitly clicked this session, else whichever the link they
-  // arrived on named, else the cheapest (default) one.
+  // All purchasable variants for this product, cheapest first — usually just the one default item.
+  protected readonly items = computed<ProductItemView[]>(() => this.productItems.currentProductItems());
+
+  // Whichever variant the shopper explicitly clicked this session (via the picker below, which
+  // only ever offers items already in `items()`), else the directly-fetched single item a
+  // Shop/My-Kit link named, else whichever the sibling list resolves that id to (covers the
+  // moment before the direct fetch above resolves), else the cheapest (default) one.
   protected readonly selectedItem = computed<ProductItemView | undefined>(() => {
     const items = this.items();
     const userChoice = this.userSelectedItemId();
@@ -59,21 +78,20 @@ export class ProductDetailComponent {
     }
     const routeChoice = this.routeItemId();
     if (routeChoice) {
+      const direct = this.productItems.currentItem();
+      if (direct?.id === routeChoice) return direct;
       const found = items.find((i) => i.id === routeChoice);
       if (found) return found;
     }
     return items[0];
   });
 
+  // Sibling items under the same parent product (other brands/variants), excluding whichever one
+  // is currently shown — e.g. viewing "Samsonite Passport Wallet" suggests the wallet's other
+  // brand options, not unrelated products from the wider catalog.
   protected readonly relatedProducts = computed<ProductItemView[]>(() => {
-    const product = this.product();
-    if (!product) return [];
-    // Related suggestions are shown as purchasable cards, so resolve each related generic
-    // product down to its own default item — full unification guarantees one exists.
-    return this.catalog
-      .getRelated(product)
-      .map((p) => this.productItems.getDefault(p.id))
-      .filter((item): item is ProductItemView => !!item);
+    const current = this.selectedItem();
+    return this.items().filter((i) => i.id !== current?.id);
   });
 
   protected selectItem(id: string): void {

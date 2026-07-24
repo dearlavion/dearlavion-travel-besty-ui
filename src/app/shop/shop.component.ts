@@ -100,7 +100,12 @@ export class ShopComponent implements OnInit {
     return list;
   });
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute) {
+    // The one place that needs the whole catalog (browsing/search/filter) — everything else
+    // (Product Detail, Cart, My Kit) either uses a targeted per-product fetch or triggers this
+    // lazily itself only when it actually needs a cross-product lookup.
+    this.productItems.ensureCatalogLoaded();
+  }
 
   ngOnInit(): void {
     // Home's "Shop by destination" chips/footer links pass this through — a light functional

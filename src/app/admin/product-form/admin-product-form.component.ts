@@ -97,6 +97,11 @@ export class AdminProductFormComponent {
   private formLoaded = false;
 
   constructor() {
+    // Reads catalog.products() directly (the "link a product" search picker below), in both add
+    // and edit mode — needs the full list regardless of whether this product itself is found via
+    // getById() below.
+    this.catalog.ensureAllLoaded();
+
     const id = this.editingId();
     if (!id) return; // add mode — nothing to load
 

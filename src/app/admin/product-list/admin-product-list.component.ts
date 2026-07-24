@@ -33,6 +33,11 @@ export class AdminProductListComponent {
   protected readonly page = signal(0); // 0-indexed
   protected readonly confirmingDeleteId = signal<string | null>(null);
 
+  constructor() {
+    // Cross-catalog view — reads catalog.products() directly, so it needs the full list.
+    this.catalog.ensureAllLoaded();
+  }
+
   // Search-matched, sorted A→Z by name — the full result set before pagination slices it, so
   // "X of Y" counts and page-count math both read off this rather than the visible page alone.
   protected readonly filtered = computed<Product[]>(() => {

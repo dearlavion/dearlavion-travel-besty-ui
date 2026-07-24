@@ -17,8 +17,10 @@ const STORAGE_KEY = 'travel-besty-product-items';
 // fields. Mock mode reproduces the identical shape locally by joining PRODUCT_ITEMS with
 // ProductCatalogService.products() below, so every consumer (Shop, Cart, Checkout, Orders, My Kit
 // suggestions) can treat ProductItemView the same way in both modes.
+// ProductItem's own top-level endpoints — fully separate from /products and /admin/products.
+// `productId` is a query param (list) or body field (create) rather than a nested URL segment.
 const PUBLIC_LIST_BASE = `${environment.apiUrl}/product-items`;
-export const ADMIN_ITEMS_BASE = (productId: string) => `${environment.apiUrl}/admin/products/${productId}/items`;
+const ADMIN_BASE = `${environment.apiUrl}/admin/product-items`;
 
 // Mock-mode item ids are a plain incrementing number (as a string) — "1", "2", ... — matching the
 // seeded PRODUCT_ITEMS. Unlike Product's slugified name-based id, an item's id never reflects its
@@ -125,25 +127,89 @@ export class ProductItemService {
       })
     : this.fetchedViews;
 
-  constructor() {
-    if (!environment.useMockData) {
-      this.refetchViews();
-    }
+  // 'idle': never fetched. 'loading'/'loaded': fetch in flight or done — either way, don't fetch
+  // again. Mock mode has nothing to fetch, so it starts (and stays) 'loaded'.
+  private catalogState: 'idle' | 'loading' | 'loaded' = environment.useMockData ? 'loaded' : 'idle';
+
+  // Lazily fetches the full catalog the first time something actually needs cross-product lookups
+  // (Shop's listing/search, Admin Inventory, or Cart/My-Kit-suggestions resolving an id they don't
+  // already have). A single-item page doesn't need this at all — see loadForProduct() below,
+  // which is what /product/:id/items/:itemId uses instead.
+  ensureCatalogLoaded(): void {
+    if (this.catalogState !== 'idle') return;
+    this.catalogState = 'loading';
+    this.refetchViews();
   }
 
+  // Forces a fresh full-catalog fetch regardless of current state — used after admin mutations
+  // (create/update) so `views` reflects the change. Sets 'loading' up front so a concurrent
+  // ensureCatalogLoaded() call doesn't kick off a second, redundant fetch.
   private refetchViews(): void {
+    this.catalogState = 'loading';
     this.http
       .get<ProductItemListResponse>(PUBLIC_LIST_BASE, { params: { size: 500 } })
-      .subscribe((res) => this.fetchedViews.set(res.content));
+      .subscribe({
+        next: (res) => {
+          this.fetchedViews.set(res.content);
+          this.catalogState = 'loaded';
+        },
+        error: () => {
+          this.catalogState = 'loaded';
+        },
+      });
+  }
+
+  // The exact item a /product/:id/items/:itemId link named, fetched with a `?id=` filter — the
+  // fastest, most minimal way to load what's actually being shown (name/price/brand render off
+  // this directly, without waiting for the sibling list below).
+  readonly currentItem = signal<ProductItemView | undefined>(undefined);
+
+  loadItem(itemId: string): void {
+    if (environment.useMockData) {
+      this.currentItem.set(this.getById(itemId));
+      return;
+    }
+    this.currentItem.set(undefined);
+    this.http
+      .get<ProductItemListResponse>(PUBLIC_LIST_BASE, { params: { id: itemId } })
+      .subscribe({
+        next: (res) => this.currentItem.set(res.content[0]),
+        error: () => this.currentItem.set(undefined),
+      });
+  }
+
+  // One product's active items, freshly fetched with a `?productId=` filter on the same public
+  // aggregate — already pre-joined with the parent Product's display fields, so no client-side
+  // join needed — rather than filtered out of the full catalog. Feeds the variant picker and the
+  // "you might also like" siblings section; loads in parallel with loadItem() above rather than
+  // gating the primary content on it.
+  readonly currentProductItems = signal<ProductItemView[]>([]);
+
+  loadForProduct(productId: string): void {
+    if (environment.useMockData) {
+      this.currentProductItems.set(this.getForProduct(productId));
+      return;
+    }
+    this.currentProductItems.set([]);
+    this.http
+      .get<ProductItemListResponse>(PUBLIC_LIST_BASE, { params: { productId, size: 100 } })
+      .subscribe({
+        next: (res) => this.currentProductItems.set([...res.content].sort((a, b) => a.price - b.price)),
+        error: () => this.currentProductItems.set([]),
+      });
   }
 
   getById(id: string): ProductItemView | undefined {
+    this.ensureCatalogLoaded();
     return this.views().find((v) => v.id === id);
   }
 
-  // Every active item for one product, cheapest first — used by ProductDetailComponent to render
-  // the brand/variant picker.
+  // Every active item for one product, cheapest first, filtered out of the already-loaded full
+  // catalog — used by Cart/My-Kit-suggestions/Admin (which need to resolve arbitrary products) and
+  // by getDefault() below. ProductDetailComponent uses loadForProduct()/currentProductItems
+  // instead so it doesn't trigger the full-catalog load this depends on.
   getForProduct(productId: string): ProductItemView[] {
+    this.ensureCatalogLoaded();
     return this.views()
       .filter((v) => v.productId === productId)
       .sort((a, b) => a.price - b.price);
@@ -166,12 +232,14 @@ export class ProductItemService {
       this.adminItems.set(this.rawItems().filter((i) => i.productId === productId));
       return;
     }
-    this.http.get<ProductItem[]>(ADMIN_ITEMS_BASE(productId)).subscribe((items) => this.adminItems.set(items));
+    this.http
+      .get<ProductItem[]>(ADMIN_BASE, { params: { productId } })
+      .subscribe((items) => this.adminItems.set(items));
   }
 
   createItem(productId: string, input: Omit<ProductItem, 'id' | 'productId' | 'active'>): void {
     if (!environment.useMockData) {
-      this.http.post<ProductItem>(ADMIN_ITEMS_BASE(productId), input).subscribe((created) => {
+      this.http.post<ProductItem>(ADMIN_BASE, { ...input, productId }).subscribe((created) => {
         this.adminItems.update((list) => [...list, created]);
         this.refetchViews();
       });
@@ -192,11 +260,7 @@ export class ProductItemService {
     this.fetchedViews.update((list) => list.map((v) => (v.id === id ? { ...v, ...patch } : v)));
 
     if (!environment.useMockData) {
-      const productId =
-        this.adminItems().find((i) => i.id === id)?.productId ??
-        this.fetchedViews().find((v) => v.id === id)?.productId;
-      if (!productId) return;
-      this.http.patch<ProductItem>(`${ADMIN_ITEMS_BASE(productId)}/${id}`, patch).subscribe((updated) => {
+      this.http.patch<ProductItem>(`${ADMIN_BASE}/${id}`, patch).subscribe((updated) => {
         this.adminItems.update((list) => list.map((i) => (i.id === id ? updated : i)));
         this.refetchViews();
       });

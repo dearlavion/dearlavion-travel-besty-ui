@@ -27,6 +27,11 @@ export class AdminInventoryComponent {
   protected readonly page = signal(0); // 0-indexed
   protected readonly lowStockThreshold = LOW_STOCK_THRESHOLD;
 
+  constructor() {
+    // Cross-catalog view — needs the full item list, unlike a single item's own page.
+    this.productItems.ensureCatalogLoaded();
+  }
+
   protected readonly stats = computed(() => {
     const list = this.productItems.views();
     const soldOut = list.filter((p) => p.soldOut).length;

@@ -96,6 +96,13 @@
   margin-bottom: 14px;
 }
 
+.product-brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+  margin-bottom: 10px;
+}
+
 .product-price {
   font-family: var(--font-heading);
   font-style: italic;
