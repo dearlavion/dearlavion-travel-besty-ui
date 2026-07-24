@@ -2,15 +2,15 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
-import { Product, getProductTint } from '../shop/product-catalog';
-import { ProductCatalogService } from '../shop/product-catalog.service';
+import { getProductTint } from '../shop/product-catalog';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
 
-// The reusable template for any single product — one route (`/product/:id`), the id decides
-// what renders. Shows the generic Product's display info (name/category/description/tags) plus a
-// purchase widget backed by its ProductItem(s) — every product has at least one (see
-// PRODUCT_ITEMS/backfill-product-items.ts), and a product with real brand variants shows a picker.
+// The reusable template for any single product — one route (`/product/:id[/items/:itemId]`), the
+// id(s) decide what renders. Everything the page shows (name/category/description/tags AND
+// price/stock/brand) comes from ProductItemView — the public aggregate already joins in the
+// parent Product's display fields and already excludes items whose parent product is inactive, so
+// this component never needs a separate ProductCatalogService fetch.
 @Component({
   selector: 'app-product-detail',
   standalone: true,
@@ -20,7 +20,6 @@ import { CartService } from '../cart/cart.service';
 })
 export class ProductDetailComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly catalog = inject(ProductCatalogService);
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
   private readonly paramMap = toSignal(this.route.paramMap);
@@ -34,28 +33,14 @@ export class ProductDetailComponent {
   private readonly routeItemId = computed(() => this.paramMap()?.get('itemId') ?? null);
   private readonly userSelectedItemId = signal<string | null>(null);
 
-  protected readonly product = computed<Product | undefined>(() => {
-    const product = this.catalog.currentProduct();
-    // An inactive product is treated the same as a deleted one on the customer-facing page —
-    // admins can still see/reactivate it via the catalog list, just not preview it live.
-    return product?.active ? product : undefined;
-  });
-
   constructor() {
-    // Targeted fetches (GET /products/:id and GET /product-items?productId=:id), not the full
-    // catalog — this page only ever needs one product and its variants, so it shouldn't pull the
-    // whole catalog (200 products / 500 items) just to render one. Both fire in parallel — the
-    // items fetch doesn't need the generic product to resolve first, since the backend does its
-    // own join server-side.
+    // Targeted fetches (GET /product-items?productId=:id and ?id=:itemId), never the full
+    // catalog — this page only ever needs one product's items, so it shouldn't pull all 500 just
+    // to render one. Both fire in parallel; neither depends on the other resolving first.
     effect(() => {
       const id = this.paramMap()?.get('id');
-      if (!id) return;
-      this.catalog.loadOne(id);
-      this.productItems.loadForProduct(id);
+      if (id) this.productItems.loadForProduct(id);
     });
-    // The specific item a Shop/My-Kit link named gets its own minimal fetch (?id=itemId, exactly
-    // one result) so the page's primary content (name/price/brand) doesn't wait on the sibling
-    // list above, which only matters for the variant picker/suggestions further down.
     effect(() => {
       const itemId = this.routeItemId();
       if (itemId) this.productItems.loadItem(itemId);
@@ -65,10 +50,10 @@ export class ProductDetailComponent {
   // All purchasable variants for this product, cheapest first — usually just the one default item.
   protected readonly items = computed<ProductItemView[]>(() => this.productItems.currentProductItems());
 
-  // Whichever variant the shopper explicitly clicked this session (via the picker below, which
-  // only ever offers items already in `items()`), else the directly-fetched single item a
-  // Shop/My-Kit link named, else whichever the sibling list resolves that id to (covers the
-  // moment before the direct fetch above resolves), else the cheapest (default) one.
+  // Whichever variant the shopper explicitly clicked this session (via the picker, which only
+  // ever offers items already in `items()`), else the directly-fetched single item a Shop/My-Kit
+  // link named, else whichever the sibling list resolves that id to (covers the moment before the
+  // direct fetch resolves), else the cheapest (default) one.
   protected readonly selectedItem = computed<ProductItemView | undefined>(() => {
     const items = this.items();
     const userChoice = this.userSelectedItemId();
