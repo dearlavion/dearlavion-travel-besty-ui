@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '../common/price.pipe';
 import { getProductTint } from '../shop/product-catalog';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
@@ -16,7 +16,7 @@ import { CartService } from '../cart/cart.service';
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe],
+  imports: [RouterLink, PricePipe],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.css',
 })

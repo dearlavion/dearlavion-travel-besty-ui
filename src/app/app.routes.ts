@@ -19,6 +19,7 @@ import { AdminPopularKitsComponent } from './admin/popular-kits/admin-popular-ki
 import { AdminPopularKitFormComponent } from './admin/popular-kits/admin-popular-kit-form.component';
 import { AdminInventoryComponent } from './admin/inventory/admin-inventory.component';
 import { AdminStatisticsComponent } from './admin/statistics/admin-statistics.component';
+import { AdminSettingsComponent } from './admin/settings/admin-settings.component';
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
@@ -65,6 +66,7 @@ export const routes: Routes = [
       { path: 'popular-kits/:id/edit', component: AdminPopularKitFormComponent },
       { path: 'inventory', component: AdminInventoryComponent },
       { path: 'statistics', component: AdminStatisticsComponent },
+      { path: 'settings', component: AdminSettingsComponent },
     ],
   },
 

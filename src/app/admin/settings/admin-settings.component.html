@@ -1,0 +1,48 @@
+<div class="settings-head">
+  <h1 class="settings-title">Settings</h1>
+  <p class="settings-sub">Currency exchange rates — shoppers see catalog prices converted into their chosen currency.</p>
+</div>
+
+<section class="rates-card">
+  <div class="rates-head">
+    <h2>Exchange rates</h2>
+    <p class="rates-note">Prices are stored in <strong>{{ base }}</strong>. Each rate is how many units of that currency equal <strong>1 {{ base }}</strong>.</p>
+  </div>
+
+  <form class="rates-form" (ngSubmit)="save()">
+    <div class="rate-row rate-row--base">
+      <span class="rate-code">{{ base }}</span>
+      <span class="rate-label">Base currency</span>
+      <span class="rate-fixed">1.00</span>
+    </div>
+
+    @for (option of options; track option.code) {
+      <label class="rate-row">
+        <span class="rate-code">{{ option.code }}</span>
+        <span class="rate-label">{{ option.label }}</span>
+        <span class="rate-input-wrap">
+          <span class="rate-eq">1 {{ base }} =</span>
+          <input
+            type="number"
+            min="0"
+            step="0.0001"
+            class="rate-input"
+            [ngModel]="rates()[option.code]"
+            (ngModelChange)="setRate(option.code, $event)"
+            [name]="option.code"
+          />
+          <span class="rate-suffix">{{ option.code }}</span>
+        </span>
+      </label>
+    }
+
+    <div class="rates-actions">
+      <button type="submit" class="save-btn" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save rates' }}
+      </button>
+      @if (savedMessage()) {
+        <span class="saved-msg">Saved ✓</span>
+      }
+    </div>
+  </form>
+</section>

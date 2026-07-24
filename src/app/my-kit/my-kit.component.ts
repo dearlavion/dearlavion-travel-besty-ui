@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -44,7 +44,7 @@ const RELATED_LOOKUP_LIMIT = 20;
 @Component({
   selector: 'app-my-kit',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe, FormsModule],
+  imports: [RouterLink, PricePipe, FormsModule],
   templateUrl: './my-kit.component.html',
   styleUrl: './my-kit.component.css',
 })

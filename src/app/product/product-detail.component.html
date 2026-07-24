@@ -23,7 +23,7 @@
           <p class="product-brand">Brand: {{ item.brand }}</p>
         }
         <p class="product-desc">{{ item.description }}</p>
-        <p class="product-price">{{ item.price | currency: item.currency }}</p>
+        <p class="product-price">{{ item.price | price }}</p>
 
         @if (item.soldOut) {
           <p class="product-stock stock-out">Sold Out</p>
@@ -92,7 +92,7 @@
                 }
               </div>
               <div class="related-name">{{ related.name }}</div>
-              <div class="related-price">{{ related.price | currency: related.currency }}</div>
+              <div class="related-price">{{ related.price | price }}</div>
             </a>
           }
         </div>

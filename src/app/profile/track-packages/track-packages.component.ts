@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '../../common/price.pipe';
 import { RouterLink } from '@angular/router';
 import {
   Order,
@@ -13,7 +13,7 @@ import {
 @Component({
   selector: 'app-track-packages',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe],
+  imports: [RouterLink, PricePipe],
   templateUrl: './track-packages.component.html',
   styleUrl: './track-packages.component.css',
 })

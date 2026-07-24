@@ -13,7 +13,7 @@
             <span class="order-id">Order #{{ order.id }}</span>
             <span class="order-date">Placed {{ placedDateLabel(order) }}</span>
           </div>
-          <span class="order-total">{{ order.total | currency: order.currency }}</span>
+          <span class="order-total">{{ order.total | price }}</span>
         </div>
 
         <div class="order-items">

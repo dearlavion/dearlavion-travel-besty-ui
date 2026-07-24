@@ -1,0 +1,133 @@
+.settings-head {
+  margin-bottom: 24px;
+}
+
+.settings-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin: 0 0 6px;
+}
+
+.settings-sub {
+  font-size: 13.5px;
+  color: var(--color-ink-soft);
+  margin: 0;
+}
+
+.rates-card {
+  background: #fff;
+  border: 1.5px solid var(--color-line);
+  border-radius: 16px;
+  padding: 22px 24px;
+  max-width: 640px;
+}
+
+.rates-head h2 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin: 0 0 4px;
+}
+
+.rates-note {
+  font-size: 12.5px;
+  color: var(--color-ink-soft);
+  margin: 0 0 18px;
+}
+
+.rates-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rate-row {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--color-line);
+  border-radius: 12px;
+}
+
+.rate-row--base {
+  background: var(--color-cream, #faf6ef);
+}
+
+.rate-code {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.rate-label {
+  font-size: 12.5px;
+  color: var(--color-ink-soft);
+}
+
+.rate-fixed {
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+
+.rate-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-ink-soft);
+}
+
+.rate-input {
+  width: 120px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-line);
+  border-radius: 9px;
+  padding: 8px 10px;
+  outline: none;
+  text-align: right;
+}
+
+.rate-input:focus {
+  border-color: var(--color-coral);
+}
+
+.rate-suffix {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.rates-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.save-btn {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--color-coral);
+  border: none;
+  border-radius: 10px;
+  padding: 11px 22px;
+  cursor: pointer;
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.saved-msg {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c7c4a;
+}

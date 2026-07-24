@@ -87,13 +87,13 @@
           @for (line of cart.lines(); track line.productId) {
             <div class="summary-line">
               <span class="summary-line-name">{{ line.product.icon }} {{ line.product.name }} × {{ line.quantity }}</span>
-              <span>{{ line.product.price * line.quantity | currency: line.product.currency }}</span>
+              <span>{{ line.product.price * line.quantity | price }}</span>
             </div>
           }
         </div>
         <div class="summary-total-row">
           <span>Total</span>
-          <span class="summary-total">{{ cart.subtotal() | currency }}</span>
+          <span class="summary-total">{{ cart.subtotal() | price }}</span>
         </div>
       </div>
     </div>

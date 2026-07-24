@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '../common/price.pipe';
 import { RouterLink } from '@angular/router';
 import { CartService } from './cart.service';
 import { getProductTint } from '../shop/product-catalog';
@@ -7,7 +7,7 @@ import { getProductTint } from '../shop/product-catalog';
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [RouterLink, CurrencyPipe],
+  imports: [RouterLink, PricePipe],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.css',
 })

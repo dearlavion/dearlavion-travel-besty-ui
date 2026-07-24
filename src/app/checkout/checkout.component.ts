@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '../common/price.pipe';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CartService } from '../cart/cart.service';
@@ -10,7 +10,7 @@ import { Order, OrderItem, OrdersService } from './orders.service';
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [FormsModule, RouterLink, CurrencyPipe],
+  imports: [FormsModule, RouterLink, PricePipe],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.css',
 })

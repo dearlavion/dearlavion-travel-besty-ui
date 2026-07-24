@@ -22,7 +22,7 @@
             @if (line.product.soldOut) {
               <div class="line-sold-out">Sold Out</div>
             }
-            <div class="line-price">{{ line.product.price | currency: line.product.currency }}</div>
+            <div class="line-price">{{ line.product.price | price }}</div>
           </div>
 
           <div class="line-qty">
@@ -44,7 +44,7 @@
             </button>
           </div>
 
-          <div class="line-subtotal">{{ line.product.price * line.quantity | currency: line.product.currency }}</div>
+          <div class="line-subtotal">{{ line.product.price * line.quantity | price }}</div>
 
           <button type="button" class="remove-btn" (click)="cart.removeItem(line.productId)">
             Remove
@@ -56,7 +56,7 @@
     <div class="cart-summary">
       <div class="summary-row">
         <span>Subtotal</span>
-        <span class="summary-total">{{ cart.subtotal() | currency }}</span>
+        <span class="summary-total">{{ cart.subtotal() | price }}</span>
       </div>
       <a routerLink="/checkout" class="checkout-btn">Proceed to Checkout</a>
     </div>

@@ -1,6 +1,6 @@
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
+import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductDestination, ProductSeason, getProductTint } from './product-catalog';
@@ -36,7 +36,7 @@ function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlyS
 @Component({
   selector: 'app-shop',
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, RouterLink, PaginationComponent],
+  imports: [FormsModule, PricePipe, RouterLink, PaginationComponent],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.css',
 })
