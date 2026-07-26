@@ -1,0 +1,132 @@
+<div class="list-head">
+  <div>
+    <h1>Payments</h1>
+    <p class="sub">Verify proof of payment before an order ships — {{ counts().total }} submitted total.</p>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-warning">
+    <div class="stat-value">{{ counts().pending }}</div>
+    <div class="stat-label">Awaiting Review</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ counts().approved }}</div>
+    <div class="stat-label">Approved</div>
+  </div>
+  <div class="stat-card stat-danger">
+    <div class="stat-value">{{ counts().rejected }}</div>
+    <div class="stat-label">Rejected</div>
+  </div>
+</div>
+
+<div class="filter-chips">
+  <button type="button" class="chip" [class.active]="filter() === 'PENDING'" (click)="setFilter('PENDING')">
+    Pending
+  </button>
+  <button type="button" class="chip" [class.active]="filter() === 'APPROVED'" (click)="setFilter('APPROVED')">
+    Approved
+  </button>
+  <button type="button" class="chip" [class.active]="filter() === 'REJECTED'" (click)="setFilter('REJECTED')">
+    Rejected
+  </button>
+  <button type="button" class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">All</button>
+</div>
+
+<div class="search-bar">
+  <input
+    type="text"
+    placeholder="Search by order # or payment reference..."
+    [ngModel]="search()"
+    (ngModelChange)="setSearch($event)"
+  />
+</div>
+
+@if (loading()) {
+  <p class="state-note">Loading payments…</p>
+} @else if (loadError()) {
+  <p class="state-note state-error">Could not load payments. Is the payment-service running?</p>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Method</th>
+          <th>Amount</th>
+          <th>Reference #</th>
+          <th>Proof</th>
+          <th>Submitted</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (payment of filtered(); track payment.id) {
+          <tr [class.pending-row]="payment.status === 'PENDING'">
+            <td class="name-cell">#{{ payment.orderReference ?? payment.orderId }}</td>
+            <td>{{ methodLabels[payment.method] }}</td>
+            <td class="num-cell">{{ payment.amount | number: '1.2-2' }} {{ payment.currency }}</td>
+            <td class="ref-cell">{{ payment.referenceNumber }}</td>
+            <td>
+              <a class="proof-thumb" [href]="payment.proofImageUrl" target="_blank" rel="noopener">
+                <img [src]="payment.proofImageUrl" alt="Proof of payment" />
+              </a>
+            </td>
+            <td>{{ submittedLabel(payment) }}</td>
+            <td>
+              <span class="status-badge" [class.approved]="payment.status === 'APPROVED'" [class.rejected]="payment.status === 'REJECTED'">
+                {{ statusLabel(payment.status) }}
+              </span>
+              @if (payment.status !== 'PENDING' && payment.reviewedBy) {
+                <div class="review-meta">by {{ payment.reviewedBy }} · {{ reviewedLabel(payment) }}</div>
+              }
+              @if (payment.reviewNote) {
+                <div class="review-note">"{{ payment.reviewNote }}"</div>
+              }
+            </td>
+            <td class="actions-cell">
+              @if (payment.status === 'PENDING') {
+                @if (pendingAction()?.id === payment.id) {
+                  <div class="confirm-box">
+                    <textarea
+                      class="note-input"
+                      rows="2"
+                      placeholder="Optional note…"
+                      [ngModel]="actionNote()"
+                      (ngModelChange)="actionNote.set($event)"
+                    ></textarea>
+                    <div class="confirm-actions">
+                      <button
+                        type="button"
+                        class="confirm-btn"
+                        [class.confirm-approve]="pendingAction()?.kind === 'approve'"
+                        [class.confirm-reject]="pendingAction()?.kind === 'reject'"
+                        [disabled]="submittingAction()"
+                        (click)="confirmAction()"
+                      >
+                        {{ submittingAction() ? 'Saving…' : pendingAction()?.kind === 'approve' ? 'Confirm approve' : 'Confirm reject' }}
+                      </button>
+                      <button type="button" class="cancel-btn" [disabled]="submittingAction()" (click)="cancelAction()">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="action-row">
+                    <button type="button" class="approve-link" (click)="requestAction(payment.id, 'approve')">Approve</button>
+                    <button type="button" class="reject-link" (click)="requestAction(payment.id, 'reject')">Reject</button>
+                  </div>
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="no-results">No payments match this filter{{ search() ? ' and search' : '' }}.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -54,27 +54,33 @@ export class CheckoutComponent {
     this.placedTotalUsd = this.cart.subtotal();
 
     const generatedOrderNumber = `TB-${Math.floor(100000 + Math.random() * 900000)}`;
+    // cart lines key off the ProductItem (SKU): `line.productId` is the ProductItem id, and
+    // `line.product` is that item's view (with the generic `productId` + `brand`).
     const items: OrderItem[] = this.cart.lines().map((line) => ({
-      productId: line.productId,
+      productId: line.product.productId,
+      productItemId: line.productId,
+      brand: line.product.brand,
       name: line.product.name,
       icon: line.product.icon,
       quantity: line.quantity,
       price: line.product.price,
       currency: line.product.currency,
     }));
+    // What the shopper is asked to pay, in their currency (converted from the USD total).
+    const converted = Math.round(this.placedTotalUsd * this.exchange.rateFor(this.currency()) * 100) / 100;
     const order: Order = {
       id: generatedOrderNumber,
       placedAt: new Date().toISOString(),
       items,
       total: this.placedTotalUsd,
       currency: items[0]?.currency ?? 'USD',
+      chargedAmount: converted,
+      chargedCurrency: this.currency(),
     };
     this.ordersService.addOrder(order);
 
     this.orderNumber.set(generatedOrderNumber);
-    // Prefill the amount in the shopper's currency (converted from the USD total).
-    const converted = this.placedTotalUsd * this.exchange.rateFor(this.currency());
-    this.amountPaid.set(Math.round(converted * 100) / 100);
+    this.amountPaid.set(converted);
     this.cart.clear();
     this.step.set('payment');
     this.submitting.set(false);

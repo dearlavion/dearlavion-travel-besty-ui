@@ -4,7 +4,9 @@ import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
 export interface OrderItem {
-  productId: string;
+  productId: string; // generic Product (slug)
+  productItemId?: string; // the specific ProductItem (SKU) purchased
+  brand?: string;
   name: string;
   icon: string;
   quantity: number;
@@ -16,8 +18,10 @@ export interface Order {
   id: string; // e.g. TB-123456, same generated number shown on the confirmation screen
   placedAt: string; // ISO date
   items: OrderItem[];
-  total: number;
+  total: number; // base (USD) catalog total
   currency: string;
+  chargedAmount?: number; // total converted into the shopper's currency at checkout
+  chargedCurrency?: string;
 }
 
 export type OrderStatus = 'Processing' | 'Shipped' | 'Out for Delivery' | 'Delivered';
@@ -105,6 +109,8 @@ export class OrdersService {
           total: order.total,
           currency: order.currency,
           reference: order.id,
+          chargedAmount: order.chargedAmount,
+          chargedCurrency: order.chargedCurrency,
         })
         .subscribe({
           next: (created) => {
