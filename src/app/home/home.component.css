@@ -158,6 +158,7 @@
   z-index: 2;
   width: 200px;
   height: 32px;
+  overflow: hidden;
   background: var(--color-leaf);
   color: #fff;
   font-family: var(--font-heading);
@@ -175,6 +176,11 @@
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 16px;
+  color: inherit;
+  text-decoration: none;
   opacity: 0;
   animation: gallery-fade 9s ease infinite;
 }
@@ -182,11 +188,16 @@
 .gallery-image {
   position: absolute;
   inset: 0;
+  display: block;
+  opacity: 0;
+  animation: gallery-fade 9s ease infinite;
+}
+
+.gallery-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0;
-  animation: gallery-fade 9s ease infinite;
+  display: block;
 }
 
 @keyframes gallery-fade {

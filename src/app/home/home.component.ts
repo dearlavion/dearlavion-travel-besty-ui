@@ -18,11 +18,6 @@ interface CategoryChip {
   destination: string | null;
 }
 
-interface HeroGalleryItem {
-  image: string;
-  label: string;
-}
-
 interface BagItemLayout {
   label: string;
   bg: string;
@@ -128,13 +123,6 @@ export class HomeComponent {
 
   protected readonly trustPills = ['Field-tested items', '4,200+ kits built', 'One-stop essentials'];
 
-  // hero3.png is pending — drop it into public/homepage/ once it's ready.
-  protected readonly heroGalleryItems: HeroGalleryItem[] = [
-    { image: 'homepage/hero2.png', label: 'Beach Kit' },
-    { image: 'homepage/hero3.jpg', label: 'Airport Ready Kit' },
-    { image: 'homepage/hero1.png', label: 'Hello New York' },
-  ];
-
   // Sourced from PopularKitsService (admin-editable, localStorage-backed) via the shared
   // toPopularKitCard() helper — also used by TravelComponent's gallery — rather than hardcoded
   // here. Admins curate this "Popular kits" collection, including its exact product list, from
@@ -145,6 +133,11 @@ export class HomeComponent {
       .filter((kit) => kit.active !== false)
       .map((kit) => toPopularKitCard(kit, this.catalog)),
   );
+
+  // The hero's crossfading photo carousel — real popular kits (image + name), each a clickable
+  // link to /popular/:id, instead of the old static hero1/2/3 stock photos. The crossfade timing
+  // (see gallery-fade in the stylesheet) is tuned for exactly 3 evenly-staggered slides.
+  protected readonly heroKits = computed<PopularKitCard[]>(() => this.kitCards().slice(0, 3));
 
   // Doubled so that once `offset` wraps past one full set's width, the duplicated second set is
   // already sitting in view — the wrap-to-0 reset lands on an identical-looking frame instead of

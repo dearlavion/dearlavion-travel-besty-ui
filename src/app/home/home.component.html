@@ -30,18 +30,25 @@
   <div class="hero-visual">
     <div class="gallery-wrap">
       <div class="gallery-tag">
-        @for (item of heroGalleryItems; track item.label; let i = $index) {
-          <span class="gallery-tag-label" [style.animation-delay.s]="i * -3">{{ item.label }}</span>
+        @for (kit of heroKits(); track kit.id; let i = $index) {
+          <a
+            class="gallery-tag-label"
+            [routerLink]="['/popular', kit.id]"
+            [style.animation-delay.s]="i * -3"
+          >
+            {{ kit.name }}
+          </a>
         }
       </div>
       <div class="gallery-card">
-        @for (item of heroGalleryItems; track item.label; let i = $index) {
-          <img
-            [src]="item.image"
-            [alt]="item.label"
+        @for (kit of heroKits(); track kit.id; let i = $index) {
+          <a
             class="gallery-image"
+            [routerLink]="['/popular', kit.id]"
             [style.animation-delay.s]="i * -3"
-          />
+          >
+            <img [src]="kit.image" [alt]="kit.name" />
+          </a>
         }
       </div>
     </div>
