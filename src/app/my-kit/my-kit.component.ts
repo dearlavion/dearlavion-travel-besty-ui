@@ -12,6 +12,8 @@ import { ProductItemService, ProductItemView } from '../shop/product-item.servic
 import { CartService } from '../cart/cart.service';
 import { SavedKitsService } from './saved-kits.service';
 import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
+import { NewsletterService } from './newsletter.service';
+import { NewsletterPopupComponent } from './newsletter-popup/newsletter-popup.component';
 
 interface DisplayItem {
   label: string;
@@ -44,7 +46,7 @@ const RELATED_LOOKUP_LIMIT = 20;
 @Component({
   selector: 'app-my-kit',
   standalone: true,
-  imports: [RouterLink, PricePipe, FormsModule],
+  imports: [RouterLink, PricePipe, FormsModule, NewsletterPopupComponent],
   templateUrl: './my-kit.component.html',
   styleUrl: './my-kit.component.css',
 })
@@ -56,6 +58,7 @@ export class MyKitComponent {
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
   private readonly savedKitsService = inject(SavedKitsService);
+  private readonly newsletter = inject(NewsletterService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
@@ -81,6 +84,7 @@ export class MyKitComponent {
   protected readonly saveName = signal('');
   protected readonly savedMessage = signal('');
   protected readonly exporting = signal(false);
+  protected readonly showNewsletterPopup = signal(false);
 
   protected readonly displayItems = computed<DisplayItem[]>(() => {
     const kit = this.kit();
@@ -156,8 +160,30 @@ export class MyKitComponent {
     };
   }
 
-  /** Download the kit as a PDF (jsPDF loaded lazily, browser-only). */
-  protected async downloadPdf(): Promise<void> {
+  /** Download the kit as a PDF — first offers the optional newsletter opt-in (unless this
+   * browser already subscribed), since that's the one moment a visitor has shown real intent to
+   * keep something from the site. Declining or dismissing the popup still downloads the PDF; the
+   * subscribe prompt never blocks it. */
+  protected downloadPdf(): void {
+    if (!this.newsletter.subscribed()) {
+      this.showNewsletterPopup.set(true);
+      return;
+    }
+    void this.performDownload();
+  }
+
+  protected onNewsletterSubscribe(email: string): void {
+    this.newsletter.subscribe(email).subscribe();
+    this.showNewsletterPopup.set(false);
+    void this.performDownload();
+  }
+
+  protected onNewsletterDismiss(): void {
+    this.showNewsletterPopup.set(false);
+    void this.performDownload();
+  }
+
+  private async performDownload(): Promise<void> {
     const payload = this.exportPayload();
     if (!payload) return;
     this.exporting.set(true);
