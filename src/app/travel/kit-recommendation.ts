@@ -22,6 +22,7 @@ export interface TripAnswers {
 export interface KitItem {
   label: string;
   productId: string;
+  productItemId?: string; // the specific sized/variant SKU the engine matched to the trip
 }
 
 const BASE_ITEMS: KitItem[] = [

@@ -21,6 +21,7 @@ export interface Product {
   seasons: ProductSeason[]; // [] = unrestricted/all seasons
   destinations: ProductDestination[]; // [] = unrestricted/all destinations
   parties: ProductParty[]; // [] = unrestricted/all party sizes
+  activities?: string[]; // which activities this product suits (recommendation engine signal)
   popular: boolean;
   tested: boolean;
   icon: string; // fallback display icon when a specific ProductItem doesn't set its own
@@ -30,6 +31,14 @@ export interface Product {
   // suggestions panel. Undefined/omitted on most seed products = no manual overrides, same as [].
 }
 
+// An influencer/testimonial video for a specific item ("How to use", "A day in my life using
+// this sunscreen") — a pasted link, same as `image` below; no upload/hosting involved.
+export interface ProductVideo {
+  title: string;
+  url: string;
+  author?: string;
+}
+
 // A purchasable SKU under a generic Product — brand (optional; blank = the product's sole/default
 // variant), price, currency, image, and inventory. Shop/Cart/Checkout/My-Kit-suggestions all key
 // off this, not Product, for anything money- or stock-related.
@@ -37,12 +46,19 @@ export interface ProductItem {
   id: string;
   productId: string;
   brand?: string;
+  sizeTier?: number; // 1 = travel/mini, 2 = standard, 3 = large (drives duration-matched sizing)
+  sizeLabel?: string; // display, e.g. "20 ml"
   // This item's own display name (e.g. "Samsonite Passport Wallet") — required, matching the
   // backend schema; the admin form defaults it to the parent product's name unless overridden.
   name: string;
   price: number;
   currency: string;
   image?: string;
+  // Up to 5 additional photos for the product detail page's clickable gallery — `image` above
+  // stays the cover photo used everywhere a single thumbnail is needed (Shop, Cart, related cards).
+  images?: string[];
+  // Up to 5 influencer/testimonial videos.
+  videos?: ProductVideo[];
   icon?: string;
   stock: number;
   soldOut: boolean;
@@ -132,7 +148,18 @@ export const PRODUCT_ITEMS: ProductItem[] = [
   { id: '1', productId: 'passport-wallet', name: 'Passport Wallet', price: 18.0, currency: 'USD', icon: '📘', stock: 42, soldOut: false, active: true },
   { id: '2', productId: 'fast-charge-cable-set', name: 'Fast-Charge Cable Set', price: 14.5, currency: 'USD', icon: '🔌', stock: 58, soldOut: false, active: true },
   { id: '3', productId: 'travel-medication-case', name: 'Travel Medication Case', price: 9.99, currency: 'USD', icon: '💊', stock: 33, soldOut: false, active: true },
-  { id: '4', productId: 'compact-first-aid-kit', name: 'Compact First-Aid Kit', price: 16.0, currency: 'USD', icon: '🩹', stock: 47, soldOut: false, active: true },
+  {
+    id: '4', productId: 'compact-first-aid-kit', name: 'Compact First-Aid Kit', price: 16.0, currency: 'USD', icon: '🩹', stock: 47, soldOut: false, active: true,
+    images: [
+      'https://picsum.photos/seed/first-aid-1/800/800',
+      'https://picsum.photos/seed/first-aid-2/800/800',
+      'https://picsum.photos/seed/first-aid-3/800/800',
+    ],
+    videos: [
+      { title: 'How to use', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', author: '@travel_with_mia' },
+      { title: 'What I pack in mine', url: 'https://www.tiktok.com/@dayswithzo/video/1234567890', author: '@dayswithzo' },
+    ],
+  },
   { id: '5', productId: 'document-organizer-wallet', name: 'Document Organizer Wallet', price: 22.0, currency: 'USD', icon: '📄', stock: 19, soldOut: false, active: true },
 
   { id: '6', productId: 'ripple-swimsuit', name: 'Ripple Swimsuit', price: 34.0, currency: 'USD', icon: '🩱', stock: 24, soldOut: false, active: true },
@@ -153,7 +180,16 @@ export const PRODUCT_ITEMS: ProductItem[] = [
   { id: '19', productId: 'offline-city-map-pack', name: 'Offline City Map Pack', price: 4.99, currency: 'USD', icon: '🗺️', stock: 99, soldOut: false, active: true },
   { id: '20', productId: 'foldable-laundry-bag', name: 'Foldable Laundry Bag', price: 9.0, currency: 'USD', icon: '🧺', stock: 31, soldOut: false, active: true },
 
-  { id: '21', productId: '50ml-sunscreen-spf50', name: '50ml Sunscreen SPF50', price: 9.5, currency: 'USD', icon: '🧴', stock: 55, soldOut: false, active: true },
+  {
+    id: '21', productId: '50ml-sunscreen-spf50', name: '50ml Sunscreen SPF50', price: 9.5, currency: 'USD', icon: '🧴', stock: 55, soldOut: false, active: true,
+    images: [
+      'https://picsum.photos/seed/sunscreen-1/800/800',
+      'https://picsum.photos/seed/sunscreen-2/800/800',
+    ],
+    videos: [
+      { title: 'A day in my life using this sunscreen', url: 'https://youtu.be/dQw4w9WgXcQ', author: '@sunnyskintravels' },
+    ],
+  },
   { id: '22', productId: 'polarized-sunglasses', name: 'Polarized Sunglasses', price: 29.0, currency: 'USD', icon: '🕶️', stock: 26, soldOut: false, active: true },
   { id: '23', productId: 'packable-wide-brim-hat', name: 'Packable Wide-Brim Hat', price: 21.0, currency: 'USD', icon: '👒', stock: 20, soldOut: false, active: true },
   { id: '24', productId: 'breathable-linen-set', name: 'Breathable Linen Set', price: 45.0, currency: 'USD', icon: '👕', stock: 12, soldOut: false, active: true },

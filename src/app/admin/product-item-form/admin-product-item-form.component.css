@@ -102,6 +102,72 @@ input:focus {
   border-color: var(--color-coral);
 }
 
+.media-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.media-section-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+
+.media-row {
+  display: flex;
+  gap: 8px;
+}
+
+.media-row input {
+  flex: 1;
+}
+
+.video-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr auto;
+  gap: 8px;
+}
+
+.media-remove-btn {
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  color: var(--color-ink-soft);
+  border-radius: 10px;
+  width: 38px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.media-remove-btn:hover {
+  border-color: var(--color-coral-deep);
+  color: var(--color-coral-deep);
+}
+
+.media-add-btn {
+  align-self: flex-start;
+  border: 1.5px dashed var(--color-line);
+  background: none;
+  color: var(--color-ink-soft);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.media-add-btn:hover {
+  border-color: var(--color-coral);
+  color: var(--color-coral-deep);
+}
+
+@media (max-width: 560px) {
+  .video-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .checkbox-field {
   flex-direction: row;
   align-items: center;

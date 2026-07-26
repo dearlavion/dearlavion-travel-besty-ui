@@ -15,6 +15,7 @@ interface ProductFormModel {
   seasons: ProductSeason[];
   destinations: ProductDestination[];
   parties: ProductParty[];
+  activities: string[];
   tested: boolean;
   active: boolean;
   linkedProductIds: string[];
@@ -29,6 +30,7 @@ function emptyForm(): ProductFormModel {
     seasons: [],
     destinations: [],
     parties: [],
+    activities: [],
     tested: true,
     active: true,
     linkedProductIds: [],
@@ -38,6 +40,7 @@ function emptyForm(): ProductFormModel {
 const SEASON_OPTIONS: ProductSeason[] = ['Summer', 'Winter', 'Rainy'];
 const DESTINATION_OPTIONS: ProductDestination[] = ['Beach', 'Mountain', 'City'];
 const PARTY_OPTIONS: ProductParty[] = ['Solo', 'Group'];
+const ACTIVITY_OPTIONS: string[] = ['Hiking', 'Swimming', 'Sightseeing', 'Business', 'Photography', 'Nightlife', 'Food', 'Relaxing'];
 
 // Shared add/edit form — no `:id` param means add mode, same toSignal(paramMap) pattern
 // ProductDetailComponent uses to detect route param changes. Purchase data (price/stock/etc) is
@@ -63,6 +66,7 @@ export class AdminProductFormComponent {
   protected readonly seasonOptions = SEASON_OPTIONS;
   protected readonly destinationOptions = DESTINATION_OPTIONS;
   protected readonly partyOptions = PARTY_OPTIONS;
+  protected readonly activityOptions = ACTIVITY_OPTIONS;
 
   protected readonly form = signal<ProductFormModel>(emptyForm());
   // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,
@@ -125,6 +129,7 @@ export class AdminProductFormComponent {
         seasons: [...existing.seasons],
         destinations: [...existing.destinations],
         parties: [...existing.parties],
+        activities: [...(existing.activities ?? [])],
         tested: existing.tested,
         active: existing.active,
         linkedProductIds: [...(existing.linkedProductIds ?? [])],
@@ -160,6 +165,14 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, parties: toggleInArray(f.parties, party) }));
   }
 
+  protected isActivityChecked(activity: string): boolean {
+    return this.form().activities.includes(activity);
+  }
+
+  protected toggleActivity(activity: string): void {
+    this.form.update((f) => ({ ...f, activities: toggleInArray(f.activities, activity) }));
+  }
+
   protected addLinkedProduct(id: string): void {
     this.form.update((f) => (f.linkedProductIds.includes(id) ? f : { ...f, linkedProductIds: [...f.linkedProductIds, id] }));
   }
@@ -178,6 +191,7 @@ export class AdminProductFormComponent {
       seasons: f.seasons,
       destinations: f.destinations,
       parties: f.parties,
+      activities: f.activities,
       tested: f.tested,
       active: f.active,
       linkedProductIds: f.linkedProductIds,

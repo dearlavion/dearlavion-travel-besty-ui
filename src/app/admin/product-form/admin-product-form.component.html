@@ -89,6 +89,18 @@
       </div>
     </div>
 
+    <div class="checkbox-group">
+      <span class="checkbox-group-label">Activities (which trips this suits — powers the survey)</span>
+      <div class="checkbox-options">
+        @for (opt of activityOptions; track opt) {
+          <label class="checkbox-field">
+            <input type="checkbox" [ngModel]="isActivityChecked(opt)" (ngModelChange)="toggleActivity(opt)" [name]="'activity-' + opt" />
+            <span>{{ opt }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
     <div class="field-full checkbox-stack">
       <label class="checkbox-field">
         <input

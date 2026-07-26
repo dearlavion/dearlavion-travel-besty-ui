@@ -22,7 +22,7 @@
   <div class="carousel-track">
     <!-- CARD 1: Destination -->
     <div class="card cream" [class.active]="step() === 0">
-      <div class="q-eyebrow">Step 1 of 4</div>
+      <div class="q-eyebrow">Step 1 of 5</div>
       <div class="q-text">Where does your heart want to wander?</div>
       <div class="tiles">
         <div class="tile" [class.selected]="destination() === 'Beach'" (click)="selectDestination('Beach')">
@@ -55,7 +55,7 @@
 
     <!-- CARD 2: Season -->
     <div class="card green" [class.active]="step() === 1">
-      <div class="q-eyebrow">Step 2 of 4</div>
+      <div class="q-eyebrow">Step 2 of 5</div>
       <div class="q-text">What will the sky look like when you get there?</div>
       <div class="tiles">
         <div class="tile" [class.selected]="season() === 'Summer'" (click)="selectSeason('Summer')">
@@ -99,7 +99,7 @@
 
     <!-- CARD 3: Party -->
     <div class="card pink" [class.active]="step() === 2">
-      <div class="q-eyebrow">Step 3 of 4</div>
+      <div class="q-eyebrow">Step 3 of 5</div>
       <div class="q-text">Who's coming along for the ride?</div>
       <div class="tiles">
         <div class="tile" [class.selected]="party() === 'Solo'" (click)="selectParty('Solo')">
@@ -131,7 +131,7 @@
 
     <!-- CARD 4: Duration -->
     <div class="card marigold" [class.active]="step() === 3">
-      <div class="q-eyebrow">Step 4 of 4</div>
+      <div class="q-eyebrow">Step 4 of 5</div>
       <div class="q-text">How long will this chapter last?</div>
       <div class="bands">
         <div
@@ -175,8 +175,28 @@
       </div>
     </div>
 
-    <!-- CARD 5: Reveal -->
-    <div class="card lav" [class.active]="step() === 4">
+    <!-- CARD 5: Activities (multi-select, optional) -->
+    <div class="card green" [class.active]="step() === 4">
+      <div class="q-eyebrow">Step 5 of 5</div>
+      <div class="q-text">What will you be doing?</div>
+      <div class="q-sub">Pick any that apply — it tailors your kit. Optional.</div>
+      <div class="activity-grid">
+        @for (activity of activityOptions; track activity) {
+          <button
+            type="button"
+            class="activity-chip"
+            [class.selected]="isActivitySelected(activity)"
+            (click)="toggleActivity(activity)"
+          >
+            {{ activity }}
+          </button>
+        }
+      </div>
+      <button class="continue-btn show" (click)="continueFromActivities()">Continue</button>
+    </div>
+
+    <!-- CARD 6: Reveal -->
+    <div class="card lav" [class.active]="step() === 5">
       <svg width="54" height="54" viewBox="0 0 64 64" style="margin-bottom: 18px">
         <circle cx="32" cy="32" r="28" fill="#fff" />
         <path
@@ -198,7 +218,7 @@
   </div>
 
   <div class="progress">
-    @for (dot of [0, 1, 2, 3, 4]; track dot) {
+    @for (dot of [0, 1, 2, 3, 4, 5]; track dot) {
       <div class="dot" [class.done]="dot < step()" [class.now]="dot === step()"></div>
     }
   </div>

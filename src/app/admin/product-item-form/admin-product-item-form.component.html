@@ -38,6 +38,7 @@
 
       <label>
         <span>Price</span>
+
         <input
           type="number"
           min="0"
@@ -46,6 +47,29 @@
           [ngModel]="form().price"
           (ngModelChange)="updateField('price', $event)"
           name="price"
+        />
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label>
+        <span>Size (for products that come in sizes)</span>
+        <select [ngModel]="form().sizeTier" (ngModelChange)="updateField('sizeTier', +$event)" name="sizeTier">
+          <option [ngValue]="0">No size / single size</option>
+          <option [ngValue]="1">1 — Travel / mini</option>
+          <option [ngValue]="2">2 — Standard</option>
+          <option [ngValue]="3">3 — Large</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Size label (shown to shoppers, e.g. "20 ml")</span>
+        <input
+          type="text"
+          placeholder="e.g. 20 ml"
+          [ngModel]="form().sizeLabel"
+          (ngModelChange)="updateField('sizeLabel', $event)"
+          name="sizeLabel"
         />
       </label>
     </div>
@@ -74,7 +98,7 @@
     </div>
 
     <label class="field-full">
-      <span>Image URL (optional — falls back to the icon above)</span>
+      <span>Cover image URL (optional — falls back to the icon above)</span>
       <input
         type="text"
         placeholder="https://..."
@@ -83,6 +107,58 @@
         name="image"
       />
     </label>
+
+    <div class="media-section">
+      <span class="media-section-label">Gallery photos ({{ form().images.length }}/{{ maxMedia }})</span>
+      @for (photo of form().images; track $index) {
+        <div class="media-row">
+          <input
+            type="text"
+            placeholder="https://..."
+            [ngModel]="photo"
+            (ngModelChange)="updateImage($index, $event)"
+            [name]="'image-' + $index"
+          />
+          <button type="button" class="media-remove-btn" (click)="removeImage($index)" aria-label="Remove photo">✕</button>
+        </div>
+      }
+      @if (form().images.length < maxMedia) {
+        <button type="button" class="media-add-btn" (click)="addImageSlot()">+ Add photo</button>
+      }
+    </div>
+
+    <div class="media-section">
+      <span class="media-section-label">Videos & testimonials ({{ form().videos.length }}/{{ maxMedia }})</span>
+      @for (video of form().videos; track $index) {
+        <div class="video-row">
+          <input
+            type="text"
+            placeholder="Title, e.g. How to use"
+            [ngModel]="video.title"
+            (ngModelChange)="updateVideoField($index, 'title', $event)"
+            [name]="'video-title-' + $index"
+          />
+          <input
+            type="text"
+            placeholder="Video URL (YouTube embeds inline; others open a watch link)"
+            [ngModel]="video.url"
+            (ngModelChange)="updateVideoField($index, 'url', $event)"
+            [name]="'video-url-' + $index"
+          />
+          <input
+            type="text"
+            placeholder="Author (optional), e.g. @travel_with_mia"
+            [ngModel]="video.author"
+            (ngModelChange)="updateVideoField($index, 'author', $event)"
+            [name]="'video-author-' + $index"
+          />
+          <button type="button" class="media-remove-btn" (click)="removeVideo($index)" aria-label="Remove video">✕</button>
+        </div>
+      }
+      @if (form().videos.length < maxMedia) {
+        <button type="button" class="media-add-btn" (click)="addVideoSlot()">+ Add video</button>
+      }
+    </div>
 
     <label class="checkbox-field">
       <input

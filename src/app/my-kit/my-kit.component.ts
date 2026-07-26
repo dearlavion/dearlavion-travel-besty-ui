@@ -88,13 +88,17 @@ export class MyKitComponent {
     return kit.items.map((item, index) => {
       const primary = this.catalog.getById(item.productId);
       const related = primary ? this.catalog.getRelated(primary, RELATED_LOOKUP_LIMIT) : [];
-      // Resolve each generic Product suggestion down to its purchasable default item — full
-      // unification guarantees every product has one, but a suggestion is dropped if its item
-      // somehow can't resolve rather than rendering a broken card.
-      const candidates = primary ? [primary, ...related] : [];
-      const resolved = candidates
-        .map((p) => this.productItems.getDefault(p.id))
-        .filter((v): v is ProductItemView => !!v);
+      // The recommendation engine already picked the trip-appropriate SKU (size/variant) for the
+      // primary suggestion — use it when it resolves, so "Add to Cart" adds that exact size; fall
+      // back to the product's default item otherwise. Related products resolve to their defaults.
+      const primaryItem =
+        (item.productItemId ? this.productItems.getById(item.productItemId) : undefined) ??
+        (primary ? this.productItems.getDefault(primary.id) : undefined);
+      const relatedItems = related.map((p) => this.productItems.getDefault(p.id));
+      const seen = new Set<string>();
+      const resolved = [primaryItem, ...relatedItems].filter(
+        (v): v is ProductItemView => !!v && !seen.has(v.id) && !!seen.add(v.id),
+      );
       const suggestions = resolved.slice(0, MAX_SUGGESTIONS);
       return {
         label: item.label,

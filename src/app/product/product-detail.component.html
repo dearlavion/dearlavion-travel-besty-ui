@@ -3,16 +3,34 @@
     <a routerLink="/shop" class="back-link">← Back to Shop</a>
 
     <div class="product-layout">
-      <div class="product-image" [style.background]="getProductTint(item)">
-        @if (item.soldOut) {
-          <div class="sold-out-badge">Sold Out</div>
-        } @else if (item.popular) {
-          <div class="popular-badge">🔥 Popular</div>
-        }
-        @if (item.image) {
-          <img [src]="item.image" [alt]="item.name" class="product-photo" />
-        } @else {
-          <span class="product-icon">{{ item.icon }}</span>
+      <div class="product-gallery">
+        <div class="product-image" [style.background]="getProductTint(item)">
+          @if (item.soldOut) {
+            <div class="sold-out-badge">Sold Out</div>
+          } @else if (item.popular) {
+            <div class="popular-badge">🔥 Popular</div>
+          }
+          @if (activeImage(); as photo) {
+            <img [src]="photo" [alt]="item.name" class="product-photo" />
+          } @else {
+            <span class="product-icon">{{ item.icon }}</span>
+          }
+        </div>
+
+        @if (galleryImages().length > 1) {
+          <div class="thumb-strip">
+            @for (photo of galleryImages(); track $index) {
+              <button
+                type="button"
+                class="thumb-btn"
+                [class.active]="$index === selectedImageIndex()"
+                (click)="selectImage($index)"
+                [attr.aria-label]="'View photo ' + ($index + 1)"
+              >
+                <img [src]="photo" [alt]="item.name + ' photo ' + ($index + 1)" />
+              </button>
+            }
+          </div>
         }
       </div>
 
@@ -77,6 +95,44 @@
         </div>
       </div>
     </div>
+
+    @if (videoCards().length > 0) {
+      <div class="video-section">
+        <p class="related-title">Videos & Testimonials</p>
+        <div class="video-grid">
+          @for (video of videoCards(); track video.url) {
+            @if (video.embedUrl) {
+              <div class="video-card">
+                <div class="video-frame">
+                  <iframe
+                    [src]="video.embedUrl"
+                    title="{{ video.title }}"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+                <div class="video-title">{{ video.title }}</div>
+                @if (video.author) {
+                  <div class="video-author">{{ video.author }}</div>
+                }
+              </div>
+            } @else {
+              <a class="video-card video-card-link" [href]="video.url" target="_blank" rel="noopener">
+                <div class="video-frame video-frame-link">
+                  <span class="video-play-icon">🎬</span>
+                  <span class="video-watch-label">Watch video ↗</span>
+                </div>
+                <div class="video-title">{{ video.title }}</div>
+                @if (video.author) {
+                  <div class="video-author">{{ video.author }}</div>
+                }
+              </a>
+            }
+          }
+        </div>
+      </div>
+    }
 
     @if (relatedProducts().length > 0) {
       <div class="related-section">

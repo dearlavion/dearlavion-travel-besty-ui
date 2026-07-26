@@ -6,6 +6,7 @@ import {
   ProductItem,
   ProductParty,
   ProductSeason,
+  ProductVideo,
   PRODUCT_ITEMS,
 } from './product-catalog';
 import { ProductCatalogService } from './product-catalog.service';
@@ -51,11 +52,15 @@ export interface ProductItemView {
   productId: string;
   name: string;
   brand?: string;
+  sizeTier?: number;
+  sizeLabel?: string;
   category: string;
   description: string;
   price: number;
   currency: string;
   image?: string;
+  images: string[];
+  videos: ProductVideo[];
   icon: string;
   stock: number;
   soldOut: boolean;
@@ -80,11 +85,15 @@ function toView(item: ProductItem, product: Product): ProductItemView {
     productId: item.productId,
     name: item.name,
     brand: item.brand,
+    sizeTier: item.sizeTier,
+    sizeLabel: item.sizeLabel,
     category: product.category,
     description: product.description,
     price: item.price,
     currency: item.currency,
     image: item.image,
+    images: item.images ?? [],
+    videos: item.videos ?? [],
     icon: item.icon ?? product.icon,
     stock: item.stock,
     soldOut: item.soldOut,

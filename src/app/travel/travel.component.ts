@@ -12,11 +12,31 @@ import { TravelKitService } from './travel-kit.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
 import { environment } from '../../environments/environment';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 const AUTO_ADVANCE_DELAY_MS = 350;
 const GALLERY_PAGE_SIZE = 10;
 
+// Mirrors the backend ACTIVITIES taxonomy (store-engine product/taxonomy.ts). Multi-select, optional.
+export const ACTIVITY_OPTIONS = [
+  'Hiking',
+  'Swimming',
+  'Sightseeing',
+  'Business',
+  'Photography',
+  'Nightlife',
+  'Food',
+  'Relaxing',
+] as const;
+
+interface KitChecklistItem {
+  label: string;
+  productId: string;
+  productItemId?: string;
+  sizeLabel?: string;
+  category?: string;
+}
 interface SurveyRecommendationsResponse {
+  checklist: KitChecklistItem[];
   products: Product[];
 }
 
@@ -42,6 +62,8 @@ export class TravelComponent {
   protected readonly party = signal<Party | null>(null);
   protected readonly partySize = signal(2);
   protected readonly duration = signal<Duration | null>(null);
+  protected readonly activityOptions = ACTIVITY_OPTIONS;
+  protected readonly activities = signal<string[]>([]);
 
   protected readonly revealSummary = computed(() => {
     const dest = this.destination()?.toLowerCase() ?? 'trip';
@@ -95,6 +117,20 @@ export class TravelComponent {
     this.autoAdvance();
   }
 
+  protected isActivitySelected(activity: string): boolean {
+    return this.activities().includes(activity);
+  }
+
+  protected toggleActivity(activity: string): void {
+    this.activities.update((list) =>
+      list.includes(activity) ? list.filter((a) => a !== activity) : [...list, activity],
+    );
+  }
+
+  protected continueFromActivities(): void {
+    this.goNext();
+  }
+
   protected goNext(): void {
     if (this.step() < this.totalSteps - 1) {
       this.step.update((s) => s + 1);
@@ -125,10 +161,13 @@ export class TravelComponent {
           party,
           partySize,
           duration,
+          activities: this.activities(),
         })
         .subscribe((res) => {
           this.travelKitService.setKit({
-            items: res.products.map((p) => ({ label: p.name, productId: p.id })),
+            // The ranked checklist from the recommendation engine (already scored + trimmed, with
+            // the trip-appropriate size resolved into productItemId).
+            items: res.checklist.map((c) => ({ label: c.label, productId: c.productId, productItemId: c.productItemId })),
             summary: this.revealSummary(),
           });
           this.router.navigate(['/my-kit']);

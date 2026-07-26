@@ -2,22 +2,29 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ProductVideo } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { ProductItemService } from '../../shop/product-item.service';
+
+const MAX_MEDIA = 5;
 
 interface ItemFormModel {
   name: string;
   brand: string;
+  sizeTier: number; // 0 = no size (single-size product), 1–3 otherwise
+  sizeLabel: string;
   price: number;
   currency: string;
   image: string;
+  images: string[];
+  videos: ProductVideo[];
   icon: string;
   stock: number;
   soldOut: boolean;
 }
 
 function emptyItemForm(): ItemFormModel {
-  return { name: '', brand: '', price: 0, currency: 'USD', image: '', icon: '', stock: 0, soldOut: false };
+  return { name: '', brand: '', sizeTier: 0, sizeLabel: '', price: 0, currency: 'USD', image: '', images: [], videos: [], icon: '', stock: 0, soldOut: false };
 }
 
 // Own page (not inline on the product edit form) — reached via "+ Add Item"/"Edit" on
@@ -78,9 +85,13 @@ export class AdminProductItemFormComponent {
         this.form.set({
           name: item.name,
           brand: item.brand ?? '',
+          sizeTier: item.sizeTier ?? 0,
+          sizeLabel: item.sizeLabel ?? '',
           price: item.price,
           currency: item.currency,
           image: item.image ?? '',
+          images: item.images ?? [],
+          videos: item.videos ?? [],
           icon: item.icon ?? '',
           stock: item.stock,
           soldOut: item.soldOut,
@@ -101,15 +112,53 @@ export class AdminProductItemFormComponent {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
+  protected readonly maxMedia = MAX_MEDIA;
+
+  protected addImageSlot(): void {
+    this.form.update((f) => (f.images.length >= MAX_MEDIA ? f : { ...f, images: [...f.images, ''] }));
+  }
+
+  protected updateImage(index: number, value: string): void {
+    this.form.update((f) => ({ ...f, images: f.images.map((img, i) => (i === index ? value : img)) }));
+  }
+
+  protected removeImage(index: number): void {
+    this.form.update((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }));
+  }
+
+  protected addVideoSlot(): void {
+    this.form.update((f) =>
+      f.videos.length >= MAX_MEDIA ? f : { ...f, videos: [...f.videos, { title: '', url: '', author: '' }] },
+    );
+  }
+
+  protected updateVideoField(index: number, key: keyof ProductVideo, value: string): void {
+    this.form.update((f) => ({
+      ...f,
+      videos: f.videos.map((v, i) => (i === index ? { ...v, [key]: value } : v)),
+    }));
+  }
+
+  protected removeVideo(index: number): void {
+    this.form.update((f) => ({ ...f, videos: f.videos.filter((_, i) => i !== index) }));
+  }
+
   protected save(): void {
     const productId = this.productId();
     const f = this.form();
     const fields = {
       name: f.name.trim() || this.product()?.name || '',
       brand: f.brand.trim() || undefined,
+      sizeTier: f.sizeTier > 0 ? Number(f.sizeTier) : undefined,
+      sizeLabel: f.sizeLabel.trim() || undefined,
       price: Math.max(0, Number(f.price) || 0),
       currency: f.currency.trim() || 'USD',
       image: f.image.trim() || undefined,
+      images: f.images.map((img) => img.trim()).filter(Boolean).slice(0, MAX_MEDIA),
+      videos: f.videos
+        .map((v) => ({ title: v.title.trim(), url: v.url.trim(), author: v.author?.trim() || undefined }))
+        .filter((v) => v.title && v.url)
+        .slice(0, MAX_MEDIA),
       icon: f.icon.trim() || undefined,
       stock: Math.max(0, Number(f.stock) || 0),
       soldOut: f.soldOut,

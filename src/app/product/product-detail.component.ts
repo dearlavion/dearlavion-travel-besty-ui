@@ -1,10 +1,19 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PricePipe } from '../common/price.pipe';
 import { getProductTint } from '../shop/product-catalog';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
+import { parseYouTubeId } from './youtube-embed';
+
+interface VideoCard {
+  title: string;
+  url: string;
+  author?: string;
+  embedUrl: SafeResourceUrl | null;
+}
 
 // The reusable template for any single product item — one route (`/product/:id/items/:itemId`,
 // or bare `/product/:id` for the cheapest/default item), the id(s) decide what renders.
@@ -24,11 +33,13 @@ export class ProductDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
+  private readonly sanitizer = inject(DomSanitizer);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
   protected readonly added = signal(false);
   protected readonly quantity = signal(1);
+  protected readonly selectedImageIndex = signal(0);
 
   // Shop/My Kit link straight to a specific item (`/product/:id/items/:itemId`) so this page
   // shows that exact variant, not just the product's cheapest/default one.
@@ -45,6 +56,13 @@ export class ProductDetailComponent {
     effect(() => {
       const itemId = this.routeItemId();
       if (itemId) this.productItems.loadItem(itemId);
+    });
+
+    // A new item (variant switch, or navigating to a sibling via "You might also like") should
+    // always start back on its own cover photo, not whatever index was scrolled to previously.
+    effect(() => {
+      this.selectedItem()?.id;
+      this.selectedImageIndex.set(0);
     });
   }
 
@@ -82,6 +100,41 @@ export class ProductDetailComponent {
     if (!item) return [];
     const all: string[] = [...item.destinations, ...item.seasons, ...item.parties];
     return all.filter((tag) => tag !== 'All');
+  });
+
+  // Up to 5 clickable gallery photos. Falls back to the single legacy `image` field for items an
+  // admin hasn't added a gallery to yet, so nothing regresses for existing catalog data.
+  protected readonly galleryImages = computed<string[]>(() => {
+    const item = this.selectedItem();
+    if (!item) return [];
+    if (item.images.length > 0) return item.images;
+    return item.image ? [item.image] : [];
+  });
+
+  protected readonly activeImage = computed<string | undefined>(() => {
+    const images = this.galleryImages();
+    return images[this.selectedImageIndex()] ?? images[0];
+  });
+
+  protected selectImage(index: number): void {
+    this.selectedImageIndex.set(index);
+  }
+
+  // Influencer/testimonial videos, each resolved to a trusted embed URL when the link is
+  // recognizably YouTube — built only from the parsed 11-char video id against a fixed template,
+  // never from the raw admin-entered string, before it ever reaches bypassSecurityTrustResourceUrl.
+  // Anything else (TikTok, Instagram, a malformed link) gets `embedUrl: null` and the template
+  // renders a "watch elsewhere" card instead of an iframe.
+  protected readonly videoCards = computed<VideoCard[]>(() => {
+    const item = this.selectedItem();
+    if (!item) return [];
+    return item.videos.map((video) => {
+      const youtubeId = parseYouTubeId(video.url);
+      const embedUrl = youtubeId
+        ? this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${youtubeId}`)
+        : null;
+      return { title: video.title, url: video.url, author: video.author, embedUrl };
+    });
   });
 
   protected incrementQuantity(): void {
