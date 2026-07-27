@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
@@ -54,6 +54,21 @@ export class TravelComponent {
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
 
+  constructor() {
+    // Real-backend mode only — mock mode's preview count/navigation both call the local
+    // buildTravelKit() formula directly and never touch `recommendations`, so there's nothing to
+    // prefetch. Refires whenever the answers that affect the backend's result change (including
+    // partySize/activities, both sent in the request body) — see fetchRecommendations().
+    if (!environment.useMockData) {
+      effect(() => {
+        const key = this.answersKey();
+        if (!key || key === this.lastFetchedAnswersKey) return;
+        this.lastFetchedAnswersKey = key;
+        this.fetchRecommendations();
+      });
+    }
+  }
+
   protected readonly step = signal(0);
   protected readonly totalSteps = TOTAL_STEPS;
 
@@ -67,12 +82,61 @@ export class TravelComponent {
 
   protected readonly revealSummary = computed(() => {
     const dest = this.destination()?.toLowerCase() ?? 'trip';
-    const dur = this.duration()?.toLowerCase() ?? '';
+    const season = this.season()?.toLowerCase() ?? '';
+    // Strip a leading "A "/"a " so "A proper break" reads as "proper break trip", not the
+    // grammatically broken "a proper break beach" the raw label would otherwise produce.
+    const durationPhrase = (this.duration() ?? '').toLowerCase().replace(/^a /, '');
     const partyPart = this.party() === 'Group' ? ` with ${this.partySize()} travelers` : '';
-    return `Built for your ${dur} ${dest}${partyPart} — here's everything you'll need.`;
+    return `Built for your ${durationPhrase} ${season} trip to the ${dest}${partyPart} — here's everything you'll need.`;
   });
 
+  // Real-backend mode: the actual recommendation engine (POST /survey/recommendations) decides
+  // both which items AND how many — it scores every real catalog product and stops once it either
+  // hits its target size or runs out of eligible items, so the count is only knowable by actually
+  // calling it. The old behavior showed a fixed local formula's count here (e.g. 21, from
+  // kit-recommendation.ts's static tables) while `seeMyTravelKit()` below used the backend's own,
+  // independently-sized result (e.g. 16) — two unrelated numbers that had no reason to agree.
+  // Prefetching here and reusing the same response for both the preview and the actual navigation
+  // guarantees they can never disagree again.
+  private readonly recommendations = signal<SurveyRecommendationsResponse | null>(null);
+  private lastFetchedAnswersKey: string | null = null;
+
+  private answersKey(): string | null {
+    const destination = this.destination();
+    const season = this.season();
+    const party = this.party();
+    const duration = this.duration();
+    if (!destination || !season || !party || !duration) return null;
+    const partySize = party === 'Group' ? this.partySize() : undefined;
+    return JSON.stringify({ destination, season, party, partySize, duration, activities: [...this.activities()].sort() });
+  }
+
+  private fetchRecommendations(): void {
+    const destination = this.destination();
+    const season = this.season();
+    const party = this.party();
+    const duration = this.duration();
+    if (!destination || !season || !party || !duration) return;
+    const partySize = party === 'Group' ? this.partySize() : undefined;
+    this.http
+      .post<SurveyRecommendationsResponse>(`${environment.apiUrl}/survey/recommendations`, {
+        destination,
+        season,
+        party,
+        partySize,
+        duration,
+        activities: this.activities(),
+      })
+      .subscribe({
+        next: (res) => this.recommendations.set(res),
+        error: () => this.recommendations.set(null),
+      });
+  }
+
   protected readonly kitItemCount = computed(() => {
+    if (!environment.useMockData) {
+      return this.recommendations()?.checklist.length ?? null;
+    }
     const destination = this.destination();
     const season = this.season();
     const party = this.party();
@@ -153,6 +217,14 @@ export class TravelComponent {
     }
 
     if (!environment.useMockData) {
+      // Reuse the same response the reveal card's count came from — so the number the user just
+      // saw and the kit they land on can never disagree. Only re-fetches if it's somehow missing
+      // (e.g. the button was clicked before the prefetch settled).
+      const cached = this.recommendations();
+      if (cached && this.answersKey() === this.lastFetchedAnswersKey) {
+        this.navigateToKit(cached);
+        return;
+      }
       const partySize = party === 'Group' ? this.partySize() : undefined;
       this.http
         .post<SurveyRecommendationsResponse>(`${environment.apiUrl}/survey/recommendations`, {
@@ -163,20 +235,22 @@ export class TravelComponent {
           duration,
           activities: this.activities(),
         })
-        .subscribe((res) => {
-          this.travelKitService.setKit({
-            // The ranked checklist from the recommendation engine (already scored + trimmed, with
-            // the trip-appropriate size resolved into productItemId).
-            items: res.checklist.map((c) => ({ label: c.label, productId: c.productId, productItemId: c.productItemId })),
-            summary: this.revealSummary(),
-          });
-          this.router.navigate(['/my-kit']);
-        });
+        .subscribe((res) => this.navigateToKit(res));
       return;
     }
 
     this.travelKitService.setKit({
       items: buildTravelKit({ destination, season, party, duration }),
+      summary: this.revealSummary(),
+    });
+    this.router.navigate(['/my-kit']);
+  }
+
+  /** Real-backend mode: hand the recommendation engine's own checklist off to /my-kit — the
+   * ranked, already-scored-and-sized result (size/variant resolved into productItemId). */
+  private navigateToKit(res: SurveyRecommendationsResponse): void {
+    this.travelKitService.setKit({
+      items: res.checklist.map((c) => ({ label: c.label, productId: c.productId, productItemId: c.productItemId })),
       summary: this.revealSummary(),
     });
     this.router.navigate(['/my-kit']);
