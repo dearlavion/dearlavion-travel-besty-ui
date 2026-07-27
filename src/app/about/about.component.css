@@ -37,7 +37,7 @@
 .hero {
   position: relative;
   max-width: 1180px;
-  margin: 0 auto;
+  margin: 0 auto 100px;
   padding: 56px 32px 100px;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
@@ -225,37 +225,18 @@
   margin-top: 4px;
 }
 
-.photo-strip {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 18px;
-  max-width: 900px;
-  margin: 0 auto 80px;
-  padding: 0 32px;
-}
-
-.photo-card {
-  border-radius: 22px;
-  height: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 44px;
-}
-
-.photo-card.one {
-  background: var(--tint-cream);
-}
-.photo-card.two {
-  background: var(--tint-lavender);
-}
-.photo-card.three {
-  background: var(--tint-marigold);
-}
-
 .values-section {
-  background: var(--tint-cream);
-  padding: 80px 0;
+  background: #c3c05a;
+  margin-top: -1px; /* seams flush with .cloud-edge.matcha above */
+  padding: 100px 0 130px;
+}
+
+/* --color-leaf reads at ~1.7:1 contrast against the olive #c3c05a background — barely legible.
+   Same dark green Home uses for its own matcha-section text (.matcha-eyebrow-word/.matcha-sub in
+   home.component.css), scoped here since .section-eyebrow is shared with the Kits section above,
+   where the lighter green is fine against the light-yellow background. */
+.values-section .section-eyebrow {
+  color: #33502f;
 }
 
 .section-head {
@@ -335,226 +316,209 @@
   font-style: italic;
 }
 
-/* TESTIMONIALS CAROUSEL */
-.testimonials-section {
-  max-width: 1180px;
-  margin: 90px auto;
-  padding: 0 32px;
+/* SECTION: Popular Kits — copied verbatim from the homepage (home.component.css) */
+.cloud-edge {
+  --cloud-color: var(--tint-yellow);
+  height: 80px;
+  background-image: radial-gradient(circle at 50% 100%, var(--cloud-color) 0, var(--cloud-color) 79px, transparent 80px);
+  background-size: 160px 80px;
+  background-repeat: repeat-x;
+  background-position: center bottom;
 }
 
-.testimonials-head {
-  text-align: center;
-  max-width: 560px;
-  margin: 0 auto 44px;
+/* Same scalloped edge as the Popular Kits section's cloud-edge, colored to lead into the Values
+   section — same olive/matcha green as the homepage's "What's in My Bag" section (.matcha-section
+   in home.component.css), not a shared token, just matching that hardcoded #c3c05a. */
+.cloud-edge.matcha {
+  --cloud-color: #c3c05a;
+  margin-top: 100px; /* breathing room after Story, mirroring Hero's gap before the kits cloud-edge */
 }
 
-.testimonials-eyebrow {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-leaf);
-  margin-bottom: 14px;
-}
-
-.testimonials-title {
-  font-family: var(--font-heading);
-  font-weight: 400;
-  font-size: clamp(23px, 1.4vw + 18px, 32px);
-  color: var(--color-ink);
-}
-
-.carousel-wrap {
+.kits-section {
   position: relative;
+  background: var(--tint-yellow);
+  margin-top: -1px; /* seams flush with .cloud-edge above — do not add top margin here */
+  padding: 90px 0;
 }
 
-.t-track {
+.kits-marquee {
+  width: 100%;
+  overflow: hidden;
+  margin-top: 40px;
+}
+
+.kits-track {
   display: flex;
-  gap: 22px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 6px 4px 20px;
-  scrollbar-width: none;
+  gap: 10px;
+  width: max-content;
+  will-change: transform;
 }
 
-.t-track::-webkit-scrollbar {
-  display: none;
-}
-
-.t-card {
-  scroll-snap-align: start;
-  flex: 0 0 300px;
-  border-radius: 26px;
-  padding: 30px 26px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 18px 34px -22px rgba(58, 46, 46, 0.28);
-}
-
-.t-stars {
-  font-size: 15px;
-  color: #b8860b;
-  margin-bottom: 16px;
-  letter-spacing: 2px;
-}
-
-.t-quote {
-  font-family: var(--font-heading);
-  font-style: italic;
-  font-size: 16.5px;
-  line-height: 1.55;
-  color: var(--color-ink);
-  flex: 1;
-  margin-bottom: 22px;
-}
-
-.t-person {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.t-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.kits-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 15px;
-  color: #fff;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.kit-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: all 0.18s ease;
   flex-shrink: 0;
 }
 
-.t-name {
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--color-ink);
+.kit-arrow:hover {
+  border-color: var(--color-coral);
+  color: var(--color-coral-deep);
 }
 
-.t-trip {
-  font-size: 12px;
-  color: rgba(58, 46, 46, 0.65);
-  font-weight: 600;
-}
-
-.t-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #fff;
-  border: 1px solid var(--color-line);
-  display: flex;
+.kit-dots {
+  display: none;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 10px 24px -14px rgba(58, 46, 46, 0.25);
-  z-index: 5;
-}
-
-.t-arrow.back {
-  left: -8px;
-}
-.t-arrow.fwd {
-  right: -8px;
-}
-
-@media (max-width: 820px) {
-  .t-arrow {
-    display: none;
-  }
-}
-
-.t-dots {
-  display: flex;
-  justify-content: center;
   gap: 8px;
-  margin-top: 6px;
 }
 
-.t-dots .dot {
+.kit-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  border: none;
   background: var(--color-line);
+  padding: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
 }
 
-.t-dots .dot.active {
+.kit-dot.active {
   background: var(--color-coral);
   width: 20px;
-  border-radius: 6px;
+  border-radius: 999px;
 }
 
-/* SECTION: collage + text */
-.collage-section {
-  display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 60px;
-  align-items: center;
-  max-width: 1100px;
-  margin: 90px auto;
-  padding: 0 32px;
-}
-
-.collage {
-  position: relative;
-  height: 400px;
-}
-
-.collage-card {
-  position: absolute;
-  border-radius: 22px;
+.kit-card {
+  display: block;
+  flex: 0 0 22vw;
+  min-width: 260px;
   overflow: hidden;
-  box-shadow: 0 24px 48px -20px rgba(58, 46, 46, 0.22);
+  background: var(--tint-yellow);
+  border: 2px solid transparent;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
 }
 
-.collage-card.back {
-  width: 230px;
-  height: 290px;
-  top: 10px;
-  left: 0;
+.kit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 42px -20px rgba(58, 46, 46, 0.22);
+  z-index: 1;
 }
 
-.collage-card.front {
-  width: 210px;
-  height: 250px;
-  bottom: 0;
-  right: 0;
-  border: 6px solid #fff;
+.kit-thumb {
+  display: block;
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--color-ink);
 }
 
-.collage-text {
-  padding-left: 10px;
+/* Stands in for the kit photo — same 420px block, centered quote text on a solid tint instead
+   of an image. Combined with .kit-thumb for the shared height/border, overrides display to flex
+   for centering. */
+.kit-thumb.kit-quote-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
 }
 
-.collage-text h2 {
+.kit-quote-text {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--color-ink);
+}
+
+.kit-info {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 22px;
+}
+
+.kit-avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--tint-cream);
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px -4px rgba(58, 46, 46, 0.35);
+}
+
+.kit-avatar-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.kit-info .kit-name {
   font-family: var(--font-heading);
   font-weight: 400;
-  font-size: 29px;
-  color: var(--color-ink);
-  margin-bottom: 20px;
-  line-height: 1.3;
+  font-size: 17px;
+  margin-bottom: 4px;
 }
 
-.collage-text p {
-  font-size: 15px;
+.kit-info .kit-meta {
+  font-size: 12.5px;
   color: var(--color-ink-soft);
-  margin-bottom: 18px;
+  font-weight: 600;
 }
 
-.collage-tagline {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-coral-deep);
-  margin: 20px 0 26px;
+.kit-stars {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #b8860b;
+  letter-spacing: 2px;
+}
+
+@media (max-width: 640px) {
+  .kit-arrow {
+    display: none;
+  }
+
+  .kit-dots {
+    display: flex;
+  }
+}
+
+/* SECTION: closing CTA — same hero mechanic, mirrored (gallery left, copy right) */
+.closing {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 56px;
+  align-items: center;
+  max-width: 1160px;
+  margin: 90px auto;
+  padding: 60px 32px;
 }
 
 .btn {
@@ -566,20 +530,23 @@
   font-size: 14.5px;
   font-weight: 700;
   transition: all 0.2s ease;
+  border: 2px solid transparent;
 }
 
-.btn-fill {
-  background: var(--color-ink);
+.btn-primary {
+  background: var(--color-coral);
   color: #fff;
+  box-shadow: 0 14px 30px -12px rgba(227, 139, 78, 0.55);
 }
 
-.btn-fill:hover {
+.btn-primary:hover {
   background: var(--color-coral-deep);
+  transform: translateY(-1px);
 }
 
-/* SECTION: where to find us */
+/* SECTION: where to find us — same (transparent) background as .contact-section, checkered grid
+   pattern kept on top of it instead of the cream fill it used to sit on. */
 .find-us-band {
-  background-color: var(--tint-cream);
   background-image:
     linear-gradient(rgba(182, 149, 196, 0.16) 1px, transparent 1px),
     linear-gradient(90deg, rgba(182, 149, 196, 0.16) 1px, transparent 1px);
@@ -664,136 +631,11 @@
   border: 1px solid var(--color-line);
 }
 
-.find-us-map svg {
+.find-us-map iframe {
   width: 100%;
   height: 100%;
   display: block;
-}
-
-.find-us-map-label {
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  fill: var(--color-ink-soft);
-}
-
-.find-us-zoom {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 10px 24px -14px rgba(58, 46, 46, 0.3);
-}
-
-.find-us-zoom-btn {
-  width: 32px;
-  height: 32px;
-  background: #fff;
-  color: var(--color-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.find-us-zoom-btn:last-child {
-  border-bottom: none;
-}
-
-/* SECTION: big illustrated flower-farm-meets-shore banner */
-.farm-scene {
-  position: relative;
-  height: 420px;
-  margin: 0 auto;
-  max-width: 1180px;
-  overflow: hidden;
-}
-
-.farm-scene svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* SECTION: kick back + work together */
-.close-section {
-  display: grid;
-  grid-template-columns: 1fr 0.8fr 1fr;
-  gap: 44px;
-  align-items: center;
-  max-width: 1180px;
-  margin: 90px auto;
-  padding: 0 32px;
-}
-
-.close-text h2 {
-  font-family: var(--font-heading);
-  font-weight: 400;
-  font-size: clamp(22px, 1.3vw + 17px, 30px);
-  color: var(--color-ink);
-  margin-bottom: 18px;
-  line-height: 1.3;
-}
-
-.close-text p {
-  font-size: 14.5px;
-  color: var(--color-ink-soft);
-  margin-bottom: 26px;
-}
-
-.close-photo {
-  border-radius: 24px;
-  overflow: hidden;
-  height: 340px;
-  box-shadow: 0 24px 48px -20px rgba(58, 46, 46, 0.2);
-}
-
-.close-photo svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.work-item {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 26px;
-}
-
-.work-num {
-  font-family: var(--font-heading);
-  font-style: italic;
-  font-size: 20px;
-  color: var(--color-coral-deep);
-  flex-shrink: 0;
-  width: 34px;
-}
-
-.work-copy h4 {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-ink);
-  margin-bottom: 4px;
-  letter-spacing: 0.02em;
-}
-
-.work-copy p {
-  font-size: 13px;
-  color: var(--color-ink-soft);
-}
-
-.close-heading {
-  font-family: var(--font-heading);
-  font-size: 22px;
-  font-weight: 400;
-  margin-bottom: 24px;
-  color: var(--color-ink);
+  border: 0;
 }
 
 /* Contact */
@@ -880,13 +722,9 @@
 }
 
 @media (max-width: 900px) {
-  .collage-section,
-  .close-section,
+  .closing,
   .find-us-section {
     grid-template-columns: 1fr;
-  }
-  .collage {
-    height: 320px;
   }
   .values-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -897,8 +735,7 @@
 }
 
 @media (max-width: 560px) {
-  .values-grid,
-  .photo-strip {
+  .values-grid {
     grid-template-columns: 1fr;
   }
 }

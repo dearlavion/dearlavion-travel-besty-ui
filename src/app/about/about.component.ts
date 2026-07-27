@@ -1,17 +1,21 @@
-import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
 
+// Placeholder until there's a real pop-up address to show — swap for the real one when it exists,
+// the map embed below reads from this constant so it updates automatically.
+const FIND_US_ADDRESS = '123 Placeholder Ave, Suite 100, Somewhere, ST 00000';
+
 interface Testimonial {
   bg: string;
-  avatarBg: string;
-  initial: string;
   quote: string;
   name: string;
   trip: string;
+  avatarUrl: string;
 }
 
 interface ValueCard {
@@ -20,57 +24,50 @@ interface ValueCard {
   text: string;
 }
 
-interface WorkItem {
-  num: string;
-  title: string;
-  text: string;
-}
-
+// Spring palette — cherry blossom, sky, daffodil, fresh leaf, lilac. Still soft/pastel, just
+// warmer and more seasonal than the previous generic pastel rainbow.
+// avatarUrl: i.pravatar.cc — a public placeholder-photo service, deterministic per `?img=N`
+// (1-70), no API key needed. Stand-ins until there are real customer photos.
 const TESTIMONIALS: Testimonial[] = [
   {
-    bg: '#FF9EB0',
-    avatarBg: '#D94A64',
-    initial: 'M',
+    bg: '#FFC1CC',
     quote:
       "I answered four questions and had my whole beach kit sorted in like two minutes. Didn't forget a single thing for once.",
     name: 'Maya R.',
     trip: 'Solo, 5-day beach trip',
+    avatarUrl: 'https://i.pravatar.cc/150?img=12',
   },
   {
-    bg: '#6EC6E8',
-    avatarBg: '#185FA5',
-    initial: 'J',
+    bg: '#AEDFF7',
     quote:
       'The rain jacket alone saved our trip. Everything in the kit actually got used — nothing felt like filler.',
     name: 'Jonah & Priya',
     trip: 'Group, 2-week city trip',
+    avatarUrl: 'https://i.pravatar.cc/150?img=5',
   },
   {
-    bg: '#FFDD57',
-    avatarBg: '#C08A3E',
-    initial: 'L',
+    bg: '#FFECB3',
     quote:
       "Packed for a month-long trip in one sitting. The packing cubes and laundry sheets were a genius add I never would've thought of.",
     name: 'Leo T.',
     trip: 'Solo, 3-week mountain trip',
+    avatarUrl: 'https://i.pravatar.cc/150?img=33',
   },
   {
-    bg: '#5CD9A6',
-    avatarBg: '#4F7A42',
-    initial: 'S',
+    bg: '#B5EAD7',
     quote:
       'It genuinely felt like a friend packed for me. My kit showed up and every single item made sense for the trip I was actually taking.',
     name: 'Sofia G.',
     trip: 'Group, weekend mountain trip',
+    avatarUrl: 'https://i.pravatar.cc/150?img=47',
   },
   {
-    bg: '#C792EA',
-    avatarBg: '#7F5A9E',
-    initial: 'A',
+    bg: '#D9C2F0',
     quote:
       "I'm the world's worst packer and this made me look like I had it all together. Ordering again for our next trip already.",
     name: 'Aiko N.',
     trip: 'Solo, 4-day city trip',
+    avatarUrl: 'https://i.pravatar.cc/150?img=65',
   },
 ];
 
@@ -92,24 +89,6 @@ const VALUES: ValueCard[] = [
   },
 ];
 
-const WORK_ITEMS: WorkItem[] = [
-  {
-    num: '01',
-    title: 'Every item, field-tested',
-    text: "No cheap materials, no guessing — everything's tried on real trips first.",
-  },
-  {
-    num: '02',
-    title: 'Built for your exact trip',
-    text: "Not a generic bundle — your kit adjusts to destination, season, and who's coming.",
-  },
-  {
-    num: '03',
-    title: 'One place for everything',
-    text: 'No more five tabs open trying to remember what you forgot last time.',
-  },
-];
-
 @Component({
   selector: 'app-about',
   standalone: true,
@@ -118,19 +97,35 @@ const WORK_ITEMS: WorkItem[] = [
   styleUrl: './about.component.css',
 })
 export class AboutComponent {
-  @ViewChild('track') private trackRef?: ElementRef<HTMLDivElement>;
-
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
+  private readonly sanitizer = inject(DomSanitizer);
+
+  constructor() {
+    // Same continuous-marquee setup as the homepage's Popular Kits section — measure card width
+    // once the track has rendered, then drive the auto-scroll with a rAF loop (see
+    // home.component.ts's runMarqueeLoop, copied here verbatim).
+    afterNextRender(() => {
+      this.measureKitsMarquee();
+      window.addEventListener('resize', () => this.measureKitsMarquee());
+      requestAnimationFrame((t) => this.runKitsMarqueeLoop(t));
+    });
+  }
 
   protected readonly testimonials = TESTIMONIALS;
   protected readonly values = VALUES;
-  protected readonly workItems = WORK_ITEMS;
-  protected readonly activeTestimonial = signal(0);
+
+  // Key-less Google Maps embed (maps.google.com/maps?...&output=embed) — no API key needed for a
+  // basic embedded map. Built only from the fixed FIND_US_ADDRESS constant above, never from
+  // user input, before it reaches bypassSecurityTrustResourceUrl — same pattern as the YouTube
+  // video embeds on Product Detail (see product-detail.component.ts).
+  protected readonly findUsMapUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+    `https://maps.google.com/maps?q=${encodeURIComponent(FIND_US_ADDRESS)}&output=embed`,
+  );
 
   // Same "Popular kits" source and crossfading hero visual as the homepage — real kits stand in
   // as proof of what we actually build, rather than stock/illustrated imagery.
-  private readonly kitCards = computed<PopularKitCard[]>(() =>
+  protected readonly kitCards = computed<PopularKitCard[]>(() =>
     this.popularKitsService
       .kits()
       .filter((kit) => kit.active !== false)
@@ -138,31 +133,73 @@ export class AboutComponent {
   );
   protected readonly heroKits = computed<PopularKitCard[]>(() => this.kitCards().slice(0, 3));
 
-  protected onTrackScroll(): void {
-    const track = this.trackRef?.nativeElement;
-    if (!track) return;
+  // ── "Popular Kits"-styled marquee, now showing testimonials — same box shape/mechanic as the
+  // homepage's Popular Kits section (home.component.ts), quote standing in for the kit photo and
+  // name/trip/stars standing in for the kit name/meta. Field names kept as "kits*" since the CSS
+  // shape (.kits-section/.kit-card/etc.) is unchanged, only the data source moved to testimonials. ─
+  protected readonly kitsTrackRef = viewChild<ElementRef<HTMLDivElement>>('kitsTrack');
+  protected readonly kitsOffset = signal(0);
+  protected readonly kitsPaused = signal(false);
+  private kitsCardStep = 0;
+  private kitsLoopWidth = 0;
+  private kitsLastFrameTime = 0;
 
-    const cards = Array.from(track.querySelectorAll<HTMLElement>('.t-card'));
-    let closest = 0;
-    let minDist = Infinity;
-    cards.forEach((card, i) => {
-      const dist = Math.abs(card.offsetLeft - track.offsetLeft - track.scrollLeft);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = i;
-      }
+  // Doubled so that once `kitsOffset` wraps past one full set's width, the duplicated second set
+  // is already sitting in view — the wrap-to-0 reset lands on an identical-looking frame instead
+  // of jumping/blanking.
+  protected readonly testimonialCardsLoop = computed<Testimonial[]>(() => [...this.testimonials, ...this.testimonials]);
+
+  protected readonly activeKitIndex = computed(() => {
+    const offset = this.kitsOffset();
+    const count = this.testimonials.length;
+    if (!count || !this.kitsCardStep) return 0;
+    return Math.round(offset / this.kitsCardStep) % count;
+  });
+
+  private measureKitsMarquee(): void {
+    const track = this.kitsTrackRef()?.nativeElement;
+    const firstCard = track?.children[0] as HTMLElement | undefined;
+    if (!track || !firstCard) return;
+    const gap = parseFloat(getComputedStyle(track).columnGap || '0');
+    this.kitsCardStep = firstCard.getBoundingClientRect().width + gap;
+    this.kitsLoopWidth = this.kitsCardStep * this.testimonials.length;
+  }
+
+  private runKitsMarqueeLoop(time: number): void {
+    if (this.kitsLastFrameTime && !this.kitsPaused() && this.kitsLoopWidth > 0) {
+      const deltaSeconds = (time - this.kitsLastFrameTime) / 1000;
+      const pxPerSecond = this.kitsLoopWidth / 32;
+      this.kitsOffset.update((current) => {
+        const next = current + pxPerSecond * deltaSeconds;
+        return next >= this.kitsLoopWidth ? next - this.kitsLoopWidth : next;
+      });
+    }
+    this.kitsLastFrameTime = time;
+    requestAnimationFrame((t) => this.runKitsMarqueeLoop(t));
+  }
+
+  private wrapKitsOffsetBy(delta: number): void {
+    if (!this.kitsLoopWidth) return;
+    this.kitsOffset.update((current) => {
+      const next = (current + delta) % this.kitsLoopWidth;
+      return next < 0 ? next + this.kitsLoopWidth : next;
     });
-    this.activeTestimonial.set(closest);
   }
 
-  protected scrollToTestimonial(index: number): void {
-    const track = this.trackRef?.nativeElement;
-    const card = track?.querySelectorAll<HTMLElement>('.t-card')[index];
-    card?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+  protected nudgeKitsMarquee(direction: 1 | -1): void {
+    if (!this.kitsCardStep) return;
+    this.wrapKitsOffsetBy(direction * this.kitsCardStep);
   }
 
-  protected scrollTestimonials(direction: 'back' | 'fwd'): void {
-    const track = this.trackRef?.nativeElement;
-    track?.scrollBy({ left: direction === 'fwd' ? 320 : -320, behavior: 'smooth' });
+  protected jumpToKit(index: number): void {
+    if (!this.kitsCardStep) return;
+    this.kitsOffset.set(index * this.kitsCardStep);
+  }
+
+  protected onKitsWheel(event: WheelEvent): void {
+    if (!this.kitsLoopWidth) return;
+    event.preventDefault();
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    this.wrapKitsOffsetBy(delta);
   }
 }
