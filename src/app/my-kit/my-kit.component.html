@@ -10,6 +10,16 @@
     <div class="item-list">
       @for (item of displayItems(); track item.productId) {
         <div class="item-card" [style.background]="item.tint">
+          @if (isSavedKit()) {
+            <button
+              type="button"
+              class="item-remove-btn"
+              (click)="removeItem(item.productId)"
+              aria-label="Remove item"
+            >
+              ✕
+            </button>
+          }
           <button
             type="button"
             class="item-header"
@@ -76,6 +86,38 @@
         </div>
       }
     </div>
+
+    @if (isSavedKit()) {
+      <div class="add-item-section">
+        <button type="button" class="kit-action-btn" (click)="toggleAddItem()">
+          {{ showAddItem() ? '✕ Close' : '+ Add item' }}
+        </button>
+
+        @if (showAddItem()) {
+          <div class="add-item-panel">
+            <input
+              type="text"
+              class="add-item-search"
+              placeholder="Search products to add…"
+              [ngModel]="addItemSearch()"
+              (ngModelChange)="addItemSearch.set($event)"
+              aria-label="Search products to add"
+            />
+            <div class="add-item-results">
+              @for (product of addItemResults(); track product.id) {
+                <button type="button" class="add-item-result" (click)="addItem(product)">
+                  <span class="add-item-icon">{{ product.icon }}</span>
+                  <span class="add-item-name">{{ product.name }}</span>
+                  <span class="add-item-category">{{ product.category }}</span>
+                </button>
+              } @empty {
+                <p class="add-item-empty">No matching products.</p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
 
     <!-- Kit actions: download PDF, email, save under a custom name -->
     <div class="kit-actions">

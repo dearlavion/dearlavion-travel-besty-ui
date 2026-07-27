@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { BuiltKit } from '../travel/travel-kit.service';
+import { KitItem } from '../travel/kit-recommendation';
 import { AuthService } from '../auth/auth.service';
 import { slugify } from '../common/slugify';
 import { environment } from '../../environments/environment';
@@ -92,6 +93,18 @@ export class SavedKitsService {
     this.kits.update((list) => [entry, ...list]);
     this.persist();
     return entry;
+  }
+
+  /** Replaces this kit's item list — backs manual add/remove on /my-kit/:savedId. */
+  updateItems(id: string, items: KitItem[]): void {
+    // Optimistic in both modes — matches save()/delete()'s existing pattern in this file.
+    this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, kit: { ...k.kit, items } } : k)));
+
+    if (!environment.useMockData) {
+      this.http.patch<SavedKit>(`${API_BASE}/${id}`, { items }).subscribe({ error: () => {} });
+      return;
+    }
+    this.persist();
   }
 
   delete(id: string): void {

@@ -6,7 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { buildKitFromPopularKit } from '../travel/popular-kit-view';
-import { getProductTint } from '../shop/product-catalog';
+import { getProductTint, Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
@@ -94,6 +94,13 @@ export class MyKitComponent {
     return this.travelKitService.currentKit();
   });
 
+  private readonly savedId = computed(() => this.paramMap()?.get('savedId') ?? null);
+
+  // Manual add/remove only makes sense for a user's own saved kit — not the ephemeral in-memory
+  // quiz result (bare /my-kit, nothing to persist to) and not /popular/:id (admin-curated shared
+  // content, not personal).
+  protected readonly isSavedKit = computed(() => this.savedId() !== null);
+
   protected readonly expandedIds = signal<ReadonlySet<string>>(new Set());
   protected readonly addedIds = signal<ReadonlySet<string>>(new Set());
 
@@ -103,6 +110,26 @@ export class MyKitComponent {
   protected readonly savedMessage = signal('');
   protected readonly exporting = signal(false);
   protected readonly showNewsletterPopup = signal(false);
+
+  // Add-item picker state (only rendered when isSavedKit())
+  protected readonly showAddItem = signal(false);
+  protected readonly addItemSearch = signal('');
+
+  // Catalog products not already in this kit, matching the search term — same filter idiom
+  // AdminProductFormComponent.searchResults uses for its "link a product" picker.
+  protected readonly addItemResults = computed<Product[]>(() => {
+    // Guaranteed loaded already whenever displayItems() has run (getRelated() triggers it
+    // internally) — called again here too so an emptied-out kit (nothing for displayItems() to
+    // iterate) still gets the catalog fetched for this picker.
+    this.catalog.ensureAllLoaded();
+    const term = this.addItemSearch().trim().toLowerCase();
+    const inKit = new Set((this.kit()?.items ?? []).map((i) => i.productId));
+    const list = this.catalog.products().filter((p) => p.active && !inKit.has(p.id));
+    if (!term) return list.slice(0, 20);
+    return list
+      .filter((p) => p.name.toLowerCase().includes(term) || p.category.toLowerCase().includes(term))
+      .slice(0, 20);
+  });
 
   protected readonly displayItems = computed<DisplayItem[]>(() => {
     const kit = this.kit();
@@ -163,6 +190,31 @@ export class MyKitComponent {
       reverted.delete(productId);
       this.addedIds.set(reverted);
     }, 2000);
+  }
+
+  // ── Manual add/remove (saved kits only, see isSavedKit()) ───────────────
+
+  protected removeItem(productId: string): void {
+    const id = this.savedId();
+    const k = this.kit();
+    if (!id || !k) return;
+    this.savedKitsService.updateItems(
+      id,
+      k.items.filter((i) => i.productId !== productId),
+    );
+  }
+
+  protected toggleAddItem(): void {
+    this.showAddItem.update((v) => !v);
+    this.addItemSearch.set('');
+  }
+
+  protected addItem(product: Product): void {
+    const id = this.savedId();
+    const k = this.kit();
+    if (!id || !k) return;
+    this.savedKitsService.updateItems(id, [...k.items, { label: product.name, productId: product.id }]);
+    this.addItemSearch.set('');
   }
 
   // ── Export / save actions ──────────────────────────────────────────────
