@@ -95,16 +95,37 @@ export class SavedKitsService {
     return entry;
   }
 
-  /** Replaces this kit's item list — backs manual add/remove on /my-kit/:savedId. */
-  updateItems(id: string, items: KitItem[]): void {
-    // Optimistic in both modes — matches save()/delete()'s existing pattern in this file.
-    this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, kit: { ...k.kit, items } } : k)));
+  /** Updates this kit's name and/or item list in place — used instead of save() whenever the kit
+   * being edited already has an id, so re-saving an already-saved kit updates it rather than
+   * creating a duplicate. Optimistic in both modes, matching save()/delete()'s existing pattern. */
+  update(id: string, patch: { name?: string; items?: KitItem[] }): void {
+    this.kits.update((list) =>
+      list.map((k) =>
+        k.id === id
+          ? {
+              ...k,
+              ...(patch.name !== undefined ? { name: patch.name.trim() || 'My kit' } : {}),
+              kit: patch.items !== undefined ? { ...k.kit, items: patch.items } : k.kit,
+            }
+          : k,
+      ),
+    );
 
     if (!environment.useMockData) {
-      this.http.patch<SavedKit>(`${API_BASE}/${id}`, { items }).subscribe({ error: () => {} });
+      this.http.patch<SavedKit>(`${API_BASE}/${id}`, patch).subscribe({ error: () => {} });
       return;
     }
     this.persist();
+  }
+
+  /** Replaces this kit's item list — backs manual add/remove on /my-kit/:savedId. */
+  updateItems(id: string, items: KitItem[]): void {
+    this.update(id, { items });
+  }
+
+  /** Renames an already-saved kit — backs re-saving from /my-kit/:savedId (see confirmSave()). */
+  rename(id: string, name: string): void {
+    this.update(id, { name });
   }
 
   delete(id: string): void {

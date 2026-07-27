@@ -277,6 +277,14 @@
   }
 }
 
+/* ── Pending item changes note (saved kits only) ──────────────────── */
+.pending-changes-note {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-coral-deep, #c2410c);
+  margin-top: 6px;
+}
+
 /* ── Manual add item (saved kits only) ────────────────────────────── */
 .add-item-section {
   margin-top: 18px;

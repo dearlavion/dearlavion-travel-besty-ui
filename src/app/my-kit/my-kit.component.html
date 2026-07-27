@@ -5,6 +5,9 @@
       <h1 class="kit-title">{{ builtKit.title ?? 'Your Travel Kit' }}</h1>
       <p class="kit-summary">{{ builtKit.summary }}</p>
       <p class="kit-count">{{ displayItems().length }} items, hand-picked for this trip</p>
+      @if (hasPendingChanges()) {
+        <p class="pending-changes-note">● You have unsaved changes to this kit</p>
+      }
     </div>
 
     <div class="item-list">
@@ -125,9 +128,22 @@
         {{ exporting() ? 'Preparing…' : '⬇ Download PDF' }}
       </button>
       <button type="button" class="kit-action-btn" (click)="emailKit()">✉ Email my kit</button>
+      @if (isSavedKit()) {
+        <button
+          type="button"
+          class="kit-action-btn kit-action-primary"
+          [disabled]="!hasPendingChanges()"
+          (click)="commitItemChanges()"
+        >
+          ✓ Update kit
+        </button>
+        @if (hasPendingChanges()) {
+          <button type="button" class="kit-action-btn" (click)="discardItemChanges()">Discard changes</button>
+        }
+      }
       @if (!showSaveInput()) {
         <button type="button" class="kit-action-btn kit-action-primary" (click)="startSave()">
-          {{ isLoggedIn() ? '💾 Save kit' : '🔒 Log in to save' }}
+          {{ !isLoggedIn() ? '🔒 Log in to save' : isSavedKit() ? '✏️ Rename kit' : '💾 Save kit' }}
         </button>
       }
       @if (savedMessage()) {
@@ -146,7 +162,9 @@
           name="kitName"
           aria-label="Kit name"
         />
-        <button type="submit" class="kit-action-btn kit-action-primary">Save</button>
+        <button type="submit" class="kit-action-btn kit-action-primary">
+          {{ isSavedKit() ? 'Update' : 'Save' }}
+        </button>
         <button type="button" class="kit-action-btn" (click)="cancelSave()">Cancel</button>
       </form>
     }

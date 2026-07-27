@@ -1,9 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
+import { KitItem } from '../travel/kit-recommendation';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { buildKitFromPopularKit } from '../travel/popular-kit-view';
 import { getProductTint, Product } from '../shop/product-catalog';
@@ -66,6 +67,15 @@ export class MyKitComponent {
 
   protected readonly getProductTint = getProductTint;
 
+  constructor() {
+    // Discard any pending add/remove edits when navigating to a different kit — a stale draft
+    // from the previous kit must never bleed into the next one.
+    effect(() => {
+      this.paramMap()?.get('savedId');
+      this.draftItems.set(null);
+    });
+  }
+
   // Saving a kit persists to the auth-scoped /kits collection (real mode) or is only ever visible
   // at /profile/collection (guarded by requireLoginGuard) either way — so a guest who "saved" one
   // would have no way to ever see it again. Gate the action itself instead of letting them hit a
@@ -115,6 +125,15 @@ export class MyKitComponent {
   protected readonly showAddItem = signal(false);
   protected readonly addItemSearch = signal('');
 
+  // Pending add/remove edits for a saved kit — null means "no pending edits, just show the saved
+  // kit's own items"; non-null is a local draft the user is still building, only persisted once
+  // they click "Update kit" (commitItemChanges()). Nothing here writes through to
+  // SavedKitsService until that explicit confirm, unlike the old behavior where every click saved
+  // immediately.
+  private readonly draftItems = signal<KitItem[] | null>(null);
+  protected readonly hasPendingChanges = computed(() => this.draftItems() !== null);
+  protected readonly effectiveItems = computed<KitItem[]>(() => this.draftItems() ?? this.kit()?.items ?? []);
+
   // Catalog products not already in this kit, matching the search term — same filter idiom
   // AdminProductFormComponent.searchResults uses for its "link a product" picker.
   protected readonly addItemResults = computed<Product[]>(() => {
@@ -123,7 +142,7 @@ export class MyKitComponent {
     // iterate) still gets the catalog fetched for this picker.
     this.catalog.ensureAllLoaded();
     const term = this.addItemSearch().trim().toLowerCase();
-    const inKit = new Set((this.kit()?.items ?? []).map((i) => i.productId));
+    const inKit = new Set(this.effectiveItems().map((i) => i.productId));
     const list = this.catalog.products().filter((p) => p.active && !inKit.has(p.id));
     if (!term) return list.slice(0, 20);
     return list
@@ -132,9 +151,7 @@ export class MyKitComponent {
   });
 
   protected readonly displayItems = computed<DisplayItem[]>(() => {
-    const kit = this.kit();
-    if (!kit) return [];
-    return kit.items.map((item, index) => {
+    return this.effectiveItems().map((item, index) => {
       const primary = this.catalog.getById(item.productId);
       const related = primary ? this.catalog.getRelated(primary, RELATED_LOOKUP_LIMIT) : [];
       // The recommendation engine already picked the trip-appropriate SKU (size/variant) for the
@@ -193,15 +210,12 @@ export class MyKitComponent {
   }
 
   // ── Manual add/remove (saved kits only, see isSavedKit()) ───────────────
+  // Edits only touch the local draft — nothing is persisted until commitItemChanges() ("Update
+  // kit") is clicked, so the user can add/remove several items before deciding to save.
 
   protected removeItem(productId: string): void {
-    const id = this.savedId();
-    const k = this.kit();
-    if (!id || !k) return;
-    this.savedKitsService.updateItems(
-      id,
-      k.items.filter((i) => i.productId !== productId),
-    );
+    if (!this.isSavedKit()) return;
+    this.draftItems.set(this.effectiveItems().filter((i) => i.productId !== productId));
   }
 
   protected toggleAddItem(): void {
@@ -210,11 +224,21 @@ export class MyKitComponent {
   }
 
   protected addItem(product: Product): void {
-    const id = this.savedId();
-    const k = this.kit();
-    if (!id || !k) return;
-    this.savedKitsService.updateItems(id, [...k.items, { label: product.name, productId: product.id }]);
+    if (!this.isSavedKit()) return;
+    this.draftItems.set([...this.effectiveItems(), { label: product.name, productId: product.id }]);
     this.addItemSearch.set('');
+  }
+
+  protected commitItemChanges(): void {
+    const id = this.savedId();
+    const items = this.draftItems();
+    if (!id || items === null) return;
+    this.savedKitsService.updateItems(id, items);
+    this.draftItems.set(null);
+  }
+
+  protected discardItemChanges(): void {
+    this.draftItems.set(null);
   }
 
   // ── Export / save actions ──────────────────────────────────────────────
@@ -287,6 +311,18 @@ export class MyKitComponent {
   protected confirmSave(): void {
     const k = this.kit();
     if (!k) return;
+
+    const savedId = this.savedId();
+    if (savedId) {
+      // Already a saved kit — rename it in place instead of creating a duplicate via save().
+      const newName = this.saveName().trim() || 'My kit';
+      this.savedKitsService.rename(savedId, newName);
+      this.showSaveInput.set(false);
+      this.savedMessage.set(`Updated "${newName}"`);
+      setTimeout(() => this.savedMessage.set(''), 2500);
+      return;
+    }
+
     const saved = this.savedKitsService.save(this.saveName(), k);
     this.showSaveInput.set(false);
     this.savedMessage.set(`Saved as "${saved.name}"`);
