@@ -1,6 +1,9 @@
-import { Component, ElementRef, ViewChild, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
+import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
+import { ProductCatalogService } from '../shop/product-catalog.service';
+import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
 
 interface Testimonial {
   bg: string;
@@ -117,10 +120,23 @@ const WORK_ITEMS: WorkItem[] = [
 export class AboutComponent {
   @ViewChild('track') private trackRef?: ElementRef<HTMLDivElement>;
 
+  private readonly popularKitsService = inject(PopularKitsService);
+  private readonly catalog = inject(ProductCatalogService);
+
   protected readonly testimonials = TESTIMONIALS;
   protected readonly values = VALUES;
   protected readonly workItems = WORK_ITEMS;
   protected readonly activeTestimonial = signal(0);
+
+  // Same "Popular kits" source and crossfading hero visual as the homepage — real kits stand in
+  // as proof of what we actually build, rather than stock/illustrated imagery.
+  private readonly kitCards = computed<PopularKitCard[]>(() =>
+    this.popularKitsService
+      .kits()
+      .filter((kit) => kit.active !== false)
+      .map((kit) => toPopularKitCard(kit, this.catalog)),
+  );
+  protected readonly heroKits = computed<PopularKitCard[]>(() => this.kitCards().slice(0, 3));
 
   protected onTrackScroll(): void {
     const track = this.trackRef?.nativeElement;

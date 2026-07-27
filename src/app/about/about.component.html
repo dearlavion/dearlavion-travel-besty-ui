@@ -1,64 +1,48 @@
-<!-- HERO: illustrated sunset shore -->
-<div class="hero-scene">
-  <svg viewBox="0 0 1180 560" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#F3EBF5" />
-        <stop offset="55%" stop-color="#FBEEDC" />
-        <stop offset="100%" stop-color="#F2AE3E" />
-      </linearGradient>
-      <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#E38B4E" />
-        <stop offset="100%" stop-color="#C96A2E" />
-      </linearGradient>
-    </defs>
-    <rect width="1180" height="560" fill="url(#sky)" />
-    <circle cx="590" cy="230" r="70" fill="#FDF6D2" opacity="0.9" />
-    <path
-      d="M0,300 C200,270 350,320 590,290 C800,265 950,310 1180,280 L1180,560 L0,560 Z"
-      fill="url(#water)"
-    />
-    <path
-      d="M0,300 C200,270 350,320 590,290 C800,265 950,310 1180,280"
-      stroke="#FDF6D2"
-      stroke-width="3"
-      fill="none"
-      opacity="0.6"
-    />
-    <path
-      d="M0,340 C220,310 380,360 600,330 C820,305 960,350 1180,320"
-      stroke="#FDF6D2"
-      stroke-width="2"
-      fill="none"
-      opacity="0.4"
-    />
-    <g transform="translate(60,180)" fill="#4F7A42">
-      <path d="M40,220 L40,120" />
-      <path d="M40,120 C10,100 -10,110 -25,95 C0,90 20,95 40,110 Z" />
-      <path d="M40,120 C70,95 95,100 115,85 C90,85 65,95 40,110 Z" />
-      <path d="M40,110 C20,80 5,60 -10,35 C15,55 30,80 40,105 Z" />
-      <path d="M40,110 C60,75 80,55 100,30 C80,55 60,80 40,105 Z" />
-      <path d="M40,105 C42,70 42,45 40,15 C48,45 46,75 40,105 Z" />
-    </g>
-    <g transform="translate(1040,200)" fill="#4F7A42" opacity="0.85">
-      <path d="M40,220 L40,120" />
-      <path d="M40,120 C10,100 -10,110 -25,95 C0,90 20,95 40,110 Z" />
-      <path d="M40,120 C70,95 95,100 115,85 C90,85 65,95 40,110 Z" />
-      <path d="M40,110 C20,80 5,60 -10,35 C15,55 30,80 40,105 Z" />
-      <path d="M40,110 C60,75 80,55 100,30 C80,55 60,80 40,105 Z" />
-    </g>
-  </svg>
-  <div class="hero-text">
-    <h1>We're going to help you<br /><em>build the trip you'll talk about for years.</em></h1>
+<!-- HERO -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="hero">
+  <div>
+    <h1 class="headline">Why Travel Besty<br /><em>exists.</em></h1>
+    <p class="subhead">
+      Some people count sheep. I count layovers I'd take again just for the window seat.
+    </p>
+    <div class="microcopy">— The Founder · frequent flyer, list-maker, window-seat loyalist</div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="gallery-wrap">
+      <div class="gallery-tag">
+        @for (kit of heroKits(); track kit.id; let i = $index) {
+          <a
+            class="gallery-tag-label"
+            [routerLink]="['/popular', kit.id]"
+            [style.animation-delay.s]="i * -3"
+          >
+            {{ kit.name }}
+          </a>
+        }
+      </div>
+      <div class="gallery-card">
+        @for (kit of heroKits(); track kit.id; let i = $index) {
+          <a
+            class="gallery-image"
+            [routerLink]="['/popular', kit.id]"
+            [style.animation-delay.s]="i * -3"
+          >
+            <img [src]="kit.image" [alt]="kit.name" />
+          </a>
+        }
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="story">
+<div class="story" id="story">
   <div class="story-head">
     <div class="story-eyebrow">Our Story</div>
-    <div class="story-title">Why Travel Besty exists</div>
   </div>
-  <p class="lede">Some people count sheep. I count layovers I'd take again just for the window seat.</p>
   <p>
     I've always been the person who gets to the airport two hours early — not because I have to, but
     because I like being there. The smell of coffee at the gate, the boarding announcements, watching
@@ -197,6 +181,80 @@
     <div class="collage-tagline">You dream it. We build it. You experience it.</div>
     <a routerLink="/travel" class="btn btn-fill">Build My Travel Kit</a>
   </div>
+</div>
+
+<!-- WHERE TO FIND US -->
+<div class="find-us-band">
+<div class="find-us-section">
+  <div class="find-us-info">
+    <div class="find-us-eyebrow">Catch Us On The Road</div>
+    <h2 class="find-us-title">Where to Find Us</h2>
+    <svg class="find-us-arrow" viewBox="0 0 90 70" fill="none">
+      <path
+        d="M6 6c10 20 6 38 26 42 16 3 26-8 30-20"
+        stroke="var(--color-coral-deep)"
+        stroke-width="2.4"
+        stroke-linecap="round"
+      />
+      <path
+        d="M50 20l12 8-4 14"
+        stroke="var(--color-coral-deep)"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"
+      />
+    </svg>
+    <div class="find-us-card">
+      <div class="find-us-date">Coming soon &middot; Placeholder date</div>
+      <div class="find-us-venue">Pop-up Location Name</div>
+      <div class="find-us-address">123 Placeholder Ave, Suite 100<br />Somewhere, ST 00000</div>
+    </div>
+  </div>
+
+  <div class="find-us-map">
+    <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice">
+      <rect width="400" height="400" fill="var(--tint-cream)" />
+      <rect x="0" y="0" width="400" height="400" fill="var(--tint-green)" opacity="0.35" />
+      <path d="M0,90 C120,70 260,110 400,80 L400,400 L0,400 Z" fill="var(--tint-lavender)" opacity="0.5" />
+      <path d="M60,0 L90,400" stroke="#fff" stroke-width="14" opacity="0.7" />
+      <path d="M0,150 L400,190" stroke="#fff" stroke-width="10" opacity="0.7" />
+      <path d="M240,0 L280,400" stroke="#fff" stroke-width="10" opacity="0.7" />
+      <path d="M0,280 L400,250" stroke="#fff" stroke-width="8" opacity="0.6" />
+      <g fill="var(--color-lavender)" opacity="0.55">
+        <rect x="100" y="60" width="34" height="34" rx="4" />
+        <rect x="300" y="230" width="30" height="30" rx="4" />
+      </g>
+      <g fill="var(--color-marigold)" opacity="0.55">
+        <rect x="160" y="240" width="28" height="28" rx="4" />
+        <rect x="40" y="300" width="30" height="30" rx="4" />
+      </g>
+      <g transform="translate(150,150)">
+        <path
+          d="M0,0 C0,-22 -18,-22 -18,-2 C-18,14 0,32 0,32 C0,32 18,14 18,-2 C18,-22 0,-22 0,0 Z"
+          fill="var(--color-coral)"
+          stroke="#fff"
+          stroke-width="2.5"
+        />
+        <circle cx="0" cy="-2" r="6" fill="#fff" />
+      </g>
+      <g transform="translate(250,210)">
+        <path
+          d="M0,0 C0,-22 -18,-22 -18,-2 C-18,14 0,32 0,32 C0,32 18,14 18,-2 C18,-22 0,-22 0,0 Z"
+          fill="var(--color-coral-deep)"
+          stroke="#fff"
+          stroke-width="2.5"
+        />
+        <circle cx="0" cy="-2" r="6" fill="#fff" />
+      </g>
+      <text x="30" y="370" class="find-us-map-label">YOUR CITY</text>
+    </svg>
+    <div class="find-us-zoom">
+      <div class="find-us-zoom-btn">+</div>
+      <div class="find-us-zoom-btn">&minus;</div>
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- BIG ILLUSTRATED SCENE: flower-farm meets shore -->
