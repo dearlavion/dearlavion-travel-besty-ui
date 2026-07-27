@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
@@ -10,6 +10,7 @@ import { getProductTint } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
+import { AuthService } from '../auth/auth.service';
 import { SavedKitsService } from './saved-kits.service';
 import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 import { NewsletterService } from './newsletter.service';
@@ -52,22 +53,39 @@ const RELATED_LOOKUP_LIMIT = 20;
 })
 export class MyKitComponent {
   private readonly route = inject(ActivatedRoute);
+  protected readonly router = inject(Router);
   private readonly travelKitService = inject(TravelKitService);
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
+  private readonly auth = inject(AuthService);
   private readonly savedKitsService = inject(SavedKitsService);
   private readonly newsletter = inject(NewsletterService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
 
-  // At /popular/:id, resolve straight from PopularKitsService (stable, refresh-safe, shareable —
-  // no reliance on prior in-memory state). At /my-kit (no :id param), fall back to whatever the
-  // quiz's reveal step last stashed in TravelKitService — that flow has no stable identity to put
-  // in a URL, so it stays session-only.
+  // Saving a kit persists to the auth-scoped /kits collection (real mode) or is only ever visible
+  // at /profile/collection (guarded by requireLoginGuard) either way — so a guest who "saved" one
+  // would have no way to ever see it again. Gate the action itself instead of letting them hit a
+  // silent 403 (real mode) or a kit that's saved but functionally unreachable (mock mode).
+  protected readonly isLoggedIn = computed(() => !!this.auth.token());
+
+  // At /popular/:id or /my-kit/:savedId, resolve straight from PopularKitsService/SavedKitsService
+  // (stable, refresh-safe, shareable — no reliance on prior in-memory state). At bare /my-kit (no
+  // id param), fall back to whatever the quiz's reveal step last stashed in TravelKitService —
+  // that flow has no stable identity to put in a URL, so it stays session-only.
   protected readonly kit = computed<BuiltKit | null>(() => {
+    const savedId = this.paramMap()?.get('savedId');
+    if (savedId) {
+      const saved = this.savedKitsService.kits().find((k) => k.id === savedId);
+      // The name the user actually saved it under always wins as the displayed title — the inner
+      // BuiltKit.title is only ever set for kits sourced from a PopularKit (task 33), so without
+      // this override a custom-named quiz-built kit would fall back to the generic "Your Travel
+      // Kit" instead of showing what the user called it.
+      return saved ? { ...saved.kit, title: saved.name } : null;
+    }
     const id = this.paramMap()?.get('id');
     if (id) {
       const popularKit = this.popularKitsService.getById(id);
@@ -202,6 +220,10 @@ export class MyKitComponent {
   }
 
   protected startSave(): void {
+    if (!this.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
     this.saveName.set(this.kit()?.title ?? '');
     this.showSaveInput.set(true);
   }

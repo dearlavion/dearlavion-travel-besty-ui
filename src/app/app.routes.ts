@@ -9,6 +9,7 @@ import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.
 import { ProductDetailComponent } from './product/product-detail.component';
 import { MyKitComponent } from './my-kit/my-kit.component';
 import { MyCollectionComponent } from './my-collection/my-collection.component';
+import { SavedKitDetailComponent } from './my-collection/saved-kit-detail/saved-kit-detail.component';
 import { CartComponent } from './cart/cart.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { AdminShellComponent } from './admin/admin-shell/admin-shell.component';
@@ -33,6 +34,7 @@ export const routes: Routes = [
   { path: 'product/:id', component: ProductDetailComponent },
   { path: 'product/:id/items/:itemId', component: ProductDetailComponent },
   { path: 'my-kit', component: MyKitComponent },
+  { path: 'my-kit/:savedId', component: MyKitComponent },
   { path: 'popular/:id', component: MyKitComponent },
   {
     path: 'profile',
@@ -41,6 +43,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'collection', pathMatch: 'full' },
       { path: 'collection', component: MyCollectionComponent },
+      { path: 'collection/:id', component: SavedKitDetailComponent },
       { path: 'track-packages', component: TrackPackagesComponent },
       { path: 'settings', component: ProfileSettingsComponent },
     ],

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Product, PRODUCTS } from './product-catalog';
+import { slugify } from '../common/slugify';
 import { environment } from '../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-products';
@@ -21,14 +22,6 @@ function loadStoredProducts(): Product[] | null {
   } catch {
     return null;
   }
-}
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }
 
 export type NewProduct = Omit<Product, 'id'>;
@@ -123,8 +116,9 @@ export class ProductCatalogService {
 
   addProduct(input: NewProduct): Product {
     if (!environment.useMockData) {
-      this.http.post<Product>(ADMIN_BASE, input).subscribe((created) => {
-        this.products.update((list) => [...list, created]);
+      this.http.post<Product>(ADMIN_BASE, input).subscribe({
+        next: (created) => this.products.update((list) => [...list, created]),
+        error: () => {},
       });
       // Callers don't use the return value (fire-and-forget, same as the HTTP path above) — this
       // placeholder just satisfies the synchronous signature mock mode still needs.
@@ -149,8 +143,9 @@ export class ProductCatalogService {
   updateProduct(id: string, patch: Partial<Omit<Product, 'id'>>): void {
     if (!environment.useMockData) {
       this.products.update((list) => list.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-      this.http.patch<Product>(`${ADMIN_BASE}/${id}`, patch).subscribe((updated) => {
-        this.products.update((list) => list.map((p) => (p.id === id ? updated : p)));
+      this.http.patch<Product>(`${ADMIN_BASE}/${id}`, patch).subscribe({
+        next: (updated) => this.products.update((list) => list.map((p) => (p.id === id ? updated : p))),
+        error: () => {},
       });
       return;
     }
@@ -163,8 +158,9 @@ export class ProductCatalogService {
     if (!environment.useMockData) {
       // Backend soft-deletes (active:false, record kept) rather than removing it — mirror that
       // locally instead of dropping the row, so the local view matches server truth.
-      this.http.delete(`${ADMIN_BASE}/${id}`).subscribe(() => {
-        this.products.update((list) => list.map((p) => (p.id === id ? { ...p, active: false } : p)));
+      this.http.delete(`${ADMIN_BASE}/${id}`).subscribe({
+        next: () => this.products.update((list) => list.map((p) => (p.id === id ? { ...p, active: false } : p))),
+        error: () => {},
       });
       return;
     }

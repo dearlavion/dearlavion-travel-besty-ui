@@ -11,12 +11,12 @@
     <div class="collection-list">
       @for (saved of kits(); track saved.id) {
         <div class="collection-card">
-          <div class="collection-info">
+          <a class="collection-info" [routerLink]="['/profile/collection', saved.id]">
             <span class="collection-name">{{ saved.name }}</span>
             <span class="collection-meta">
               {{ saved.kit.items.length }} items · saved {{ savedDateLabel(saved) }}
             </span>
-          </div>
+          </a>
           <div class="collection-actions">
             @if (confirmingDeleteId() === saved.id) {
               <span class="confirm-row">

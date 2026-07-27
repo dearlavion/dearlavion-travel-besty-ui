@@ -1,0 +1,45 @@
+@if (kit(); as saved) {
+  <div class="detail-page">
+    <a routerLink="/profile/collection" class="back-link">← Back to My Collection</a>
+
+    <div class="detail-head">
+      <p class="eyebrow">Saved kit</p>
+      <h1 class="detail-title">{{ saved.name }}</h1>
+      <p class="detail-meta">
+        {{ saved.kit.items.length }} item{{ saved.kit.items.length !== 1 ? 's' : '' }} · saved
+        {{ savedDateLabel(saved) }}
+      </p>
+      @if (saved.kit.summary) {
+        <p class="detail-summary">{{ saved.kit.summary }}</p>
+      }
+    </div>
+
+    <div class="detail-actions">
+      <button type="button" class="load-btn" (click)="loadKit()">Load into My Kit</button>
+      @if (confirmingDelete()) {
+        <span class="confirm-row">
+          Delete this kit?
+          <button type="button" class="confirm-yes" (click)="confirmDelete()">Yes</button>
+          <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+        </span>
+      } @else {
+        <button type="button" class="delete-btn" (click)="requestDelete()">Delete</button>
+      }
+    </div>
+
+    <div class="item-list">
+      @for (item of saved.kit.items; track $index) {
+        <div class="item-row">{{ item.label }}</div>
+      }
+    </div>
+  </div>
+} @else if (notFound()) {
+  <div class="empty-state">
+    <p class="empty-icon">🧭</p>
+    <h1>We couldn't find that kit.</h1>
+    <p>It may have been deleted, or the link might be off.</p>
+    <a routerLink="/profile/collection" class="empty-btn">Back to My Collection</a>
+  </div>
+} @else {
+  <p class="loading-note">Loading…</p>
+}

@@ -251,8 +251,14 @@ export class PopularKitsService {
   readonly kits = signal<PopularKit[]>(environment.useMockData ? (loadStoredKits() ?? SEED_KITS) : []);
 
   constructor() {
+    // Always attach an error handler — an unhandled subscribe error becomes an uncaught exception
+    // (crashing the whole process during SSR) rather than just a rejected promise, and this fires
+    // unconditionally in the constructor, so it's reached on nearly every page.
     if (!environment.useMockData) {
-      this.http.get<ApiPopularKit[]>(PUBLIC_BASE).subscribe((res) => this.kits.set(res.map(mapFromApi)));
+      this.http.get<ApiPopularKit[]>(PUBLIC_BASE).subscribe({
+        next: (res) => this.kits.set(res.map(mapFromApi)),
+        error: () => {},
+      });
     }
   }
 
@@ -262,8 +268,9 @@ export class PopularKitsService {
 
   addKit(input: NewPopularKit): PopularKit {
     if (!environment.useMockData) {
-      this.http.post<ApiPopularKit>(ADMIN_BASE, input).subscribe((created) => {
-        this.kits.update((list) => [...list, mapFromApi(created)]);
+      this.http.post<ApiPopularKit>(ADMIN_BASE, input).subscribe({
+        next: (created) => this.kits.update((list) => [...list, mapFromApi(created)]),
+        error: () => {},
       });
       return { ...input, id: slugify(input.name) };
     }
@@ -286,9 +293,12 @@ export class PopularKitsService {
   updateKit(id: string, patch: Partial<Omit<PopularKit, 'id'>>): void {
     if (!environment.useMockData) {
       this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, ...patch } : k)));
-      this.http.patch<ApiPopularKit>(`${ADMIN_BASE}/${id}`, patch).subscribe((updated) => {
-        const mapped = mapFromApi(updated);
-        this.kits.update((list) => list.map((k) => (k.id === id ? mapped : k)));
+      this.http.patch<ApiPopularKit>(`${ADMIN_BASE}/${id}`, patch).subscribe({
+        next: (updated) => {
+          const mapped = mapFromApi(updated);
+          this.kits.update((list) => list.map((k) => (k.id === id ? mapped : k)));
+        },
+        error: () => {},
       });
       return;
     }
@@ -299,8 +309,9 @@ export class PopularKitsService {
 
   deleteKit(id: string): void {
     if (!environment.useMockData) {
-      this.http.delete(`${ADMIN_BASE}/${id}`).subscribe(() => {
-        this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, active: false } : k)));
+      this.http.delete(`${ADMIN_BASE}/${id}`).subscribe({
+        next: () => this.kits.update((list) => list.map((k) => (k.id === id ? { ...k, active: false } : k))),
+        error: () => {},
       });
       return;
     }

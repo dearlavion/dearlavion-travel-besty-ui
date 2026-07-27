@@ -1,10 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { SavedKit, SavedKitsService } from '../my-kit/saved-kits.service';
-import { TravelKitService } from '../travel/travel-kit.service';
 
 // Dedicated browsing/management page for kits saved via /my-kit's "Save kit" action — reuses the
-// existing SavedKitsService/TravelKitService as-is, this component is purely a UI over them.
+// existing SavedKitsService as-is, this component is purely a UI over it.
 @Component({
   selector: 'app-my-collection',
   standalone: true,
@@ -14,7 +13,6 @@ import { TravelKitService } from '../travel/travel-kit.service';
 })
 export class MyCollectionComponent {
   private readonly savedKitsService = inject(SavedKitsService);
-  private readonly travelKitService = inject(TravelKitService);
   private readonly router = inject(Router);
 
   protected readonly kits = this.savedKitsService.kits;
@@ -29,8 +27,9 @@ export class MyCollectionComponent {
   }
 
   protected loadKit(saved: SavedKit): void {
-    this.travelKitService.setKit(saved.kit);
-    this.router.navigateByUrl('/my-kit');
+    // /my-kit/:savedId resolves straight from SavedKitsService — stable and refresh-safe, so no
+    // need to also stash it in TravelKitService (that's only for the quiz's identity-less flow).
+    this.router.navigateByUrl(`/my-kit/${saved.id}`);
   }
 
   protected requestDelete(id: string): void {

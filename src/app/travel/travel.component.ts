@@ -235,7 +235,7 @@ export class TravelComponent {
           duration,
           activities: this.activities(),
         })
-        .subscribe((res) => this.navigateToKit(res));
+        .subscribe({ next: (res) => this.navigateToKit(res), error: () => {} });
       return;
     }
 

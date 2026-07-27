@@ -243,14 +243,17 @@ export class ProductItemService {
     }
     this.http
       .get<ProductItem[]>(ADMIN_BASE, { params: { productId } })
-      .subscribe((items) => this.adminItems.set(items));
+      .subscribe({ next: (items) => this.adminItems.set(items), error: () => {} });
   }
 
   createItem(productId: string, input: Omit<ProductItem, 'id' | 'productId' | 'active'>): void {
     if (!environment.useMockData) {
-      this.http.post<ProductItem>(ADMIN_BASE, { ...input, productId }).subscribe((created) => {
-        this.adminItems.update((list) => [...list, created]);
-        this.refetchViews();
+      this.http.post<ProductItem>(ADMIN_BASE, { ...input, productId }).subscribe({
+        next: (created) => {
+          this.adminItems.update((list) => [...list, created]);
+          this.refetchViews();
+        },
+        error: () => {},
       });
       return;
     }
@@ -269,9 +272,12 @@ export class ProductItemService {
     this.fetchedViews.update((list) => list.map((v) => (v.id === id ? { ...v, ...patch } : v)));
 
     if (!environment.useMockData) {
-      this.http.patch<ProductItem>(`${ADMIN_BASE}/${id}`, patch).subscribe((updated) => {
-        this.adminItems.update((list) => list.map((i) => (i.id === id ? updated : i)));
-        this.refetchViews();
+      this.http.patch<ProductItem>(`${ADMIN_BASE}/${id}`, patch).subscribe({
+        next: (updated) => {
+          this.adminItems.update((list) => list.map((i) => (i.id === id ? updated : i)));
+          this.refetchViews();
+        },
+        error: () => {},
       });
       return;
     }

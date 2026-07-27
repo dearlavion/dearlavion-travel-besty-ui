@@ -85,7 +85,7 @@
       <button type="button" class="kit-action-btn" (click)="emailKit()">✉ Email my kit</button>
       @if (!showSaveInput()) {
         <button type="button" class="kit-action-btn kit-action-primary" (click)="startSave()">
-          💾 Save kit
+          {{ isLoggedIn() ? '💾 Save kit' : '🔒 Log in to save' }}
         </button>
       }
       @if (savedMessage()) {
