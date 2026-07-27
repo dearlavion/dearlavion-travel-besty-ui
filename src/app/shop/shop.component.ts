@@ -23,14 +23,16 @@ const DESTINATION_OPTIONS: { value: ProductDestination; label: string }[] = [
   { value: 'City', label: '🏙️ City' },
 ];
 
-// Empty `selected` = no filter applied (show everything). Once a chip is active, matching is
-// strict — a product only shows up if it's explicitly tagged with a selected value. An empty
-// `tags` array ("unrestricted") does NOT auto-match here: most of the catalog carries no
-// season/destination tags at all, and treating that as "matches every filter" made the chips look
-// broken (selecting Beach barely narrowed the grid because untagged items never dropped out).
+// Empty `selected` = no filter applied (show everything). Once a chip is active, a product matches
+// if it's tagged with the selected value OR tagged 'All' — the same tri-state rule the backend's
+// tagMatch() (product-item-query.ts) uses, and the one documented in docs/kit-results-admin-guide.md
+// ("tag All to always include"). Mock mode's seed data represents "unrestricted" as an empty array
+// instead of ['All'] (see product-catalog.ts), so this clause is simply never true there — no
+// mock-mode behavior change, only real-backend mode, where ~60-70% of the catalog is 'All'-tagged
+// and was previously vanishing the instant any chip was toggled on.
 function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlySet<T>): boolean {
   if (selected.size === 0) return true;
-  return tags.some((tag) => selected.has(tag));
+  return tags.some((tag) => selected.has(tag) || tag === 'All');
 }
 
 @Component({
@@ -57,6 +59,18 @@ export class ShopComponent implements OnInit {
 
   protected readonly seasonMenuOpen = signal(false);
   protected readonly destinationMenuOpen = signal(false);
+
+  // Filtering/sorting is instant client-side (no network round-trip), which reads as "did the
+  // filter even register?" — this flashes a brief spinner over the grid so a filter/sort change
+  // is visibly acknowledged even though there's nothing to actually wait for.
+  protected readonly isRefreshing = signal(false);
+  private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  private flashRefresh(): void {
+    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
+    this.isRefreshing.set(true);
+    this.refreshTimeout = setTimeout(() => this.isRefreshing.set(false), 350);
+  }
 
   protected readonly seasonButtonLabel = computed(() => {
     const selected = this.seasons();
@@ -145,6 +159,17 @@ export class ShopComponent implements OnInit {
   protected setSearch(term: string): void {
     this.search.set(term);
     this.page.set(0); // a new search invalidates whatever page the shopper was on
+    this.flashRefresh();
+  }
+
+  // A re-sort reshuffles which items land on which page — without resetting to page 0, a shopper
+  // sitting on page 2 who picks "Price: Low to High" lands on the *tail* of the new order (e.g.
+  // just the single most expensive item), which reads as the sort being broken/backwards rather
+  // than just being on the wrong page.
+  protected setSortBy(value: SortOption): void {
+    this.sortBy.set(value);
+    this.page.set(0);
+    this.flashRefresh();
   }
 
   protected isSeasonSelected(season: ProductSeason): boolean {
@@ -157,6 +182,7 @@ export class ShopComponent implements OnInit {
     else next.add(season);
     this.seasons.set(next);
     this.page.set(0);
+    this.flashRefresh();
   }
 
   protected isDestinationSelected(destination: ProductDestination): boolean {
@@ -169,6 +195,7 @@ export class ShopComponent implements OnInit {
     else next.add(destination);
     this.destinations.set(next);
     this.page.set(0);
+    this.flashRefresh();
   }
 
   protected toggleSeasonMenu(): void {

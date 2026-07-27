@@ -198,6 +198,10 @@
   margin-bottom: 20px;
 }
 
+.results-wrap {
+  position: relative;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -205,6 +209,38 @@
   max-width: 1180px;
   margin: 0 auto 80px;
   padding: 0 32px;
+}
+
+.grid.refreshing {
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+.refresh-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: 90px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.refresh-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-line);
+  border-top-color: var(--color-coral);
+  border-radius: 50%;
+  animation: shop-refresh-spin 0.6s linear infinite;
+}
+
+@keyframes shop-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .card {

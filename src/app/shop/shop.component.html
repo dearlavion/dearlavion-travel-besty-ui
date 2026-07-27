@@ -22,7 +22,7 @@
     <div class="filter-row">
       <div class="filter-item">
         <span class="filter-row-label">Sort</span>
-        <select class="sort-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+        <select class="sort-select" [ngModel]="sortBy()" (ngModelChange)="setSortBy($event)">
           <option value="default">Featured</option>
           <option value="popular">Most Popular</option>
           <option value="price-low">Price: Low to High</option>
@@ -100,7 +100,13 @@
   {{ filtered().length }} item{{ filtered().length !== 1 ? 's' : '' }}
 </div>
 
-<div class="grid">
+<div class="results-wrap">
+  @if (isRefreshing()) {
+    <div class="refresh-overlay" aria-hidden="true">
+      <span class="refresh-spinner"></span>
+    </div>
+  }
+  <div class="grid" [class.refreshing]="isRefreshing()">
   @if (filtered().length === 0) {
     <div class="no-results">No items match your filters yet — try clearing search or filters.</div>
   } @else {
@@ -139,6 +145,7 @@
       </a>
     }
   }
+  </div>
 </div>
 
 <app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
