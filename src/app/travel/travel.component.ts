@@ -195,10 +195,29 @@ export class TravelComponent {
     this.goNext();
   }
 
-  protected goNext(): void {
-    if (this.step() < this.totalSteps - 1) {
-      this.step.update((s) => s + 1);
+  // Tile clicks always set their answer before calling autoAdvance(), and Party's Continue button
+  // is only visible/clickable once Group is chosen — so this only matters for the one path that
+  // had no answer check at all: the forward chevron, which otherwise lets a user click straight
+  // through the whole wizard with every answer still null and land on a broken Reveal card.
+  protected readonly canAdvanceFromStep = computed(() => {
+    switch (this.step()) {
+      case 0:
+        return this.destination() !== null;
+      case 1:
+        return this.season() !== null;
+      case 2:
+        return this.party() !== null;
+      case 3:
+        return this.duration() !== null;
+      default:
+        return true; // Activities (4) is optional; Reveal (5) is the last step
     }
+  });
+
+  protected goNext(): void {
+    if (this.step() >= this.totalSteps - 1) return;
+    if (!this.canAdvanceFromStep()) return;
+    this.step.update((s) => s + 1);
   }
 
   protected goBack(): void {
