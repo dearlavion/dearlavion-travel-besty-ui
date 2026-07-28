@@ -1,5 +1,8 @@
 @if (selectedItem(); as item) {
   <div class="product-page">
+    @if (previewDraft()) {
+      <div class="preview-banner">👁️ Previewing unsaved changes — reload this tab to see the live saved version.</div>
+    }
     <a routerLink="/shop" class="back-link">← Back to Shop</a>
 
     <div class="product-layout">

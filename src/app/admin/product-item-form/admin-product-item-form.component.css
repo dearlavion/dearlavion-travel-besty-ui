@@ -299,6 +299,22 @@ input:focus {
   border-color: var(--color-ink);
 }
 
+.preview-btn {
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+  background: #fff;
+  border: 1.5px solid var(--color-line);
+  cursor: pointer;
+}
+
+.preview-btn:hover {
+  border-color: var(--color-coral-deep);
+  color: var(--color-coral-deep);
+}
+
 .save-btn {
   background: var(--color-coral);
   color: #fff;

@@ -45,6 +45,12 @@ export class ProductDetailComponent {
   // shows that exact variant, not just the product's cheapest/default one.
   private readonly routeItemId = computed(() => this.paramMap()?.get('itemId') ?? null);
 
+  // Set only when this tab was opened via the admin form's "Preview" button — see
+  // ProductItemService.consumePreviewDraft(). Overlaid onto whatever the normal fetch loads, so
+  // unedited fields (category, tags, popular, etc., which the item form doesn't even expose)
+  // still come from the real data.
+  protected readonly previewDraft = signal<Partial<ProductItemView> | null>(null);
+
   constructor() {
     // Targeted fetches (GET /product-items?productId=:id and ?id=:itemId), never the full
     // catalog — this page only ever needs one product's items, so it shouldn't pull all 500 just
@@ -56,6 +62,10 @@ export class ProductDetailComponent {
     effect(() => {
       const itemId = this.routeItemId();
       if (itemId) this.productItems.loadItem(itemId);
+    });
+    effect(() => {
+      const itemId = this.routeItemId();
+      if (itemId) this.previewDraft.set(this.productItems.consumePreviewDraft(itemId));
     });
 
     // A new item (variant switch, or navigating to a sibling via "You might also like") should
@@ -76,13 +86,15 @@ export class ProductDetailComponent {
   // (default) one for a bare /product/:id visit.
   protected readonly selectedItem = computed<ProductItemView | undefined>(() => {
     const routeChoice = this.routeItemId();
+    let base: ProductItemView | undefined;
     if (routeChoice) {
       const direct = this.productItems.currentItem();
-      if (direct?.id === routeChoice) return direct;
-      const found = this.items().find((i) => i.id === routeChoice);
-      if (found) return found;
+      if (direct?.id === routeChoice) base = direct;
+      else base = this.items().find((i) => i.id === routeChoice);
     }
-    return this.items()[0];
+    base ??= this.items()[0];
+    const draft = this.previewDraft();
+    return base && draft ? { ...base, ...draft } : base;
   });
 
   // Sibling items under the same parent product (other brands/variants), excluding whichever one

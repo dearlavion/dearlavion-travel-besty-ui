@@ -296,4 +296,33 @@ export class ProductItemService {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.rawItems()));
   }
+
+  // ── Admin "Preview" (unsaved draft handoff) ──────────────────────────────────────────────────
+  // The admin item form's Preview button opens the public product page in a new tab so the admin
+  // can see in-progress edits (e.g. a cover photo swap) before committing them. A new tab is a
+  // fresh Angular app instance with its own in-memory state, so the draft has to cross via
+  // localStorage (shared same-origin storage), not a signal. Read-once: the product page removes
+  // its entry immediately, so reloading that tab always falls back to the real saved item —
+  // "preview" means a one-time snapshot, not a persistent override.
+  private previewDraftKey(itemId: string): string {
+    return `travel-besty-preview-draft-${itemId}`;
+  }
+
+  setPreviewDraft(itemId: string, draft: Partial<ProductItemView>): void {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(this.previewDraftKey(itemId), JSON.stringify(draft));
+  }
+
+  consumePreviewDraft(itemId: string): Partial<ProductItemView> | null {
+    if (typeof window === 'undefined') return null;
+    const key = this.previewDraftKey(itemId);
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    window.localStorage.removeItem(key);
+    try {
+      return JSON.parse(raw) as Partial<ProductItemView>;
+    } catch {
+      return null;
+    }
+  }
 }

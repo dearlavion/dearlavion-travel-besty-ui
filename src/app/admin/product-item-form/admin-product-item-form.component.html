@@ -191,6 +191,9 @@
           <button type="button" class="delete-link" (click)="requestDelete()">Delete Item</button>
         }
       }
+      @if (isEditMode()) {
+        <button type="button" class="preview-btn" (click)="preview()">👁️ Preview</button>
+      }
       <a [routerLink]="['/admin/products', productId(), 'edit']" class="cancel-btn">Cancel</a>
       <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Item' : '+ Add Item' }}</button>
     </div>

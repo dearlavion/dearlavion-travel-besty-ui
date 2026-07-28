@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductVideo } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
-import { ProductItemService } from '../../shop/product-item.service';
+import { ProductItemService, ProductItemView } from '../../shop/product-item.service';
 
 const MAX_MEDIA = 5;
 
@@ -167,10 +167,10 @@ export class AdminProductItemFormComponent {
     this.form.update((f) => ({ ...f, videos: f.videos.filter((_, i) => i !== index) }));
   }
 
-  protected save(): void {
-    const productId = this.productId();
+  // Shared by save() (persisted) and preview() (a throwaway snapshot, never sent to the backend).
+  private buildFields() {
     const f = this.form();
-    const fields = {
+    return {
       name: f.name.trim() || this.product()?.name || '',
       brand: f.brand.trim() || undefined,
       sizeTier: f.sizeTier > 0 ? Number(f.sizeTier) : undefined,
@@ -187,6 +187,11 @@ export class AdminProductItemFormComponent {
       stock: Math.max(0, Number(f.stock) || 0),
       soldOut: f.soldOut,
     };
+  }
+
+  protected save(): void {
+    const productId = this.productId();
+    const fields = this.buildFields();
 
     const itemId = this.itemId();
     if (itemId) {
@@ -196,6 +201,18 @@ export class AdminProductItemFormComponent {
     }
 
     this.router.navigate(['/admin/products', productId, 'edit']);
+  }
+
+  // Opens the live product page in a new tab with the form's current (possibly unsaved) values
+  // overlaid on top of the real item, so an admin can check e.g. a cover-photo swap looks right
+  // before committing it — only meaningful in edit mode, since a not-yet-created item has no
+  // route to preview against.
+  protected preview(): void {
+    const itemId = this.itemId();
+    if (!itemId) return;
+    const draft: Partial<ProductItemView> = this.buildFields();
+    this.productItems.setPreviewDraft(itemId, draft);
+    window.open(`/product/${this.productId()}/items/${itemId}`, '_blank');
   }
 
   protected requestDelete(): void {
