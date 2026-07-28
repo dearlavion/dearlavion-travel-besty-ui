@@ -7,6 +7,7 @@ import { ProductDestination, ProductSeason, getProductTint } from './product-cat
 import { ProductItemService, ProductItemView } from './product-item.service';
 import { CartService } from '../cart/cart.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
+import { FooterComponent } from '../common/footer/footer.component';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 const PAGE_SIZE = 50;
@@ -38,7 +39,7 @@ function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlyS
 @Component({
   selector: 'app-shop',
   standalone: true,
-  imports: [FormsModule, PricePipe, RouterLink, PaginationComponent],
+  imports: [FormsModule, PricePipe, RouterLink, PaginationComponent, FooterComponent],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.css',
 })

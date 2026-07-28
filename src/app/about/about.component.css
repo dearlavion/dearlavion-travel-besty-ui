@@ -231,10 +231,9 @@
   padding: 100px 0 130px;
 }
 
-/* --color-leaf reads at ~1.7:1 contrast against the olive #c3c05a background — barely legible.
-   Same dark green Home uses for its own matcha-section text (.matcha-eyebrow-word/.matcha-sub in
-   home.component.css), scoped here since .section-eyebrow is shared with the Kits section above,
-   where the lighter green is fine against the light-yellow background. */
+/* --color-leaf reads ~1.7:1 against the olive #c3c05a background — fails contrast. Same dark
+   green Home uses for its own matcha-section text, scoped since .section-eyebrow is shared with
+   other, lighter-background sections. */
 .values-section .section-eyebrow {
   color: #33502f;
 }
@@ -336,9 +335,14 @@
 
 .kits-section {
   position: relative;
-  background: var(--tint-yellow);
-  margin-top: -1px; /* seams flush with .cloud-edge above — do not add top margin here */
-  padding: 90px 0;
+  background: #ccccff;
+  padding: 90px 0; /* no cloud-edge divider above — .closing's own margin-bottom is the gap */
+}
+
+/* Same low-contrast issue as .values-section (--color-leaf reads ~2.1:1 against periwinkle) —
+   ink instead of another green, scoped since .section-eyebrow is shared with other sections. */
+.kits-section .section-eyebrow {
+  color: var(--color-ink);
 }
 
 .kits-marquee {
@@ -410,7 +414,7 @@
   flex: 0 0 22vw;
   min-width: 260px;
   overflow: hidden;
-  background: var(--tint-yellow);
+  background: #ffedf1;
   border: 2px solid transparent;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   padding: 0;
@@ -433,7 +437,7 @@
   width: 100%;
   height: 420px;
   object-fit: cover;
-  border-bottom: 2px solid var(--color-ink);
+  border-bottom: 2px solid var(--color-line);
 }
 
 /* Stands in for the kit photo — same 420px block, centered quote text on a solid tint instead

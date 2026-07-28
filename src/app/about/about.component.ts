@@ -11,7 +11,6 @@ import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
 const FIND_US_ADDRESS = '123 Placeholder Ave, Suite 100, Somewhere, ST 00000';
 
 interface Testimonial {
-  bg: string;
   quote: string;
   name: string;
   trip: string;
@@ -24,13 +23,10 @@ interface ValueCard {
   text: string;
 }
 
-// Spring palette — cherry blossom, sky, daffodil, fresh leaf, lilac. Still soft/pastel, just
-// warmer and more seasonal than the previous generic pastel rainbow.
 // avatarUrl: i.pravatar.cc — a public placeholder-photo service, deterministic per `?img=N`
 // (1-70), no API key needed. Stand-ins until there are real customer photos.
 const TESTIMONIALS: Testimonial[] = [
   {
-    bg: '#FFC1CC',
     quote:
       "I answered four questions and had my whole beach kit sorted in like two minutes. Didn't forget a single thing for once.",
     name: 'Maya R.',
@@ -38,7 +34,6 @@ const TESTIMONIALS: Testimonial[] = [
     avatarUrl: 'https://i.pravatar.cc/150?img=12',
   },
   {
-    bg: '#AEDFF7',
     quote:
       'The rain jacket alone saved our trip. Everything in the kit actually got used — nothing felt like filler.',
     name: 'Jonah & Priya',
@@ -46,7 +41,6 @@ const TESTIMONIALS: Testimonial[] = [
     avatarUrl: 'https://i.pravatar.cc/150?img=5',
   },
   {
-    bg: '#FFECB3',
     quote:
       "Packed for a month-long trip in one sitting. The packing cubes and laundry sheets were a genius add I never would've thought of.",
     name: 'Leo T.',
@@ -54,7 +48,6 @@ const TESTIMONIALS: Testimonial[] = [
     avatarUrl: 'https://i.pravatar.cc/150?img=33',
   },
   {
-    bg: '#B5EAD7',
     quote:
       'It genuinely felt like a friend packed for me. My kit showed up and every single item made sense for the trip I was actually taking.',
     name: 'Sofia G.',
@@ -62,7 +55,6 @@ const TESTIMONIALS: Testimonial[] = [
     avatarUrl: 'https://i.pravatar.cc/150?img=47',
   },
   {
-    bg: '#D9C2F0',
     quote:
       "I'm the world's worst packer and this made me look like I had it all together. Ordering again for our next trip already.",
     name: 'Aiko N.',

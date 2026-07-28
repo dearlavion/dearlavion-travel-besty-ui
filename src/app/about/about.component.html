@@ -127,7 +127,6 @@
 
 <!-- TESTIMONIALS — same box shape/marquee mechanic as the homepage's Popular Kits section, quote
      standing in for the kit photo, name/trip + stars standing in for the kit name/meta -->
-<div class="cloud-edge" aria-hidden="true"></div>
 <section class="kits-section">
   <div class="wrap">
     <div class="section-head">
@@ -145,7 +144,7 @@
     <div class="kits-track" #kitsTrack [style.transform]="'translateX(-' + kitsOffset() + 'px)'">
       @for (testimonial of testimonialCardsLoop(); track $index) {
         <div class="kit-card">
-          <div class="kit-thumb kit-quote-area" [style.background]="testimonial.bg">
+          <div class="kit-thumb kit-quote-area">
             <p class="kit-quote-text">"{{ testimonial.quote }}"</p>
           </div>
           <div class="kit-info">
@@ -266,4 +265,4 @@
   </div>
 </div>
 
-<app-footer tagline="© 2026 Travel Besty. Packed with a little bit of love for airplanes." />
+<app-footer tagline="© 2026 Travel Besty. Personalized travel essentials for every trip." />
