@@ -118,8 +118,8 @@
           } @else if (product.popular) {
             <div class="popular-badge">🔥 Popular</div>
           }
-          @if (product.image) {
-            <img [src]="product.image" [alt]="product.name" class="card-photo" />
+          @if (product.image || product.images[0]; as cover) {
+            <img [src]="cover" [alt]="product.name" class="card-photo" />
           } @else {
             <span>{{ product.icon }}</span>
           }
