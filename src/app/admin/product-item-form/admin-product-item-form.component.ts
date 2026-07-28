@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ProductVideo } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { ProductItemService, ProductItemView } from '../../shop/product-item.service';
+import { ToastService } from '../../common/toast/toast.service';
 
 const MAX_MEDIA = 5;
 
@@ -42,6 +43,7 @@ export class AdminProductItemFormComponent {
   private readonly router = inject(Router);
   private readonly catalog = inject(ProductCatalogService);
   protected readonly productItems = inject(ProductItemService);
+  private readonly toast = inject(ToastService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly productId = computed(() => this.paramMap()?.get('productId') ?? '');
@@ -195,11 +197,18 @@ export class AdminProductItemFormComponent {
 
     const itemId = this.itemId();
     if (itemId) {
+      // Edit mode stays right here — the admin just tuned a field (e.g. the cover photo) and
+      // most likely wants to keep looking at/adjusting this same item, not get bounced back to
+      // the parent product's item list. The toast is the only feedback that Save did something.
       this.productItems.updateItem(itemId, fields);
-    } else {
-      this.productItems.createItem(productId, fields);
+      this.toast.show('Item updated');
+      return;
     }
 
+    // Add mode has nowhere of its own to land on yet (no itemId until the create resolves), so
+    // this still goes back to the parent, where the newly-added item now shows up in the list.
+    this.productItems.createItem(productId, fields);
+    this.toast.show('Item added');
     this.router.navigate(['/admin/products', productId, 'edit']);
   }
 

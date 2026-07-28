@@ -1,0 +1,7 @@
+@if (toast.message(); as msg) {
+  <div class="toast" [class]="msg.type" role="status" [attr.aria-live]="'polite'">
+    <span class="toast-icon">{{ icons[msg.type] }}</span>
+    <span class="toast-text">{{ msg.text }}</span>
+    <span class="toast-progress"></span>
+  </div>
+}
