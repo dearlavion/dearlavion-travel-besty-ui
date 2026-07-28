@@ -11,6 +11,11 @@ import { FooterComponent } from '../common/footer/footer.component';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 const PAGE_SIZE = 50;
+const MOBILE_PAGE_SIZE = 10;
+// Same breakpoint the stylesheet's `@media (max-width: 560px)` rules use for the mobile layout
+// (single-column grid, collapsed filters) — page size switches at the same width so "mobile" means
+// one consistent thing across layout and pagination.
+const MOBILE_BREAKPOINT = '(max-width: 560px)';
 
 const SEASON_OPTIONS: { value: ProductSeason; label: string }[] = [
   { value: 'Summer', label: '☀️ Summer' },
@@ -60,6 +65,23 @@ export class ShopComponent implements OnInit {
 
   protected readonly seasonMenuOpen = signal(false);
   protected readonly destinationMenuOpen = signal(false);
+
+  // Mobile only (see the `@media (max-width: 560px)` rules in the stylesheet) — Sort/Season/
+  // Destination collapse behind a "Filters" toggle under the search bar instead of eating a full
+  // screen of vertical space before any results are visible. Desktop always shows them expanded;
+  // this signal is simply irrelevant there (CSS never reads it outside the mobile breakpoint).
+  protected readonly filtersOpen = signal(false);
+
+  protected toggleFilters(): void {
+    this.filtersOpen.update((open) => !open);
+  }
+
+  // Drives the toggle button's badge so a shopper knows filters are active even while collapsed.
+  protected readonly activeFilterCount = computed(() => {
+    let count = this.seasons().size + this.destinations().size;
+    if (this.sortBy() !== 'default') count += 1;
+    return count;
+  });
 
   // Filtering/sorting is instant client-side (no network round-trip), which reads as "did the
   // filter even register?" — this flashes a brief spinner over the grid so a filter/sort change
@@ -118,15 +140,24 @@ export class ShopComponent implements OnInit {
     return list;
   });
 
-  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filtered().length / PAGE_SIZE)));
+  // SSR-guarded (no `window` during prerender, same pattern as the localStorage-backed services) —
+  // defaults to the desktop size there, then syncs to the real viewport once hydrated client-side.
+  // matchMedia's `change` event (not a `window:resize` listener) so this only updates on an actual
+  // mobile/desktop crossing, not on every pixel of a drag-resize.
+  private readonly mobileQuery = typeof window !== 'undefined' ? window.matchMedia(MOBILE_BREAKPOINT) : null;
+  protected readonly isMobile = signal(this.mobileQuery?.matches ?? false);
+  protected readonly pageSize = computed(() => (this.isMobile() ? MOBILE_PAGE_SIZE : PAGE_SIZE));
+
+  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.pageSize())));
 
   // Clamps in the same read — a new search/filter narrowing the result set falls back to the new
   // last page instead of showing a blank grid.
   protected readonly currentPage = computed(() => Math.min(this.page(), this.totalPages() - 1));
 
   protected readonly pagedItems = computed<ProductItemView[]>(() => {
-    const start = this.currentPage() * PAGE_SIZE;
-    return this.filtered().slice(start, start + PAGE_SIZE);
+    const size = this.pageSize();
+    const start = this.currentPage() * size;
+    return this.filtered().slice(start, start + size);
   });
 
   protected goToPage(page: number): void {
@@ -138,6 +169,8 @@ export class ShopComponent implements OnInit {
     // (Product Detail, Cart, My Kit) either uses a targeted per-product fetch or triggers this
     // lazily itself only when it actually needs a cross-product lookup.
     this.productItems.ensureCatalogLoaded();
+
+    this.mobileQuery?.addEventListener('change', (e) => this.isMobile.set(e.matches));
   }
 
   ngOnInit(): void {

@@ -38,14 +38,22 @@
   padding: 0 32px;
 }
 
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
 .search-bar {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  min-width: 0;
   background: var(--tint-cream);
   border-radius: 999px;
   padding: 14px 22px;
-  margin-bottom: 26px;
 }
 
 .search-bar input {
@@ -61,6 +69,10 @@
 
 .search-bar input::placeholder {
   color: var(--color-ink-soft);
+}
+
+.filters-toggle-btn {
+  display: none;
 }
 
 .filter-groups {
@@ -402,6 +414,55 @@
 @media (max-width: 560px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Sort/Season/Destination collapse behind this toggle instead of pushing results below the
+     fold on a small screen — expanded by tapping it, same pattern as the season/destination
+     dropdowns above. A standalone round button beside the search bar (not inside its pill), so
+     it reads as a distinct action rather than part of the search field. */
+  .filters-toggle-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border: 1.5px solid var(--color-line);
+    background: #fff;
+    color: var(--color-ink-soft);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .filters-toggle-btn:hover,
+  .filters-toggle-btn.active {
+    border-color: var(--color-coral);
+    color: var(--color-coral-deep);
+  }
+
+  .filters-toggle-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--color-coral);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    min-width: 16px;
+    line-height: 16px;
+    text-align: center;
+    padding: 0 4px;
+    box-shadow: 0 0 0 2px #fff;
+  }
+
+  .filter-groups {
+    display: none;
+  }
+
+  .filter-groups.open {
+    display: flex;
   }
 
   /* Stack Sort/Season/Destination as full-width rows in source order instead of letting them
