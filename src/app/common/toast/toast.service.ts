@@ -8,13 +8,10 @@ export interface ToastMessage {
   type: ToastType;
 }
 
-const DISPLAY_MS = 2500;
+const DISPLAY_MS = 3000;
 
-// providedIn: 'root' — a single shared instance so a toast fired just before navigating (e.g. the
-// admin item form redirecting back to the parent product after Save) still shows up on whatever
-// page the user lands on, as long as an <app-toast /> is mounted somewhere still on screen.
-// Generic, not admin-specific: any feature can inject this and call show()/success()/error() —
-// the admin item form is just the first caller.
+// providedIn: 'root' — a single shared instance, so any feature can inject this and call
+// show()/success()/error()/showAndReload() rather than rolling its own ad-hoc "saved!" UI.
 @Injectable({ providedIn: 'root' })
 export class ToastService {
   private nextId = 0;
@@ -43,5 +40,22 @@ export class ToastService {
 
   info(text: string): void {
     this.show(text, 'info');
+  }
+
+  // For every admin CRUD action: shows the full-screen confirmation for its whole 3s lifetime —
+  // held on the current, still-live page — and only *then* reloads (or navigates to `url` first),
+  // so the admin always gets the full confirmation before the page flashes/swaps out from under
+  // them, rather than the reload cutting it short. `url` lands on a different page first (e.g.
+  // back to a parent list after a delete); omit it to reload the current URL in place.
+  showAndReload(text: string, type: ToastType = 'success', url?: string): void {
+    this.show(text, type);
+    if (typeof window === 'undefined') return;
+    setTimeout(() => {
+      if (url) {
+        window.location.href = url;
+      } else {
+        window.location.reload();
+      }
+    }, DISPLAY_MS);
   }
 }

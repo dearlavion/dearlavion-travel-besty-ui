@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Payment, PaymentMethod, PaymentService, PaymentStatus } from '../../payment/payment.service';
+import { ToastService } from '../../common/toast/toast.service';
 
 type PaymentFilter = 'PENDING' | 'APPROVED' | 'REJECTED' | 'all';
 type PendingAction = { id: string; kind: 'approve' | 'reject' };
@@ -25,6 +26,7 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
 })
 export class AdminPaymentsComponent {
   private readonly paymentService = inject(PaymentService);
+  private readonly toast = inject(ToastService);
 
   protected readonly payments = signal<Payment[]>([]);
   protected readonly loading = signal(true);
@@ -110,14 +112,12 @@ export class AdminPaymentsComponent {
     const note = this.actionNote().trim() || undefined;
     const call = action.kind === 'approve' ? this.paymentService.approve(action.id, note) : this.paymentService.reject(action.id, note);
     call.subscribe({
-      next: (updated) => {
-        this.payments.update((list) => list.map((p) => (p.id === updated.id ? updated : p)));
-        this.submittingAction.set(false);
-        this.pendingAction.set(null);
-        this.actionNote.set('');
+      next: () => {
+        this.toast.showAndReload(action.kind === 'approve' ? 'Payment approved' : 'Payment rejected');
       },
       error: () => {
         this.submittingAction.set(false);
+        this.toast.error('Failed to update payment');
       },
     });
   }

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PopularKitsService, PopularKit } from './popular-kits.service';
 import { PaginationComponent } from '../../common/pagination/pagination.component';
+import { ToastService } from '../../common/toast/toast.service';
 
 const PAGE_SIZE = 10;
 
@@ -15,6 +16,7 @@ const PAGE_SIZE = 10;
 })
 export class AdminPopularKitsComponent {
   protected readonly popularKits = inject(PopularKitsService);
+  private readonly toast = inject(ToastService);
   protected readonly confirmingDeleteId = signal<string | null>(null);
   protected readonly search = signal('');
   protected readonly page = signal(0); // 0-indexed
@@ -64,5 +66,6 @@ export class AdminPopularKitsComponent {
   protected confirmDelete(id: string): void {
     this.popularKits.deleteKit(id);
     this.confirmingDeleteId.set(null);
+    this.toast.showAndReload('Kit removed');
   }
 }

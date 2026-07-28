@@ -40,9 +40,6 @@
       <button type="submit" class="save-btn" [disabled]="saving()">
         {{ saving() ? 'Saving…' : 'Save rates' }}
       </button>
-      @if (savedMessage()) {
-        <span class="saved-msg">Saved ✓</span>
-      }
     </div>
   </form>
 </section>

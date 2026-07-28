@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductVideo } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
@@ -40,7 +40,6 @@ function emptyItemForm(): ItemFormModel {
 })
 export class AdminProductItemFormComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly catalog = inject(ProductCatalogService);
   protected readonly productItems = inject(ProductItemService);
   private readonly toast = inject(ToastService);
@@ -199,17 +198,17 @@ export class AdminProductItemFormComponent {
     if (itemId) {
       // Edit mode stays right here — the admin just tuned a field (e.g. the cover photo) and
       // most likely wants to keep looking at/adjusting this same item, not get bounced back to
-      // the parent product's item list. The toast is the only feedback that Save did something.
+      // the parent product's item list. A full reload (no url) reloads this same page, guaranteeing
+      // what's on screen reflects the real saved state, not just the optimistic local patch.
       this.productItems.updateItem(itemId, fields);
-      this.toast.show('Item updated');
+      this.toast.showAndReload('Item updated');
       return;
     }
 
     // Add mode has nowhere of its own to land on yet (no itemId until the create resolves), so
     // this still goes back to the parent, where the newly-added item now shows up in the list.
     this.productItems.createItem(productId, fields);
-    this.toast.show('Item added');
-    this.router.navigate(['/admin/products', productId, 'edit']);
+    this.toast.showAndReload('Item added', 'success', `/admin/products/${productId}/edit`);
   }
 
   // Opens the live product page in a new tab with the form's current (possibly unsaved) values
@@ -236,6 +235,6 @@ export class AdminProductItemFormComponent {
     const itemId = this.itemId();
     if (!itemId) return;
     this.productItems.deactivateItem(itemId);
-    this.router.navigate(['/admin/products', this.productId(), 'edit']);
+    this.toast.showAndReload('Item removed', 'success', `/admin/products/${this.productId()}/edit`);
   }
 }

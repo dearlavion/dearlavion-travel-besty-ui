@@ -6,6 +6,7 @@ import { Product } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { ProductItemService, ProductItemView } from '../../shop/product-item.service';
 import { PaginationComponent } from '../../common/pagination/pagination.component';
+import { ToastService } from '../../common/toast/toast.service';
 
 // A generic Product paired with its default (cheapest active) ProductItem, purely for this
 // table's Price/Stock convenience columns — editing them here edits that one default item, same
@@ -28,6 +29,7 @@ const PAGE_SIZE = 20;
 export class AdminProductListComponent {
   protected readonly catalog = inject(ProductCatalogService);
   protected readonly productItems = inject(ProductItemService);
+  private readonly toast = inject(ToastService);
 
   protected readonly search = signal('');
   protected readonly page = signal(0); // 0-indexed
@@ -102,5 +104,6 @@ export class AdminProductListComponent {
   protected confirmDelete(id: string): void {
     this.catalog.deleteProduct(id);
     this.confirmingDeleteId.set(null);
+    this.toast.showAndReload('Product removed');
   }
 }

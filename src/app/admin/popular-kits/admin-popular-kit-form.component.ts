@@ -1,11 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Destination, Duration, Party, Season } from '../../travel/kit-recommendation';
 import { Product } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { NewPopularKit, PopularKitsService } from './popular-kits.service';
+import { ToastService } from '../../common/toast/toast.service';
 
 interface PopularKitFormModel {
   name: string;
@@ -47,9 +48,9 @@ const DURATION_OPTIONS: Duration[] = ['Quick escape', 'A proper break', 'Living 
 })
 export class AdminPopularKitFormComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly popularKits = inject(PopularKitsService);
   protected readonly catalog = inject(ProductCatalogService);
+  private readonly toast = inject(ToastService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly editingId = computed(() => this.paramMap()?.get('id') ?? null);
@@ -134,10 +135,10 @@ export class AdminPopularKitFormComponent {
     const id = this.editingId();
     if (id) {
       this.popularKits.updateKit(id, fields);
+      this.toast.showAndReload('Kit updated', 'success', '/admin/popular-kits');
     } else {
       this.popularKits.addKit(fields);
+      this.toast.showAndReload('Kit added', 'success', '/admin/popular-kits');
     }
-
-    this.router.navigateByUrl('/admin/popular-kits');
   }
 }

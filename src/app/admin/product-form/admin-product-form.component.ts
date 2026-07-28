@@ -1,11 +1,12 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.service';
 import { Product, ProductDestination, ProductParty, ProductSeason } from '../../shop/product-catalog';
 import { ProductItemService } from '../../shop/product-item.service';
+import { ToastService } from '../../common/toast/toast.service';
 
 interface ProductFormModel {
   name: string;
@@ -55,9 +56,9 @@ const ACTIVITY_OPTIONS: string[] = ['Hiking', 'Swimming', 'Sightseeing', 'Busine
 })
 export class AdminProductFormComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly catalog = inject(ProductCatalogService);
   protected readonly productItems = inject(ProductItemService);
+  private readonly toast = inject(ToastService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly editingId = computed(() => this.paramMap()?.get('id') ?? null);
@@ -201,7 +202,7 @@ export class AdminProductFormComponent {
     if (id) {
       // `popular` isn't a form field — leave it untouched on edit rather than resetting it.
       this.catalog.updateProduct(id, fields);
-      this.router.navigateByUrl('/admin/products');
+      this.toast.showAndReload('Product updated', 'success', '/admin/products');
       return;
     }
 
@@ -210,7 +211,7 @@ export class AdminProductFormComponent {
     // Back to the list, same as edit mode — not straight to this product's own Edit page: in
     // real-backend mode the backend-assigned id/slug isn't reliably known until the POST
     // resolves, so treat "add item(s)" as a distinct next step via the list's Edit link.
-    this.router.navigateByUrl('/admin/products');
+    this.toast.showAndReload('Product added', 'success', '/admin/products');
   }
 
   // ── ProductItem deletion (inline, quick action) — add/edit happens on their own page,
@@ -229,6 +230,7 @@ export class AdminProductFormComponent {
   protected confirmDeleteItem(id: string): void {
     this.productItems.deactivateItem(id);
     this.confirmingDeleteItemId.set(null);
+    this.toast.showAndReload('Item removed');
   }
 }
 

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { isObservable } from 'rxjs';
 import { BASE_CURRENCY, CURRENCY_OPTIONS } from '../../common/currency';
 import { ExchangeRateService } from '../../common/exchange-rate.service';
+import { ToastService } from '../../common/toast/toast.service';
 
 // Admin Settings → Currency Exchange Rates. Rates are "units per 1 USD" (the base). The base row
 // is locked at 1; every other supported currency gets an editable rate.
@@ -15,12 +16,12 @@ import { ExchangeRateService } from '../../common/exchange-rate.service';
 })
 export class AdminSettingsComponent {
   private readonly exchange = inject(ExchangeRateService);
+  private readonly toast = inject(ToastService);
 
   protected readonly base = BASE_CURRENCY;
   protected readonly options = CURRENCY_OPTIONS.filter((o) => o.code !== BASE_CURRENCY);
   protected readonly rates = signal<Record<string, number>>({ ...this.exchange.rates() });
   protected readonly saving = signal(false);
-  protected readonly savedMessage = signal(false);
 
   private touched = false;
 
@@ -43,20 +44,14 @@ export class AdminSettingsComponent {
     if (isObservable(result)) {
       this.saving.set(true);
       result.subscribe({
-        next: () => {
+        next: () => this.toast.showAndReload('Exchange rates updated'),
+        error: () => {
           this.saving.set(false);
-          this.flash();
+          this.toast.error('Failed to save exchange rates');
         },
-        error: () => this.saving.set(false),
       });
     } else {
-      this.flash();
+      this.toast.showAndReload('Exchange rates updated');
     }
-  }
-
-  private flash(): void {
-    this.touched = false;
-    this.savedMessage.set(true);
-    setTimeout(() => this.savedMessage.set(false), 2000);
   }
 }
