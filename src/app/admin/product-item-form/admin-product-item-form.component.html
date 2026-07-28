@@ -97,21 +97,21 @@
       </label>
     </div>
 
-    <label class="field-full">
-      <span>Cover image URL (optional — falls back to the icon above)</span>
-      <input
-        type="text"
-        placeholder="https://..."
-        [ngModel]="form().image"
-        (ngModelChange)="updateField('image', $event)"
-        name="image"
-      />
-    </label>
-
     <div class="media-section">
       <span class="media-section-label">Gallery photos ({{ form().images.length }}/{{ maxMedia }})</span>
+      @if (form().images.length > 0) {
+        <p class="cover-hint">
+          Mark any photo as the cover — that's the one shown elsewhere (Shop, etc). Defaults to the
+          first photo if none is marked.
+        </p>
+      }
       @for (photo of form().images; track $index) {
         <div class="media-row">
+          @if (photo) {
+            <img [src]="photo" alt="" class="photo-thumb" />
+          } @else {
+            <div class="photo-thumb photo-thumb-empty"></div>
+          }
           <input
             type="text"
             placeholder="https://..."
@@ -119,6 +119,15 @@
             (ngModelChange)="updateImage($index, $event)"
             [name]="'image-' + $index"
           />
+          <button
+            type="button"
+            class="cover-btn"
+            [class.is-cover]="isCoverPhoto(photo)"
+            [disabled]="!photo"
+            (click)="setCoverImage(photo)"
+          >
+            {{ isCoverPhoto(photo) ? '★ Cover' : 'Set as cover' }}
+          </button>
           <button type="button" class="media-remove-btn" (click)="removeImage($index)" aria-label="Remove photo">✕</button>
         </div>
       }

@@ -116,11 +116,62 @@ input:focus {
 
 .media-row {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
 .media-row input {
   flex: 1;
+}
+
+.cover-hint {
+  font-size: 12px;
+  color: var(--color-ink-soft);
+  margin: -2px 0 2px;
+}
+
+.photo-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  border: 1.5px solid var(--color-line);
+  flex-shrink: 0;
+}
+
+.photo-thumb-empty {
+  background: var(--tint-cream);
+}
+
+.cover-btn {
+  flex-shrink: 0;
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  color: var(--color-ink-soft);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 38px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cover-btn:hover:not(:disabled) {
+  border-color: var(--color-coral-deep);
+  color: var(--color-coral-deep);
+}
+
+.cover-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cover-btn.is-cover {
+  border-color: var(--color-coral);
+  background: var(--color-coral);
+  color: #fff;
 }
 
 .video-row {

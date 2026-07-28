@@ -122,8 +122,32 @@ export class AdminProductItemFormComponent {
     this.form.update((f) => ({ ...f, images: f.images.map((img, i) => (i === index ? value : img)) }));
   }
 
+  // Dropping a photo that happened to be the explicit cover clears the override rather than
+  // leaving `image` pointing at a URL no longer in the gallery — the effective cover then falls
+  // back to whatever is left at images[0], same as if it had never been set.
   protected removeImage(index: number): void {
-    this.form.update((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }));
+    this.form.update((f) => {
+      const removedUrl = f.images[index];
+      return {
+        ...f,
+        images: f.images.filter((_, i) => i !== index),
+        image: f.image === removedUrl ? '' : f.image,
+      };
+    });
+  }
+
+  // The photo actually used as this item's cover elsewhere (Shop, etc.) — same
+  // `image || images[0]` rule Shop's card template applies, kept in sync here so the gallery can
+  // show which thumbnail is currently "it" without a separate, driftable source of truth.
+  protected readonly effectiveCover = computed(() => this.form().image || this.form().images[0] || '');
+
+  protected isCoverPhoto(url: string): boolean {
+    return !!url && url === this.effectiveCover();
+  }
+
+  protected setCoverImage(url: string): void {
+    if (!url) return;
+    this.updateField('image', url);
   }
 
   protected addVideoSlot(): void {
