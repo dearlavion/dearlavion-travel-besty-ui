@@ -202,13 +202,16 @@ export class AdminProductFormComponent {
     if (id) {
       // `popular` isn't a form field — leave it untouched on edit rather than resetting it.
       this.catalog.updateProduct(id, fields);
-      this.toast.showAndReload('Product updated', 'success', '/admin/products');
+      // Stays right here (reload, no url) — same as the item form's edit save: the admin's still
+      // looking at this product and most likely wants to keep working on it, not get bounced back
+      // to the full list.
+      this.toast.showAndReload('Product updated');
       return;
     }
 
     const payload: NewProduct = { ...fields, popular: false };
     this.catalog.addProduct(payload);
-    // Back to the list, same as edit mode — not straight to this product's own Edit page: in
+    // Add mode still goes back to the list, not straight to this product's own Edit page: in
     // real-backend mode the backend-assigned id/slug isn't reliably known until the POST
     // resolves, so treat "add item(s)" as a distinct next step via the list's Edit link.
     this.toast.showAndReload('Product added', 'success', '/admin/products');
