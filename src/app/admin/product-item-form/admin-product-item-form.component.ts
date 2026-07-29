@@ -44,12 +44,27 @@ export class AdminProductItemFormComponent {
   protected readonly productItems = inject(ProductItemService);
   private readonly toast = inject(ToastService);
   private readonly paramMap = toSignal(this.route.paramMap);
+  private readonly queryParamMap = toSignal(this.route.queryParamMap);
 
   protected readonly productId = computed(() => this.paramMap()?.get('productId') ?? '');
   protected readonly itemId = computed(() => this.paramMap()?.get('itemId') ?? null);
   protected readonly isEditMode = computed(() => this.itemId() !== null);
 
   protected readonly product = computed(() => this.catalog.getById(this.productId()));
+
+  // Where "Back" goes depends on how the admin got here — Inventory links to a specific item's
+  // edit page directly (bypassing the parent product page entirely), so the default "back to the
+  // parent product" link would be a dead end for that flow. Inventory tags its links with
+  // `?from=inventory`; anywhere else (the product edit page's item table) falls back to the
+  // previous behavior. Carried through the toast's post-save reload for free since it's a query
+  // param on the same URL, not extra state.
+  protected readonly cameFromInventory = computed(() => this.queryParamMap()?.get('from') === 'inventory');
+  protected readonly backLink = computed(() =>
+    this.cameFromInventory() ? ['/admin/inventory'] : ['/admin/products', this.productId(), 'edit'],
+  );
+  protected readonly backLabel = computed(() =>
+    this.cameFromInventory() ? 'Back to Inventory' : `Back to ${this.product()?.name ?? ''}`,
+  );
   // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,
   // so a plain signal set once (before the catalog fetch resolves) would get permanently stuck
   // showing "not found" even after the data arrives. `catalog.loaded()` tells "still loading"

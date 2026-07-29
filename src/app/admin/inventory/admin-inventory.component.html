@@ -58,7 +58,11 @@
         <tr [class.low-stock-row]="isLowStock(product.stock, product.soldOut)" [class.sold-out-row]="product.soldOut">
           <td class="icon-cell">{{ product.icon }}</td>
           <td class="name-cell">
-            <a [routerLink]="['/admin/products', product.productId, 'items', product.id, 'edit']" class="name-link">
+            <a
+              [routerLink]="['/admin/products', product.productId, 'items', product.id, 'edit']"
+              [queryParams]="{ from: 'inventory' }"
+              class="name-link"
+            >
               {{ product.name }}
             </a>
           </td>
@@ -83,7 +87,12 @@
             </button>
           </td>
           <td class="actions-cell">
-            <a [routerLink]="['/admin/products', product.productId, 'items', product.id, 'edit']" class="edit-link">Edit</a>
+            <a
+              [routerLink]="['/admin/products', product.productId, 'items', product.id, 'edit']"
+              [queryParams]="{ from: 'inventory' }"
+              class="edit-link"
+              >Edit</a
+            >
           </td>
         </tr>
       } @empty {

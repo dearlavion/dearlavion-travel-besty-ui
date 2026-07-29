@@ -4,7 +4,7 @@
     <a routerLink="/admin/products" class="back-link">← Back to Products</a>
   </div>
 } @else {
-  <a [routerLink]="['/admin/products', productId(), 'edit']" class="back-link">← Back to {{ product()?.name }}</a>
+  <a [routerLink]="backLink()" class="back-link">← {{ backLabel() }}</a>
   <h1>{{ isEditMode() ? 'Edit Item' : 'Add Item' }}</h1>
   <dl class="item-identity">
     <div><dt>Name</dt><dd>{{ product()?.icon }} {{ effectiveName() }}</dd></div>
