@@ -3,10 +3,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { TopNavigationComponent } from './common/top-navigation/top-navigation.component';
+import { ToastComponent } from './common/toast/toast.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TopNavigationComponent],
+  imports: [RouterOutlet, TopNavigationComponent, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

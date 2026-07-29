@@ -16,6 +16,7 @@ import { SavedKitsService } from './saved-kits.service';
 import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 import { NewsletterService } from './newsletter.service';
 import { NewsletterPopupComponent } from './newsletter-popup/newsletter-popup.component';
+import { ToastService } from '../common/toast/toast.service';
 
 interface DisplayItem {
   label: string;
@@ -63,6 +64,7 @@ export class MyKitComponent {
   private readonly auth = inject(AuthService);
   private readonly savedKitsService = inject(SavedKitsService);
   private readonly newsletter = inject(NewsletterService);
+  private readonly toast = inject(ToastService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
@@ -117,7 +119,6 @@ export class MyKitComponent {
   // Save / export UI state
   protected readonly showSaveInput = signal(false);
   protected readonly saveName = signal('');
-  protected readonly savedMessage = signal('');
   protected readonly exporting = signal(false);
   protected readonly showNewsletterPopup = signal(false);
 
@@ -235,6 +236,7 @@ export class MyKitComponent {
     if (!id || items === null) return;
     this.savedKitsService.updateItems(id, items);
     this.draftItems.set(null);
+    this.toast.showAndReload('Kit updated');
   }
 
   protected discardItemChanges(): void {
@@ -318,14 +320,16 @@ export class MyKitComponent {
       const newName = this.saveName().trim() || 'My kit';
       this.savedKitsService.rename(savedId, newName);
       this.showSaveInput.set(false);
-      this.savedMessage.set(`Updated "${newName}"`);
-      setTimeout(() => this.savedMessage.set(''), 2500);
+      this.toast.showAndReload(`Updated "${newName}"`);
       return;
     }
 
     const saved = this.savedKitsService.save(this.saveName(), k);
     this.showSaveInput.set(false);
-    this.savedMessage.set(`Saved as "${saved.name}"`);
-    setTimeout(() => this.savedMessage.set(''), 2500);
+    // Stays right here rather than redirecting to /my-kit/:id — same reason the admin item/product
+    // forms' create flow doesn't jump straight to the new resource's own page: save()'s returned
+    // id is a placeholder in real-backend mode (server-assigned id isn't known until the POST
+    // resolves), so it's not safe to build a URL from it yet.
+    this.toast.showAndReload(`Saved as "${saved.name}"`);
   }
 }

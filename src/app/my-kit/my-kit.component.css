@@ -407,11 +407,6 @@
   background: var(--tint-violet, #efe7fb);
   border-color: transparent;
 }
-.kit-saved-msg {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #1c6b41;
-}
 
 /* ── Save name row ─────────────────────────────────────────────────── */
 .save-row {

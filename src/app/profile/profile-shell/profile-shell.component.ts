@@ -4,6 +4,7 @@ import { ProfileService } from '../profile.service';
 
 // Customer-facing dashboard shell (unlike AdminShellComponent, this keeps the normal storefront
 // top nav — it's part of the regular shopping experience, not a back-office area).
+// The confirmation popup (<app-toast/>) is mounted once at the app root (app.html), not here.
 @Component({
   selector: 'app-profile-shell',
   standalone: true,

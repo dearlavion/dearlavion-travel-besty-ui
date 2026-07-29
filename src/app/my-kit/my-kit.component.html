@@ -146,9 +146,6 @@
           {{ !isLoggedIn() ? '🔒 Log in to save' : isSavedKit() ? '✏️ Rename kit' : '💾 Save kit' }}
         </button>
       }
-      @if (savedMessage()) {
-        <span class="kit-saved-msg">{{ savedMessage() }}</span>
-      }
     </div>
 
     @if (showSaveInput()) {

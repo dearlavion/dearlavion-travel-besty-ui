@@ -114,12 +114,6 @@
   background: var(--color-coral-deep);
 }
 
-.saved-msg {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-leaf);
-}
-
 .currency-select {
   font-family: var(--font-body);
   font-size: 14px;
