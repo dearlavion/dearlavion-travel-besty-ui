@@ -1,9 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthOverlayComponent } from '../../common/auth-overlay/auth-overlay.component';
 import { AuthService } from '../auth.service';
 import { environment } from '../../../environments/environment';
+import { ToastService } from '../../common/toast/toast.service';
 
 // Real-backend mode (yarn start:dev): submit logs in against auth-service-v2 via AuthService.login().
 // Mock mode (yarn start): no backend — pick a local stub identity (admin/traveler) to become.
@@ -23,9 +24,9 @@ export class LoginComponent {
   protected readonly error = signal('');
   protected readonly isRealBackend = !environment.useMockData;
 
-  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
+  private readonly toast = inject(ToastService);
 
   // Respects an explicit returnUrl (e.g. requireLoginGuard sent you here from a specific page)
   // first; otherwise sends admins straight to the admin dashboard instead of the storefront home.
@@ -42,21 +43,25 @@ export class LoginComponent {
     this.submitting.set(true);
     this.error.set('');
     this.authService.login(this.email, this.password).subscribe({
-      next: () => this.router.navigateByUrl(this.postLoginUrl()),
+      next: () => this.toast.showAndReload('Logged in successfully', 'success', this.postLoginUrl()),
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.status === 401 ? 'Invalid email or password.' : 'Could not log in. Please try again.');
+        const message = err?.status === 401 ? 'Invalid email or password.' : 'Could not log in. Please try again.';
+        // Kept alongside the toast (not swapped for it) — this one stays put next to the fields
+        // until the next attempt, rather than fading after 3s like the toast does.
+        this.error.set(message);
+        this.toast.error(message);
       },
     });
   }
 
   protected loginAsAdmin(): void {
     this.authService.loginAs('u9', 'admin', 'ADMIN');
-    this.router.navigateByUrl(this.postLoginUrl());
+    this.toast.showAndReload('Logged in successfully', 'success', this.postLoginUrl());
   }
 
   protected loginAsTraveler(): void {
     this.authService.loginAs('u1', 'traveler', 'USER');
-    this.router.navigateByUrl(this.postLoginUrl());
+    this.toast.showAndReload('Logged in successfully', 'success', this.postLoginUrl());
   }
 }

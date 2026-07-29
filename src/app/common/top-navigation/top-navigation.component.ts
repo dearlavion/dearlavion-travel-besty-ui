@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter } from 'rxjs';
 import { CartService } from '../../cart/cart.service';
 import { AuthService } from '../../auth/auth.service';
+import { ToastService } from '../toast/toast.service';
 
 @Component({
   selector: 'app-top-navigation',
@@ -14,6 +15,7 @@ import { AuthService } from '../../auth/auth.service';
 export class TopNavigationComponent {
   protected readonly cart = inject(CartService);
   protected readonly authService = inject(AuthService);
+  private readonly toast = inject(ToastService);
   protected readonly mobileMenuOpen = signal(false);
 
   constructor(private readonly router: Router) {
@@ -27,7 +29,7 @@ export class TopNavigationComponent {
   protected logout(): void {
     this.authService.logout();
     this.closeMobileMenu();
-    this.router.navigateByUrl('/');
+    this.toast.showAndReload('Logged out', 'success', '/');
   }
 
   protected toggleMobileMenu(): void {
