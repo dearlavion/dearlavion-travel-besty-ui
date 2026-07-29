@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductVideo } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
-import { ProductItemService, ProductItemView } from '../../shop/product-item.service';
+import { computeEffectivePrice, ProductItemService, ProductItemView } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
 
 const MAX_MEDIA = 5;
@@ -22,10 +22,29 @@ interface ItemFormModel {
   icon: string;
   stock: number;
   soldOut: boolean;
+  onSale: boolean;
+  discountType: 'percent' | 'amount';
+  discountValue: number;
 }
 
 function emptyItemForm(): ItemFormModel {
-  return { name: '', brand: '', sizeTier: 0, sizeLabel: '', price: 0, currency: 'USD', image: '', images: [], videos: [], icon: '', stock: 0, soldOut: false };
+  return {
+    name: '',
+    brand: '',
+    sizeTier: 0,
+    sizeLabel: '',
+    price: 0,
+    currency: 'USD',
+    image: '',
+    images: [],
+    videos: [],
+    icon: '',
+    stock: 0,
+    soldOut: false,
+    onSale: false,
+    discountType: 'percent',
+    discountValue: 0,
+  };
 }
 
 // Own page (not inline on the product edit form) — reached via "+ Add Item"/"Edit" on
@@ -111,6 +130,9 @@ export class AdminProductItemFormComponent {
           icon: item.icon ?? '',
           stock: item.stock,
           soldOut: item.soldOut,
+          onSale: item.onSale ?? false,
+          discountType: item.discountType ?? 'percent',
+          discountValue: item.discountValue ?? 0,
         });
         return;
       }
@@ -202,6 +224,11 @@ export class AdminProductItemFormComponent {
       icon: f.icon.trim() || undefined,
       stock: Math.max(0, Number(f.stock) || 0),
       soldOut: f.soldOut,
+      onSale: f.onSale,
+      // Sent even when Sale is off, so toggling it back on later remembers the last-entered
+      // values — harmless either way, since the discount math only ever applies when onSale=true.
+      discountType: f.discountType,
+      discountValue: Math.max(0, Number(f.discountValue) || 0),
     };
   }
 
@@ -233,7 +260,15 @@ export class AdminProductItemFormComponent {
   protected preview(): void {
     const itemId = this.itemId();
     if (!itemId) return;
-    const draft: Partial<ProductItemView> = this.buildFields();
+    const fields = this.buildFields();
+    // Preview overlays raw form fields onto the live item, but `price` in ProductItemView is the
+    // *effective* (already-discounted) price everywhere else reads it — without this, previewing
+    // a sale wouldn't show the discount at all. Same math the backend pipeline / mock toView()
+    // apply, run client-side since there's no round-trip to compute it for an unsaved draft.
+    const draft: Partial<ProductItemView> = {
+      ...fields,
+      ...computeEffectivePrice(fields.price, fields.onSale, fields.discountType, fields.discountValue),
+    };
     this.productItems.setPreviewDraft(itemId, draft);
     window.open(`/product/${this.productId()}/items/${itemId}`, '_blank');
   }

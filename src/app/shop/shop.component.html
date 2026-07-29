@@ -131,6 +131,8 @@
         <div class="card-image" [style.background]="getProductTint(product)">
           @if (product.soldOut) {
             <div class="sold-out-badge">Sold Out</div>
+          } @else if (product.originalPrice) {
+            <div class="sale-badge">Sale</div>
           } @else if (product.popular) {
             <div class="popular-badge">🔥 Popular</div>
           }
@@ -146,7 +148,14 @@
           <div class="card-desc">{{ product.description }}</div>
           <div class="card-divider"></div>
           <div class="card-footer">
-            <div class="card-price">{{ product.price | price }}</div>
+            <div class="card-price-group">
+              @if (product.originalPrice) {
+                <span class="card-price-original">{{ product.originalPrice | price }}</span>
+                <span class="card-price sale">{{ product.price | price }}</span>
+              } @else {
+                <span class="card-price">{{ product.price | price }}</span>
+              }
+            </div>
             <button
               type="button"
               class="card-add-btn"

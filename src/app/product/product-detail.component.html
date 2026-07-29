@@ -10,6 +10,8 @@
         <div class="product-image" [style.background]="getProductTint(item)">
           @if (item.soldOut) {
             <div class="sold-out-badge">Sold Out</div>
+          } @else if (item.originalPrice) {
+            <div class="sale-badge">Sale</div>
           } @else if (item.popular) {
             <div class="popular-badge">🔥 Popular</div>
           }
@@ -44,7 +46,14 @@
           <p class="product-brand">Brand: {{ item.brand }}</p>
         }
         <p class="product-desc">{{ item.description }}</p>
-        <p class="product-price">{{ item.price | price }}</p>
+        <p class="product-price-group">
+          @if (item.originalPrice) {
+            <span class="product-price-original">{{ item.originalPrice | price }}</span>
+            <span class="product-price sale">{{ item.price | price }}</span>
+          } @else {
+            <span class="product-price">{{ item.price | price }}</span>
+          }
+        </p>
 
         @if (item.soldOut) {
           <p class="product-stock stock-out">Sold Out</p>

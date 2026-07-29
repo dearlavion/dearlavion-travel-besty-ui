@@ -62,6 +62,12 @@ export interface ProductItem {
   icon?: string;
   stock: number;
   soldOut: boolean;
+  // `price` above always stays the base/list price the admin sets — mirrors the real backend's
+  // ProductItem schema, where the discounted figure is computed at read time (here, in
+  // ProductItemService.toView()) rather than overwriting the stored price.
+  onSale?: boolean;
+  discountType?: 'percent' | 'amount';
+  discountValue?: number;
   active: boolean;
 }
 

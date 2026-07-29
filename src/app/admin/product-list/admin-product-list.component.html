@@ -35,7 +35,12 @@
           <td class="name-cell">{{ row.product.name }}</td>
           <td>{{ row.product.category }}</td>
           @if (row.defaultItem; as item) {
-            <td>{{ item.price | currency: item.currency }}</td>
+            <td>
+              {{ item.price | currency: item.currency }}
+              @if (item.originalPrice) {
+                <span class="sale-chip">Sale</span>
+              }
+            </td>
             <td>
               <input
                 type="number"

@@ -179,6 +179,41 @@
       <span>Mark as sold out</span>
     </label>
 
+    <label class="checkbox-field">
+      <input
+        type="checkbox"
+        [ngModel]="form().onSale"
+        (ngModelChange)="updateField('onSale', $event)"
+        name="onSale"
+      />
+      <span>On sale</span>
+    </label>
+
+    @if (form().onSale) {
+      <div class="field-row">
+        <label>
+          <span>Discount type</span>
+          <select [ngModel]="form().discountType" (ngModelChange)="updateField('discountType', $event)" name="discountType">
+            <option value="percent">Percent off</option>
+            <option value="amount">Amount off</option>
+          </select>
+        </label>
+
+        <label>
+          <span>{{ form().discountType === 'percent' ? 'Discount (%)' : 'Discount (' + form().currency + ')' }}</span>
+          <input
+            type="number"
+            min="0"
+            [max]="form().discountType === 'percent' ? 100 : null"
+            step="0.01"
+            [ngModel]="form().discountValue"
+            (ngModelChange)="updateField('discountValue', $event)"
+            name="discountValue"
+          />
+        </label>
+      </div>
+    }
+
     <div class="form-actions">
       @if (isEditMode()) {
         @if (confirmingDelete()) {

@@ -127,6 +127,19 @@ tr.inactive-row {
   border-color: var(--color-coral);
 }
 
+.sale-chip {
+  display: inline-block;
+  margin-left: 6px;
+  background: #d64545;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+
 .status-badge {
   border: none;
   border-radius: 999px;

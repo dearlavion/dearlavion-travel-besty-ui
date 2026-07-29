@@ -56,7 +56,11 @@ export interface ProductItemView {
   sizeLabel?: string;
   category: string;
   description: string;
+  // The price to actually charge (already discounted when on sale) — every existing consumer
+  // (Shop, Cart, Checkout, Orders) reads this and needs zero changes for sale support.
+  // `originalPrice` is only present when on sale, for a "was $X" strikethrough comparison.
   price: number;
+  originalPrice?: number;
   currency: string;
   image?: string;
   images: string[];
@@ -79,6 +83,28 @@ interface ProductItemListResponse {
   total: number;
 }
 
+// Mirrors the real backend's aggregation-pipeline discount math (product-item-query.ts) so mock
+// mode — and the admin form's live Preview, which has no backend round-trip to compute this for
+// it — behave identically: percent/amount off, clamped to >= 0, rounded to 2dp.
+export function computeEffectivePrice(
+  price: number,
+  onSale: boolean | undefined,
+  discountType: 'percent' | 'amount' | undefined,
+  discountValue: number | undefined,
+): { price: number; originalPrice: number | undefined } {
+  // `originalPrice` is always an own key (explicit `undefined`, not omitted) so spreading this
+  // onto a previous state (as the admin form's Preview draft-merge does) reliably clears a stale
+  // originalPrice from before Sale was turned off, rather than leaving it behind.
+  if (!onSale || !discountValue || discountValue <= 0) return { price, originalPrice: undefined };
+  const discountAmount = discountType === 'percent' ? price * (discountValue / 100) : discountValue;
+  const discounted = Math.round(Math.max(0, price - discountAmount) * 100) / 100;
+  return { price: discounted, originalPrice: price };
+}
+
+function effectivePrice(item: ProductItem): { price: number; originalPrice?: number } {
+  return computeEffectivePrice(item.price, item.onSale, item.discountType, item.discountValue);
+}
+
 function toView(item: ProductItem, product: Product): ProductItemView {
   return {
     id: item.id,
@@ -89,7 +115,7 @@ function toView(item: ProductItem, product: Product): ProductItemView {
     sizeLabel: item.sizeLabel,
     category: product.category,
     description: product.description,
-    price: item.price,
+    ...effectivePrice(item),
     currency: item.currency,
     image: item.image,
     images: item.images ?? [],
