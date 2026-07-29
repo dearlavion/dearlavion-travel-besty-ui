@@ -57,7 +57,11 @@
       @for (product of pagedItems(); track product.id) {
         <tr [class.low-stock-row]="isLowStock(product.stock, product.soldOut)" [class.sold-out-row]="product.soldOut">
           <td class="icon-cell">{{ product.icon }}</td>
-          <td class="name-cell">{{ product.name }}</td>
+          <td class="name-cell">
+            <a [routerLink]="['/admin/products', product.productId, 'items', product.id, 'edit']" class="name-link">
+              {{ product.name }}
+            </a>
+          </td>
           <td>{{ product.category }}</td>
           <td>
             <input
@@ -79,7 +83,7 @@
             </button>
           </td>
           <td class="actions-cell">
-            <a [routerLink]="['/admin/products', product.productId, 'edit']" class="edit-link">Edit</a>
+            <a [routerLink]="['/admin/products', product.productId, 'items', product.id, 'edit']" class="edit-link">Edit</a>
           </td>
         </tr>
       } @empty {

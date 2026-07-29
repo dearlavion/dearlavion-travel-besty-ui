@@ -157,6 +157,14 @@ tr.low-stock-row td {
   font-weight: 500;
 }
 
+.name-link {
+  color: var(--color-ink);
+}
+
+.name-link:hover {
+  color: var(--color-coral-deep);
+}
+
 .stock-input {
   width: 70px;
   border: 1.5px solid var(--color-line);
