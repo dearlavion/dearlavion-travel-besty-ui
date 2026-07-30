@@ -7,6 +7,7 @@ import { CartService } from '../cart/cart.service';
 import { ProfileService } from '../profile/profile.service';
 import { PAYMENT_METHODS, PaymentMethod, PaymentService } from '../payment/payment.service';
 import { Order, OrderItem, OrdersService } from './orders.service';
+import { FreeShippingNoticeComponent } from '../common/free-shipping-notice/free-shipping-notice.component';
 
 // Two steps: (1) place the order with shipping details, then (2) submit a manual proof of payment
 // (method + amount + reference # + proof-image URL) which an employee later verifies. No card data
@@ -14,7 +15,7 @@ import { Order, OrderItem, OrdersService } from './orders.service';
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [FormsModule, RouterLink, PricePipe],
+  imports: [FormsModule, RouterLink, PricePipe, FreeShippingNoticeComponent],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.css',
 })
@@ -51,7 +52,8 @@ export class CheckoutComponent {
   protected placeOrder(form: NgForm): void {
     if (!form.valid) return;
     this.submitting.set(true);
-    this.placedTotalUsd = this.cart.subtotal();
+    // Grand total actually charged: items + shipping (0 once free shipping is unlocked).
+    this.placedTotalUsd = this.cart.total();
 
     const generatedOrderNumber = `TB-${Math.floor(100000 + Math.random() * 900000)}`;
     // cart lines key off the ProductItem (SKU): `line.productId` is the ProductItem id, and
@@ -73,6 +75,7 @@ export class CheckoutComponent {
       placedAt: new Date().toISOString(),
       items,
       total: this.placedTotalUsd,
+      shippingFee: this.cart.shippingCost(),
       currency: items[0]?.currency ?? 'USD',
       chargedAmount: converted,
       chargedCurrency: this.currency(),

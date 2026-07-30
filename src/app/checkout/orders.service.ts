@@ -18,7 +18,8 @@ export interface Order {
   id: string; // e.g. TB-123456, same generated number shown on the confirmation screen
   placedAt: string; // ISO date
   items: OrderItem[];
-  total: number; // base (USD) catalog total
+  total: number; // base (USD) catalog total, including shipping
+  shippingFee?: number; // flat fee actually charged (0 if the order qualified for free shipping)
   currency: string;
   chargedAmount?: number; // total converted into the shopper's currency at checkout
   chargedCurrency?: string;
@@ -69,6 +70,7 @@ interface ApiOrder {
   placedAt: string;
   items: OrderItem[];
   total: number;
+  shippingFee?: number;
   currency: string;
 }
 
@@ -76,7 +78,14 @@ interface ApiOrder {
 // number this app has always used as its `id` — map it through so nothing downstream (Track
 // Packages, confirmation screen) needs to change.
 function mapFromApi(raw: ApiOrder): Order {
-  return { id: raw.reference, placedAt: raw.placedAt, items: raw.items, total: raw.total, currency: raw.currency };
+  return {
+    id: raw.reference,
+    placedAt: raw.placedAt,
+    items: raw.items,
+    total: raw.total,
+    shippingFee: raw.shippingFee,
+    currency: raw.currency,
+  };
 }
 
 /** Persists placed orders so /profile/track-packages can list them later — localStorage in mock
@@ -107,6 +116,7 @@ export class OrdersService {
         .post<ApiOrder>(API_BASE, {
           items: order.items,
           total: order.total,
+          shippingFee: order.shippingFee,
           currency: order.currency,
           reference: order.id,
           chargedAmount: order.chargedAmount,

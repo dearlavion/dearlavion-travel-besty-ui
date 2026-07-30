@@ -108,6 +108,7 @@
 
       <div class="order-summary">
         <h2 class="section-title">Order Summary</h2>
+        <app-free-shipping-notice />
         <div class="summary-lines">
           @for (line of cart.lines(); track line.productId) {
             <div class="summary-line">
@@ -116,9 +117,26 @@
             </div>
           }
         </div>
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ cart.subtotal() | price }}</span>
+        </div>
+        @if (cart.shippingFee() > 0) {
+          <div class="summary-row">
+            <span>Shipping</span>
+            @if (cart.hasFreeShipping()) {
+              <span class="shipping-value">
+                <span class="shipping-crossed">{{ cart.shippingFee() | price }}</span>
+                <span class="shipping-free">FREE</span>
+              </span>
+            } @else {
+              <span>+ {{ cart.shippingFee() | price }}</span>
+            }
+          </div>
+        }
         <div class="summary-total-row">
           <span>Total</span>
-          <span class="summary-total">{{ cart.subtotal() | price }}</span>
+          <span class="summary-total">{{ cart.total() | price }}</span>
         </div>
       </div>
     </div>

@@ -103,6 +103,15 @@
   color: var(--color-ink-soft);
 }
 
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-soft);
+  margin-bottom: 8px;
+}
+
 .summary-total-row {
   display: flex;
   justify-content: space-between;
@@ -112,6 +121,22 @@
   color: var(--color-ink);
   padding-top: 14px;
   border-top: 1px solid var(--color-line);
+}
+
+.shipping-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.shipping-crossed {
+  text-decoration: line-through;
+  color: var(--color-ink-soft);
+}
+
+.shipping-free {
+  color: var(--color-leaf);
+  font-weight: 700;
 }
 
 .summary-total {

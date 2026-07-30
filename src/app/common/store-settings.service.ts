@@ -5,12 +5,13 @@ import { environment } from '../../environments/environment';
 
 export interface StoreSettings {
   freeShippingMinimum: number; // in the base currency (USD); 0 = no threshold
+  shippingFee: number; // flat fee (base currency, USD) charged below freeShippingMinimum; 0 = no fee
 }
 
 const STORAGE_KEY = 'travel-besty-store-settings';
 const PUBLIC_BASE = `${environment.apiUrl}/store-settings`;
 const ADMIN_BASE = `${environment.apiUrl}/admin/store-settings`;
-const DEFAULTS: StoreSettings = { freeShippingMinimum: 0 };
+const DEFAULTS: StoreSettings = { freeShippingMinimum: 0, shippingFee: 0 };
 
 function loadStored(): StoreSettings {
   if (typeof window === 'undefined') return { ...DEFAULTS };
@@ -36,6 +37,9 @@ export class StoreSettingsService {
 
   /** Free-shipping threshold in the base currency (USD). 0 = no free-shipping threshold. */
   readonly freeShippingMinimum = computed(() => this.settings().freeShippingMinimum);
+
+  /** Flat shipping fee in the base currency (USD), charged below freeShippingMinimum. */
+  readonly shippingFee = computed(() => this.settings().shippingFee);
 
   constructor() {
     if (!environment.useMockData) {

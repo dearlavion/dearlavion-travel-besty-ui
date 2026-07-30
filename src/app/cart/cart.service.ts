@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { AuthService } from '../auth/auth.service';
+import { StoreSettingsService } from '../common/store-settings.service';
 import { environment } from '../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-cart';
@@ -42,6 +43,7 @@ export class CartService {
   private readonly productItems = inject(ProductItemService);
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly storeSettings = inject(StoreSettingsService);
 
   // Kept as the single source of truth in both modes — real mode just re-syncs it from the
   // backend's response after every mutation (dropping the server's embedded `product`/`lineTotal`
@@ -76,6 +78,25 @@ export class CartService {
   readonly subtotal = computed(() =>
     this.lines().reduce((sum, line) => sum + line.product.price * line.quantity, 0),
   );
+
+  // Threshold/fee are stored in the base currency (USD), same as `subtotal`/`product.price` — no
+  // conversion needed here; only the notice's displayed amount goes through PricePipe.
+  readonly freeShippingMinimum = computed(() => this.storeSettings.freeShippingMinimum());
+  readonly freeShippingEnabled = computed(() => this.freeShippingMinimum() > 0);
+  readonly hasFreeShipping = computed(() => this.freeShippingEnabled() && this.subtotal() >= this.freeShippingMinimum());
+  readonly freeShippingRemaining = computed(() => Math.max(0, this.freeShippingMinimum() - this.subtotal()));
+  readonly freeShippingProgress = computed(() => {
+    const min = this.freeShippingMinimum();
+    return min > 0 ? Math.min(100, (this.subtotal() / min) * 100) : 100;
+  });
+
+  /** The flat fee that applies when under the free-shipping threshold (what "Shipping" would
+   * cost if charged) — shown crossed out once the cart qualifies for free shipping. */
+  readonly shippingFee = computed(() => this.storeSettings.shippingFee());
+  /** What's actually added to the order total: 0 once free shipping is unlocked. */
+  readonly shippingCost = computed(() => (this.hasFreeShipping() ? 0 : this.shippingFee()));
+  /** Grand total charged at checkout: items + shipping. */
+  readonly total = computed(() => this.subtotal() + this.shippingCost());
 
   addItem(productId: string, quantity = 1): void {
     const product = this.productItems.getById(productId);

@@ -26,6 +26,7 @@ export class AdminSettingsComponent {
   protected readonly saving = signal(false);
 
   protected readonly freeShippingMinimum = signal(this.storeSettings.freeShippingMinimum());
+  protected readonly shippingFee = signal(this.storeSettings.shippingFee());
   protected readonly savingShipping = signal(false);
 
   private touched = false;
@@ -38,10 +39,14 @@ export class AdminSettingsComponent {
       const live = this.exchange.rates();
       if (!this.touched) this.rates.set({ ...live });
     });
-    // Same guard for the free-shipping threshold (loaded async from GET /store-settings).
+    // Same guard for the free-shipping threshold/fee (loaded async from GET /store-settings).
     effect(() => {
-      const live = this.storeSettings.freeShippingMinimum();
-      if (!this.shippingTouched) this.freeShippingMinimum.set(live);
+      const min = this.storeSettings.freeShippingMinimum();
+      const fee = this.storeSettings.shippingFee();
+      if (!this.shippingTouched) {
+        this.freeShippingMinimum.set(min);
+        this.shippingFee.set(fee);
+      }
     });
   }
 
@@ -50,19 +55,27 @@ export class AdminSettingsComponent {
     this.freeShippingMinimum.set(Math.max(0, Number(value) || 0));
   }
 
+  protected setShippingFee(value: number): void {
+    this.shippingTouched = true;
+    this.shippingFee.set(Math.max(0, Number(value) || 0));
+  }
+
   protected saveShipping(): void {
-    const result = this.storeSettings.update({ freeShippingMinimum: this.freeShippingMinimum() });
+    const result = this.storeSettings.update({
+      freeShippingMinimum: this.freeShippingMinimum(),
+      shippingFee: this.shippingFee(),
+    });
     if (isObservable(result)) {
       this.savingShipping.set(true);
       result.subscribe({
-        next: () => this.toast.showAndReload('Free shipping updated'),
+        next: () => this.toast.showAndReload('Shipping settings updated'),
         error: () => {
           this.savingShipping.set(false);
-          this.toast.error('Failed to save free shipping');
+          this.toast.error('Failed to save shipping settings');
         },
       });
     } else {
-      this.toast.showAndReload('Free shipping updated');
+      this.toast.showAndReload('Shipping settings updated');
     }
   }
 

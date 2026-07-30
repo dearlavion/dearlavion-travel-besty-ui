@@ -3,11 +3,12 @@ import { PricePipe } from '../common/price.pipe';
 import { RouterLink } from '@angular/router';
 import { CartService } from './cart.service';
 import { getProductTint } from '../shop/product-catalog';
+import { FreeShippingNoticeComponent } from '../common/free-shipping-notice/free-shipping-notice.component';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [RouterLink, PricePipe],
+  imports: [RouterLink, PricePipe, FreeShippingNoticeComponent],
   templateUrl: './cart.component.html',
   styleUrl: './cart.component.css',
 })

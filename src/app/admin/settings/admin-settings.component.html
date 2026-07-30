@@ -46,8 +46,8 @@
 
 <section class="rates-card">
   <div class="rates-head">
-    <h2>Free shipping</h2>
-    <p class="rates-note">Orders with a subtotal at or above this amount (in <strong>{{ base }}</strong>) ship free. Set to <strong>0</strong> to disable free shipping.</p>
+    <h2>Shipping</h2>
+    <p class="rates-note">Orders below the threshold are charged the flat fee (both in <strong>{{ base }}</strong>); at or above it, shipping is free. Set the threshold to <strong>0</strong> to disable free shipping entirely.</p>
   </div>
 
   <form class="rates-form" (ngSubmit)="saveShipping()">
@@ -68,9 +68,26 @@
       </span>
     </label>
 
+    <label class="rate-row">
+      <span class="rate-code">Fee</span>
+      <span class="rate-label">Shipping fee (below the threshold)</span>
+      <span class="rate-input-wrap">
+        <span class="rate-eq">{{ base }}</span>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          class="rate-input"
+          name="shippingFee"
+          [ngModel]="shippingFee()"
+          (ngModelChange)="setShippingFee($event)"
+        />
+      </span>
+    </label>
+
     <div class="rates-actions">
       <button type="submit" class="save-btn" [disabled]="savingShipping()">
-        {{ savingShipping() ? 'Saving…' : 'Save free shipping' }}
+        {{ savingShipping() ? 'Saving…' : 'Save shipping settings' }}
       </button>
     </div>
   </form>

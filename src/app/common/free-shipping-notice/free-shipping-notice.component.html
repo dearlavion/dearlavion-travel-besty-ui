@@ -1,0 +1,14 @@
+@if (cart.freeShippingEnabled()) {
+  <div class="shipping-notice" [class.shipping-notice--unlocked]="cart.hasFreeShipping()">
+    @if (cart.hasFreeShipping()) {
+      <p class="shipping-message">🎉 You've unlocked <strong>free shipping</strong>!</p>
+    } @else {
+      <p class="shipping-message">
+        Spend <strong>{{ cart.freeShippingRemaining() | price }}</strong> more to get <strong>free shipping</strong>!
+      </p>
+    }
+    <div class="shipping-bar">
+      <div class="shipping-bar-fill" [style.width.%]="cart.freeShippingProgress()"></div>
+    </div>
+  </div>
+}
