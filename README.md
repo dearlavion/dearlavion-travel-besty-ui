@@ -27,3 +27,8 @@ yarn build
 ```bash
 yarn test
 ```
+
+## Documentation
+
+- [Auth sessions & cross-tab consistency](docs/auth-cross-tab-sessions.md) — how login state is
+  stored and kept in sync across browser tabs (one identity everywhere).
