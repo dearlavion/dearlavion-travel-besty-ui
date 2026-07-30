@@ -19,9 +19,6 @@
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
     <a routerLink="/travel" routerLinkActive="active">Travel Kits</a>
     <a routerLink="/shop" routerLinkActive="active">Shop</a>
-    @if (authService.isAdmin()) {
-      <a routerLink="/admin" routerLinkActive="active">Admin</a>
-    }
     <a routerLink="/about" routerLinkActive="active">About</a>
   </div>
 
@@ -69,6 +66,9 @@
               <span class="account-menu-greeting">Hello, {{ authService.user()?.username }}</span>
             </div>
             <a routerLink="/profile" class="account-menu-item" (click)="closeAccountMenu()">Profile</a>
+            @if (authService.isAdmin()) {
+              <a routerLink="/admin" class="account-menu-item" (click)="closeAccountMenu()">Administration</a>
+            }
             <button type="button" class="account-menu-item account-menu-logout" (click)="logout()">Logout</button>
           </div>
         }

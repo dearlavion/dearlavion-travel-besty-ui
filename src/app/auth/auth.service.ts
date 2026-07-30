@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -44,12 +45,49 @@ interface RegisterResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
 
   readonly token = signal<string | null>(loadStoredToken());
   readonly user = signal<AuthUser | null>(loadStoredUser());
 
   // One auth instance serves many customers; every auth call identifies this app's tenant.
   private readonly tenantHeaders = { 'X-Customer': environment.customer };
+
+  // Route prefixes that require a session (mirror the requireLoginGuard routes). A cross-tab
+  // logout / downgrade while sitting on one of these bumps the tab back to /login.
+  private static readonly PROTECTED_PREFIXES = ['/admin', '/profile'];
+
+  constructor() {
+    // Cross-tab consistency: `storage` fires in OTHER tabs when localStorage changes. Since the
+    // token/user keys are shared by every tab of this origin, re-seed the in-memory signals from
+    // storage whenever they change elsewhere, so all tabs converge on the latest login/logout
+    // (one identity everywhere) instead of drifting until a reload.
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (e) => this.onExternalStorageChange(e));
+    }
+  }
+
+  /** Reconcile this tab's session with a change made in another tab. */
+  private onExternalStorageChange(e: StorageEvent): void {
+    // React only to our auth keys, or a full clear (`key === null`); ignore unrelated keys.
+    if (e.key !== null && e.key !== TOKEN_KEY && e.key !== USER_KEY) return;
+
+    this.token.set(loadStoredToken());
+    this.user.set(loadStoredUser());
+
+    // setSession writes two keys in sequence; skip the brief window where the token landed but the
+    // user object hasn't yet — the follow-up event finalizes it — to avoid a spurious redirect.
+    if (this.token() && !this.user()) return;
+
+    // If the new (or absent) identity can't be on the current protected page, send it to /login.
+    const url = this.router.url.split('?')[0];
+    const onProtected = AuthService.PROTECTED_PREFIXES.some((p) => url === p || url.startsWith(p + '/'));
+    if (!onProtected) return;
+    const lostAccess = !this.token() || (url.startsWith('/admin') && !this.isAdmin());
+    if (lostAccess) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: url } });
+    }
+  }
 
   /** Real login against auth-service-v2. Accepts a username or email as the identifier. */
   login(identifier: string, password: string): Observable<LoginResponse> {
