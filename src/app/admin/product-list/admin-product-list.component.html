@@ -67,6 +67,14 @@
               >
                 {{ row.product.active ? 'Active' : 'Inactive' }}
               </button>
+              <button
+                type="button"
+                class="status-badge popular-toggle"
+                [class.popular]="row.product.popular"
+                (click)="togglePopular(row.product.id, !row.product.popular)"
+              >
+                {{ row.product.popular ? '🔥 Popular' : 'Mark Popular' }}
+              </button>
             </td>
           } @else {
             <td class="no-item-cell" colspan="3">No purchasable item yet — add one from Edit.</td>

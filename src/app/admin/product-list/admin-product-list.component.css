@@ -162,6 +162,19 @@ tr.inactive-row {
   color: var(--color-coral-deep);
 }
 
+/* Unlike Sold Out/Active (green = the default "good" state), "not yet marked popular" isn't a
+   warning — it's just the common default, so this toggle inverts the base .status-badge green
+   instead of reusing it, and lights up gold only once actually marked. */
+.status-badge.popular-toggle {
+  background: var(--color-line);
+  color: var(--color-ink-soft);
+}
+
+.status-badge.popular-toggle.popular {
+  background: var(--tint-marigold, #fdf1da);
+  color: var(--color-coral-deep);
+}
+
 .status-cell {
   display: flex;
   flex-direction: column;

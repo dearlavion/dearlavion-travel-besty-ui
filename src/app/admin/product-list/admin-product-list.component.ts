@@ -93,6 +93,10 @@ export class AdminProductListComponent {
     this.catalog.updateProduct(id, { active });
   }
 
+  protected togglePopular(id: string, popular: boolean): void {
+    this.catalog.updateProduct(id, { popular });
+  }
+
   protected requestDelete(id: string): void {
     this.confirmingDeleteId.set(id);
   }

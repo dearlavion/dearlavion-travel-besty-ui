@@ -19,6 +19,7 @@ interface ProductFormModel {
   activities: string[];
   tested: boolean;
   active: boolean;
+  popular: boolean;
   linkedProductIds: string[];
 }
 
@@ -34,6 +35,7 @@ function emptyForm(): ProductFormModel {
     activities: [],
     tested: true,
     active: true,
+    popular: false,
     linkedProductIds: [],
   };
 }
@@ -133,6 +135,7 @@ export class AdminProductFormComponent {
         activities: [...(existing.activities ?? [])],
         tested: existing.tested,
         active: existing.active,
+        popular: existing.popular,
         linkedProductIds: [...(existing.linkedProductIds ?? [])],
       });
     });
@@ -195,12 +198,12 @@ export class AdminProductFormComponent {
       activities: f.activities,
       tested: f.tested,
       active: f.active,
+      popular: f.popular,
       linkedProductIds: f.linkedProductIds,
     };
 
     const id = this.editingId();
     if (id) {
-      // `popular` isn't a form field — leave it untouched on edit rather than resetting it.
       this.catalog.updateProduct(id, fields);
       // Stays right here (reload, no url) — same as the item form's edit save: the admin's still
       // looking at this product and most likely wants to keep working on it, not get bounced back
@@ -209,7 +212,7 @@ export class AdminProductFormComponent {
       return;
     }
 
-    const payload: NewProduct = { ...fields, popular: false };
+    const payload: NewProduct = fields;
     this.catalog.addProduct(payload);
     // Add mode still goes back to the list, not straight to this product's own Edit page: in
     // real-backend mode the backend-assigned id/slug isn't reliably known until the POST

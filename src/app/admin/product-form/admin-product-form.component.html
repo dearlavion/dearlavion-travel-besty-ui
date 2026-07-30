@@ -121,6 +121,16 @@
         />
         <span>Active (visible on the storefront)</span>
       </label>
+
+      <label class="checkbox-field">
+        <input
+          type="checkbox"
+          [ngModel]="form().popular"
+          (ngModelChange)="updateField('popular', $event)"
+          name="popular"
+        />
+        <span>🔥 Popular (shows the Popular badge on Shop/Product Detail)</span>
+      </label>
     </div>
 
     <div class="field-full">
