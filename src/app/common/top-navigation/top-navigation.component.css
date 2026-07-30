@@ -106,6 +106,98 @@
   line-height: 1;
 }
 
+.account-menu-wrap {
+  position: relative;
+}
+
+.account-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.account-btn:hover,
+.account-btn[aria-expanded='true'] {
+  background: var(--color-ink);
+  color: var(--color-bg);
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 10;
+  background: #fff;
+  border: 1.5px solid var(--color-line);
+  border-radius: 16px;
+  padding: 10px;
+  min-width: 210px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 32px -18px rgba(58, 46, 46, 0.28);
+}
+
+.account-menu-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px 16px;
+  text-align: center;
+}
+
+.account-menu-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--tint-cream);
+  color: var(--color-ink);
+}
+
+.account-menu-greeting {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+  word-break: break-word;
+}
+
+.account-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+  padding: 11px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border-top: 1px solid var(--color-line);
+}
+
+.account-menu-item:hover {
+  background: var(--tint-cream);
+  color: var(--color-coral-deep);
+}
+
+.account-menu-logout {
+  color: var(--color-coral-deep);
+}
+
 .menu-toggle {
   display: none;
   align-items: center;
@@ -132,7 +224,8 @@
   }
 
   .nav-cta-ghost,
-  .nav-cta-primary {
+  .nav-cta-primary,
+  .account-menu-wrap {
     display: none;
   }
 

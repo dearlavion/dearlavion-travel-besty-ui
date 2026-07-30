@@ -21,8 +21,6 @@
     <a routerLink="/shop" routerLinkActive="active">Shop</a>
     @if (authService.isAdmin()) {
       <a routerLink="/admin" routerLinkActive="active">Admin</a>
-    } @else if (authService.token()) {
-      <a routerLink="/profile" routerLinkActive="active">Profile</a>
     }
     <a routerLink="/about" routerLinkActive="active">About</a>
   </div>
@@ -45,11 +43,40 @@
       }
     </a>
     @if (authService.token()) {
-      <button type="button" class="nav-cta nav-cta-ghost" (click)="logout()">Logout</button>
+      <div class="account-menu-wrap">
+        <button
+          type="button"
+          class="account-btn"
+          (click)="toggleAccountMenu()"
+          [attr.aria-expanded]="accountMenuOpen()"
+          aria-label="Account menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+            <path d="M4 20c1.5-4 4.8-6 8-6s6.5 2 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        @if (accountMenuOpen()) {
+          <div class="account-menu">
+            <div class="account-menu-header">
+              <span class="account-menu-avatar">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M4 20c1.5-4 4.8-6 8-6s6.5 2 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="account-menu-greeting">Hello, {{ authService.user()?.username }}</span>
+            </div>
+            <a routerLink="/profile" class="account-menu-item" (click)="closeAccountMenu()">Profile</a>
+            <button type="button" class="account-menu-item account-menu-logout" (click)="logout()">Logout</button>
+          </div>
+        }
+      </div>
     } @else {
       <a routerLink="/login" class="nav-cta nav-cta-ghost">Login</a>
+      <a routerLink="/travel" class="nav-cta nav-cta-primary">Build Travel Kit</a>
     }
-    <a routerLink="/travel" class="nav-cta nav-cta-primary">Build Travel Kit</a>
 
     <button
       type="button"
@@ -82,7 +109,7 @@
       <a routerLink="/travel" routerLinkActive="active" (click)="closeMobileMenu()">Travel Kits</a>
       <a routerLink="/shop" routerLinkActive="active" (click)="closeMobileMenu()">Shop</a>
       @if (authService.isAdmin()) {
-        <a routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">Admin</a>
+        <a routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">Administration</a>
       } @else if (authService.token()) {
         <a routerLink="/profile" routerLinkActive="active" (click)="closeMobileMenu()">Profile</a>
       }

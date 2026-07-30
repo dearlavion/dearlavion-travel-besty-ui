@@ -17,18 +17,21 @@ export class TopNavigationComponent {
   protected readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
   protected readonly mobileMenuOpen = signal(false);
+  protected readonly accountMenuOpen = signal(false);
 
   constructor(private readonly router: Router) {
     // Closes the mobile menu automatically whenever a navigation completes — covers cases like
     // browser back/forward, not just the explicit (click) handler on each link.
     router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
       this.mobileMenuOpen.set(false);
+      this.accountMenuOpen.set(false);
     });
   }
 
   protected logout(): void {
     this.authService.logout();
     this.closeMobileMenu();
+    this.closeAccountMenu();
     this.toast.showAndReload('Logged out', 'success', '/');
   }
 
@@ -40,6 +43,14 @@ export class TopNavigationComponent {
     this.mobileMenuOpen.set(false);
   }
 
+  protected toggleAccountMenu(): void {
+    this.accountMenuOpen.update((open) => !open);
+  }
+
+  protected closeAccountMenu(): void {
+    this.accountMenuOpen.set(false);
+  }
+
   // Closes on any click outside the nav (backdrop tap), mirroring the pattern already used for
   // Shop's filter dropdowns.
   @HostListener('document:click', ['$event'])
@@ -47,6 +58,9 @@ export class TopNavigationComponent {
     const target = event.target as HTMLElement;
     if (!target.closest('.topnav')) {
       this.mobileMenuOpen.set(false);
+    }
+    if (!target.closest('.account-menu-wrap')) {
+      this.accountMenuOpen.set(false);
     }
   }
 }
