@@ -57,8 +57,10 @@ export class CheckoutComponent {
 
     const generatedOrderNumber = `TB-${Math.floor(100000 + Math.random() * 900000)}`;
     // cart lines key off the ProductItem (SKU): `line.productId` is the ProductItem id, and
-    // `line.product` is that item's view (with the generic `productId` + `brand`).
-    const items: OrderItem[] = this.cart.lines().map((line) => ({
+    // `line.product` is that item's view (with the generic `productId` + `brand`). Only the
+    // checked-out (selected) lines go into the order — lines the shopper left unchecked stay in
+    // the cart.
+    const items: OrderItem[] = this.cart.selectedLines().map((line) => ({
       productId: line.product.productId,
       productItemId: line.productId,
       brand: line.product.brand,
@@ -84,7 +86,8 @@ export class CheckoutComponent {
 
     this.orderNumber.set(generatedOrderNumber);
     this.amountPaid.set(converted);
-    this.cart.clear();
+    // Only the items just ordered come out of the cart — anything left unchecked stays behind.
+    this.cart.removeSelected();
     this.step.set('payment');
     this.submitting.set(false);
   }

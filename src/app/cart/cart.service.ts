@@ -75,8 +75,39 @@ export class CartService {
 
   readonly itemCount = computed(() => this.items().reduce((n, line) => n + line.quantity, 0));
 
+  // Per-line "include in checkout" state — ephemeral UI state (not persisted), keyed by
+  // productId. Absent = selected (a freshly added line, or one from a fresh page load, is
+  // included by default — matches the old "everything in cart gets checked out" behavior).
+  private readonly selected = signal<Record<string, boolean>>({});
+
+  isSelected(productId: string): boolean {
+    return this.selected()[productId] !== false;
+  }
+
+  toggleSelected(productId: string): void {
+    this.selected.update((map) => ({ ...map, [productId]: !this.isSelected(productId) }));
+  }
+
+  setAllSelected(checked: boolean): void {
+    const next: Record<string, boolean> = {};
+    for (const line of this.lines()) next[line.productId] = checked;
+    this.selected.set(next);
+  }
+
+  readonly selectedLines = computed<CartDisplayLine[]>(() => this.lines().filter((line) => this.isSelected(line.productId)));
+  readonly selectedCount = computed(() => this.selectedLines().length);
+  readonly allSelected = computed(() => this.lines().length > 0 && this.selectedCount() === this.lines().length);
+
+  /** Removes only the currently checked-out (selected) lines — called after an order is placed,
+   * so items the shopper left unchecked stay in the cart for later. */
+  removeSelected(): void {
+    for (const line of this.selectedLines()) this.removeItem(line.productId);
+  }
+
+  // Checkout totals below are scoped to the *selected* lines, not the whole cart — this is what
+  // will actually be charged if the shopper checks out right now.
   readonly subtotal = computed(() =>
-    this.lines().reduce((sum, line) => sum + line.product.price * line.quantity, 0),
+    this.selectedLines().reduce((sum, line) => sum + line.product.price * line.quantity, 0),
   );
 
   // Threshold/fee are stored in the base currency (USD), same as `subtotal`/`product.price` — no

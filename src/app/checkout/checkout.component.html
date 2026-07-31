@@ -56,12 +56,20 @@
       </button>
     </form>
   </div>
-} @else if (cart.lines().length === 0) {
+} @else if (cart.selectedLines().length === 0) {
   <div class="empty-state">
     <p class="empty-icon">🛒</p>
     <h1>Nothing to check out yet.</h1>
-    <p>Your cart is empty — add a few essentials before checking out.</p>
-    <a routerLink="/shop" class="empty-btn">Go to Shop</a>
+    <p>
+      @if (cart.lines().length > 0) {
+        Go back to your cart and select at least one item to check out.
+      } @else {
+        Your cart is empty — add a few essentials before checking out.
+      }
+    </p>
+    <a [routerLink]="cart.lines().length > 0 ? '/cart' : '/shop'" class="empty-btn">
+      {{ cart.lines().length > 0 ? 'Back to Cart' : 'Go to Shop' }}
+    </a>
   </div>
 } @else {
   <div class="checkout-page">
@@ -110,7 +118,7 @@
         <h2 class="section-title">Order Summary</h2>
         <app-free-shipping-notice />
         <div class="summary-lines">
-          @for (line of cart.lines(); track line.productId) {
+          @for (line of cart.selectedLines(); track line.productId) {
             <div class="summary-line">
               <span class="summary-line-name">{{ line.product.icon }} {{ line.product.name }} × {{ line.quantity }}</span>
               <span>{{ line.product.price * line.quantity | price }}</span>
