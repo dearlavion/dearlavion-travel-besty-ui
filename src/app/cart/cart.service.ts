@@ -1,11 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { concatMap, from } from 'rxjs';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { AuthService } from '../auth/auth.service';
 import { StoreSettingsService } from '../common/store-settings.service';
 import { environment } from '../../environments/environment';
 
 const STORAGE_KEY = 'travel-besty-cart';
+const SELECTION_STORAGE_KEY = 'travel-besty-cart-selection';
 const API_BASE = `${environment.apiUrl}/cart`;
 
 // `productId` here is a ProductItem id (a purchasable SKU), not a generic Product id — matches
@@ -38,6 +40,21 @@ function loadStoredLines(): CartLine[] | null {
   }
 }
 
+// Persisted (unlike the mutation state above being merely in-memory would suggest) specifically
+// because logging in triggers a full page reload (ToastService.showAndReload) — a guest who
+// unchecked some lines before being sent to /login at checkout must not come back to every line
+// silently re-selected.
+function loadStoredSelection(): Record<string, boolean> {
+  if (typeof window === 'undefined') return {};
+  const raw = window.localStorage.getItem(SELECTION_STORAGE_KEY);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<string, boolean>;
+  } catch {
+    return {};
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private readonly productItems = inject(ProductItemService);
@@ -62,10 +79,64 @@ export class CartService {
     // guaranteed 403, and always attach an error handler — an unhandled subscribe error becomes an
     // uncaught exception (crashes the SSR/dev-server process), not just a rejected promise.
     if (!environment.useMockData && this.auth.token()) {
-      this.http.get<ApiCartView>(API_BASE).subscribe({
-        next: (res) => this.applyServerView(res),
-        error: () => {},
-      });
+      this.syncOnLogin();
+    }
+  }
+
+  // Login always reloads the page (ToastService.showAndReload), which reconstructs this service
+  // from scratch — so this constructor-time check is the one place a just-logged-in user's
+  // leftover guest cart (built while logged out, e.g. before being sent to /login at checkout)
+  // can be merged in, rather than silently abandoned in localStorage while a fresh GET /cart
+  // fetch overwrites `items` with the (likely empty) server cart. Sequential (concatMap), not
+  // parallel, so each POST sees the previous one's result rather than racing on the same cart.
+  private syncOnLogin(): void {
+    const guestLines = loadStoredLines();
+    if (guestLines && guestLines.length > 0) {
+      if (typeof window !== 'undefined') window.localStorage.removeItem(STORAGE_KEY);
+      const guestIds = new Set(guestLines.map((line) => line.productId));
+      from(guestLines)
+        .pipe(
+          concatMap((line) =>
+            this.http.post<ApiCartView>(`${API_BASE}/items`, {
+              productId: line.productId,
+              quantity: line.quantity,
+            }),
+          ),
+        )
+        .subscribe({
+          next: (res) => this.applyServerView(res),
+          error: () => {},
+          complete: () => this.deselectForeignLines(guestIds),
+        });
+      return;
+    }
+
+    this.http.get<ApiCartView>(API_BASE).subscribe({
+      next: (res) => this.applyServerView(res),
+      error: () => {},
+    });
+  }
+
+  // After a guest-cart merge, the account may already have had its own items from before this
+  // guest session (e.g. added on a previous, logged-in visit) — those were never shown to the
+  // guest, so they have no entry in the persisted selection map and would default to "selected"
+  // like everything else, silently sweeping an old, forgotten cart into checkout alongside what
+  // the guest actually just picked. Force anything that isn't one of the guest's own lines (and
+  // that the guest didn't already have an opinion on) to unselected instead — visible in the
+  // cart, but not checked out until the shopper explicitly opts back in.
+  private deselectForeignLines(guestIds: ReadonlySet<string>): void {
+    const current = this.selected();
+    const next: Record<string, boolean> = { ...current };
+    let changed = false;
+    for (const line of this.items()) {
+      if (!guestIds.has(line.productId) && !(line.productId in current)) {
+        next[line.productId] = false;
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.selected.set(next);
+      this.persistSelection();
     }
   }
 
@@ -79,10 +150,11 @@ export class CartService {
 
   readonly itemCount = computed(() => this.items().reduce((n, line) => n + line.quantity, 0));
 
-  // Per-line "include in checkout" state — ephemeral UI state (not persisted), keyed by
-  // productId. Absent = selected (a freshly added line, or one from a fresh page load, is
-  // included by default — matches the old "everything in cart gets checked out" behavior).
-  private readonly selected = signal<Record<string, boolean>>({});
+  // Per-line "include in checkout" state, keyed by productId. Absent = selected (a freshly added
+  // line, or one from a fresh page load, is included by default — matches the old "everything in
+  // cart gets checked out" behavior). Persisted (see loadStoredSelection()) so it survives the
+  // hard reload login always triggers.
+  private readonly selected = signal<Record<string, boolean>>(loadStoredSelection());
 
   isSelected(productId: string): boolean {
     return this.selected()[productId] !== false;
@@ -90,12 +162,14 @@ export class CartService {
 
   toggleSelected(productId: string): void {
     this.selected.update((map) => ({ ...map, [productId]: !this.isSelected(productId) }));
+    this.persistSelection();
   }
 
   setAllSelected(checked: boolean): void {
     const next: Record<string, boolean> = {};
     for (const line of this.lines()) next[line.productId] = checked;
     this.selected.set(next);
+    this.persistSelection();
   }
 
   readonly selectedLines = computed<CartDisplayLine[]>(() => this.lines().filter((line) => this.isSelected(line.productId)));
@@ -202,5 +276,10 @@ export class CartService {
   private persist(): void {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items()));
+  }
+
+  private persistSelection(): void {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(SELECTION_STORAGE_KEY, JSON.stringify(this.selected()));
   }
 }
