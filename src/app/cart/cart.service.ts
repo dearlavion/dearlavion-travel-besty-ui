@@ -45,11 +45,15 @@ export class CartService {
   private readonly auth = inject(AuthService);
   private readonly storeSettings = inject(StoreSettingsService);
 
-  // Kept as the single source of truth in both modes — real mode just re-syncs it from the
-  // backend's response after every mutation (dropping the server's embedded `product`/`lineTotal`
-  // since `lines`/`subtotal` below already re-derive those locally from ProductCatalogService).
-  // This means `lines`/`itemCount`/`subtotal` need zero changes between modes.
-  private readonly items = signal<CartLine[]>(environment.useMockData ? (loadStoredLines() ?? []) : []);
+  // Kept as the single source of truth whenever the server cart isn't in play — mock mode always,
+  // and real mode for a logged-out guest (see the mutation methods below: `/cart` is auth-guarded,
+  // so a guest's cart is client-only, same as mock mode, until they log in). Real mode + logged in
+  // starts empty and gets re-synced from the backend's response after every mutation (dropping the
+  // server's embedded `product`/`lineTotal` since `lines`/`subtotal` below already re-derive those
+  // locally from ProductCatalogService).
+  private readonly items = signal<CartLine[]>(
+    environment.useMockData || !this.auth.token() ? (loadStoredLines() ?? []) : [],
+  );
 
   constructor() {
     // /cart is auth-guarded — CartService is injected app-wide (e.g. the nav's cart badge), so
@@ -133,7 +137,7 @@ export class CartService {
     const product = this.productItems.getById(productId);
     if (!product || product.soldOut) return;
 
-    if (!environment.useMockData) {
+    if (!environment.useMockData && this.auth.token()) {
       this.http
         .post<ApiCartView>(`${API_BASE}/items`, { productId, quantity })
         .subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
@@ -156,7 +160,7 @@ export class CartService {
       return;
     }
 
-    if (!environment.useMockData) {
+    if (!environment.useMockData && this.auth.token()) {
       this.http
         .put<ApiCartView>(`${API_BASE}/items/${productId}`, { quantity })
         .subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
@@ -170,7 +174,7 @@ export class CartService {
   }
 
   removeItem(productId: string): void {
-    if (!environment.useMockData) {
+    if (!environment.useMockData && this.auth.token()) {
       this.http
         .delete<ApiCartView>(`${API_BASE}/items/${productId}`)
         .subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
@@ -182,7 +186,7 @@ export class CartService {
   }
 
   clear(): void {
-    if (!environment.useMockData) {
+    if (!environment.useMockData && this.auth.token()) {
       this.http.delete<ApiCartView>(API_BASE).subscribe({ next: (res) => this.applyServerView(res), error: () => {} });
       return;
     }
