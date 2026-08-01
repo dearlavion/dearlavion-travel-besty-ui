@@ -1,0 +1,115 @@
+<a routerLink="/admin/orders" class="back-link">← Back to Orders</a>
+
+@if (loading()) {
+  <p class="state-note">Loading order…</p>
+} @else if (loadError() || !order()) {
+  <p class="state-note state-error">Could not find that order.</p>
+} @else if (order(); as o) {
+  <div class="detail-head">
+    <div>
+      <h1>Order #{{ o.id }}</h1>
+      <p class="sub">Placed {{ dateLabel(o.placedAt) }}</p>
+    </div>
+    <div class="badges">
+      <span class="status-badge" [class.paid]="o.paymentStatus === 'PAID'" [class.rejected]="o.paymentStatus === 'REJECTED'">
+        {{ o.paymentStatus }}
+      </span>
+      <span
+        class="status-badge delivery"
+        [class.shipped]="o.deliveryStatus === 'Shipped'"
+        [class.delivered]="o.deliveryStatus === 'Delivered'"
+      >
+        {{ o.deliveryStatus }}
+      </span>
+      @if (o.archived) {
+        <span class="status-badge archived">Archived</span>
+      }
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <section class="panel">
+      <h2 class="panel-title">Items</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Current stock</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of o.items; track item.productItemId ?? item.productId) {
+              <tr>
+                <td class="name-cell">{{ item.icon }} {{ item.name }} @if (item.brand) {
+                  <span class="brand">· {{ item.brand }}</span>
+                }</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price | price: item.currency }}</td>
+                <td>{{ currentStock(item) ?? '—' }}</td>
+                <td class="actions-cell">
+                  @if (o.paymentStatus !== 'PAID') {
+                    <span class="hint">Awaiting payment</span>
+                  } @else if (item.inventoryUpdated) {
+                    <span class="updated-note">Updated ✓</span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="inventory-btn"
+                      [disabled]="!item.productItemId || updatingInventoryFor() === item.productItemId"
+                      (click)="updateInventory(item)"
+                    >
+                      {{ updatingInventoryFor() === item.productItemId ? 'Updating…' : 'Update Inventory' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="total-row">
+        <span>Total</span>
+        <span class="total-value">{{ o.total | price }}</span>
+      </div>
+    </section>
+
+    <aside class="panel ship-to-panel">
+      <h2 class="panel-title">Ship to</h2>
+      @if (o.shipping; as ship) {
+        <p class="ship-name">{{ ship.fullName }}</p>
+        <p class="ship-line">{{ ship.address }}</p>
+        <p class="ship-line">{{ ship.city }} {{ ship.postalCode }}</p>
+        <p class="ship-line">{{ ship.email }}</p>
+      } @else {
+        <p class="ship-missing">No shipping details on file.</p>
+      }
+
+      <div class="actions">
+        @if (!canMarkShipped() && o.deliveryStatus === 'Processing') {
+          <p class="hint">
+            {{ o.paymentStatus === 'PAID' ? 'Ready to ship.' : 'Awaiting payment approval before this can ship.' }}
+          </p>
+        }
+        <button type="button" class="action-btn" [disabled]="!canMarkShipped() || submittingAction()" (click)="markShipped()">
+          {{ o.deliveryStatus === 'Processing' ? (submittingAction() ? 'Saving…' : 'Mark as Shipped') : '✓ Shipped' }}
+        </button>
+        <button
+          type="button"
+          class="action-btn action-btn-primary"
+          [disabled]="!canMarkDelivered() || submittingAction()"
+          (click)="markDelivered()"
+        >
+          {{ o.deliveryStatus === 'Delivered' ? '✓ Delivered' : submittingAction() ? 'Saving…' : 'Mark as Delivered' }}
+        </button>
+        <button type="button" class="action-btn archive-btn" [disabled]="submittingAction()" (click)="toggleArchive()">
+          {{ submittingAction() ? 'Saving…' : o.archived ? 'Unarchive Order' : 'Archive Order' }}
+        </button>
+      </div>
+    </aside>
+  </div>
+}

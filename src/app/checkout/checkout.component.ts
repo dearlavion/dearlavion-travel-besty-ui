@@ -110,6 +110,10 @@ export class CheckoutComponent {
       currency: items[0]?.currency ?? 'USD',
       chargedAmount: converted,
       chargedCurrency: this.currency(),
+      // Optimistic placeholder — real mode overwrites this with the backend's own response,
+      // which always creates orders in this same starting state.
+      paymentStatus: 'UNPAID',
+      deliveryStatus: 'Processing',
     };
     this.ordersService.addOrder(order);
     // Opt-in only — doesn't gate order placement on it succeeding.

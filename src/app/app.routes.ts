@@ -20,6 +20,8 @@ import { AdminPopularKitsComponent } from './admin/popular-kits/admin-popular-ki
 import { AdminPopularKitFormComponent } from './admin/popular-kits/admin-popular-kit-form.component';
 import { AdminInventoryComponent } from './admin/inventory/admin-inventory.component';
 import { AdminPaymentsComponent } from './admin/payments/admin-payments.component';
+import { AdminOrdersComponent } from './admin/orders/admin-orders.component';
+import { AdminOrderDetailComponent } from './admin/orders/order-detail/admin-order-detail.component';
 import { AdminStatisticsComponent } from './admin/statistics/admin-statistics.component';
 import { AdminSettingsComponent } from './admin/settings/admin-settings.component';
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
@@ -70,6 +72,8 @@ export const routes: Routes = [
       { path: 'popular-kits/:id/edit', component: AdminPopularKitFormComponent },
       { path: 'inventory', component: AdminInventoryComponent },
       { path: 'payments', component: AdminPaymentsComponent },
+      { path: 'orders', component: AdminOrdersComponent },
+      { path: 'orders/:id', component: AdminOrderDetailComponent },
       { path: 'statistics', component: AdminStatisticsComponent },
       { path: 'settings', component: AdminSettingsComponent },
     ],

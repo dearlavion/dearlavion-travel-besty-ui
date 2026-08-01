@@ -6,7 +6,6 @@ import {
   OrderStatus,
   ORDER_STATUS_STEPS,
   OrdersService,
-  computeOrderStatus,
   orderStatusStepIndex,
 } from '../../checkout/orders.service';
 import { PaymentService, PaymentStatus } from '../../payment/payment.service';
@@ -47,10 +46,10 @@ export class TrackPackagesComponent {
     return payment ? PAYMENT_BADGES[payment.status] : { label: 'Awaiting payment', cssClass: 'pay-awaiting' };
   }
 
-  /** Delivery only progresses once payment is approved — otherwise it's still "Processing". */
+  /** Real, admin-set fulfillment status — the backend already guarantees this can't advance past
+   * "Processing" before payment is approved (OrdersService.markShipped() requires PAID). */
   protected status(order: Order): OrderStatus {
-    if (this.paymentService.forOrder(order.id)?.status !== 'APPROVED') return this.statusSteps[0];
-    return computeOrderStatus(order.placedAt);
+    return order.deliveryStatus;
   }
 
   protected stepIndex(order: Order): number {
