@@ -1,0 +1,27 @@
+<div class="page-head">
+  <div class="page-eyebrow">Help</div>
+  <h1 class="page-title">Frequently Asked Questions</h1>
+  <div class="page-sub">Everything you need to know about building, ordering, and tracking your kit.</div>
+</div>
+
+<div class="faq-list">
+  @for (item of items; track item.question; let i = $index) {
+    <div class="faq-item" [class.open]="isOpen(i)">
+      <button
+        type="button"
+        class="faq-question"
+        (click)="toggle(i)"
+        [attr.aria-expanded]="isOpen(i)"
+        [attr.aria-controls]="'faq-answer-' + i"
+      >
+        <h2>{{ item.question }}</h2>
+        <span class="faq-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="faq-answer" [id]="'faq-answer-' + i">
+        <p>{{ item.answer }}</p>
+      </div>
+    </div>
+  }
+</div>
+
+<app-footer />

@@ -3,6 +3,7 @@ import { HomeComponent } from './home/home.component';
 import { TravelComponent } from './travel/travel.component';
 import { ShopComponent } from './shop/shop.component';
 import { AboutComponent } from './about/about.component';
+import { FaqComponent } from './faq/faq.component';
 import { LoginComponent } from './auth/login/login.component';
 import { SignupComponent } from './auth/signup/signup.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
@@ -57,6 +58,7 @@ export const routes: Routes = [
   { path: 'checkout', component: CheckoutComponent, canActivate: [requireLoginGuard] },
   { path: 'checkout/pay/:orderId', component: AddPaymentComponent, canActivate: [requireLoginGuard] },
   { path: 'about', component: AboutComponent },
+  { path: 'faq', component: FaqComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
