@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /checkout
+Disallow: /profile
+Disallow: /cart
+
+# TODO: replace with the real production hostname once the sitemap endpoint (see the SEO plan's
+# "sitemap" section) exists — this repo has no reference anywhere to its own deployed domain, only
+# to the backend API hostnames (environment.prod.ts), so it isn't safe to guess one here.
+Sitemap: /sitemap.xml

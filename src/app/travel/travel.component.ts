@@ -11,6 +11,7 @@ import { buildTravelKit, Destination, Duration, Party, Season } from './kit-reco
 import { TravelKitService } from './travel-kit.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
 import { environment } from '../../environments/environment';
+import { SeoService } from '../common/seo.service';
 
 const TOTAL_STEPS = 6;
 const AUTO_ADVANCE_DELAY_MS = 350;
@@ -53,8 +54,15 @@ export class TravelComponent {
   private readonly travelKitService = inject(TravelKitService);
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
+  private readonly seo = inject(SeoService);
 
   constructor() {
+    this.seo.setSeo({
+      title: 'Build Your Travel Kit | Travel Besty',
+      description:
+        'Tell us your destination, season, and trip length — we\'ll build a personalized packing kit, or browse our Popular Kits gallery for ready-made picks.',
+    });
+
     // Real-backend mode only — mock mode's preview count/navigation both call the local
     // buildTravelKit() formula directly and never touch `recommendations`, so there's nothing to
     // prefetch. Refires whenever the answers that affect the backend's result change (including

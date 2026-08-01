@@ -5,6 +5,7 @@ import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
+import { SeoService } from '../common/seo.service';
 
 // Placeholder until there's a real pop-up address to show — swap for the real one when it exists,
 // the map embed below reads from this constant so it updates automatically.
@@ -92,8 +93,16 @@ export class AboutComponent {
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly seo = inject(SeoService);
 
   constructor() {
+    this.seo.setSeo({
+      title: 'About Travel Besty — Field-Tested Travel Gear',
+      description:
+        'Every item in a Travel Besty kit is field-tested on real trips before it ships. See how we build packing kits that actually match how you travel.',
+    });
+
+
     // Same continuous-marquee setup as the homepage's Popular Kits section — measure card width
     // once the track has rendered, then drive the auto-scroll with a rAF loop (see
     // home.component.ts's runMarqueeLoop, copied here verbatim).

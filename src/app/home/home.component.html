@@ -198,13 +198,13 @@
     <div class="section-head">
       <div class="petal-divider"><span></span><span></span><span></span></div>
       <div class="section-eyebrow">How it works</div>
-      <div class="section-title">Three easy steps</div>
+      <h2 class="section-title">Three easy steps</h2>
     </div>
     <div class="steps">
       @for (step of steps; track step.num) {
         <div class="step-card">
           <div class="step-num">{{ step.num }}</div>
-          <div class="step-title">{{ step.title }}</div>
+          <h3 class="step-title">{{ step.title }}</h3>
           <div class="step-text">{{ step.text }}</div>
         </div>
       }
@@ -216,7 +216,7 @@
   <div class="wrap">
     <div class="trust-band">
       <div class="trust-copy">
-        <h3>Nothing untested makes the cut.</h3>
+        <h2>Nothing untested makes the cut.</h2>
         <p>
           Every item in every kit is field-tested before it's recommended — no guessing, no cheap
           materials, no surprises mid-trip.
@@ -236,7 +236,7 @@
   <div class="wrap">
     <div class="section-head">
       <div class="section-eyebrow">Popular kits</div>
-      <div class="section-title">Already built for you</div>
+      <h2 class="section-title">Already built for you</h2>
       <div class="section-sub">Browse ready-made kits, or build your own from scratch.</div>
     </div>
   </div>
@@ -252,7 +252,7 @@
         <a class="kit-card" [routerLink]="['/popular', kit.id]">
           <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
           <div class="kit-info">
-            <div class="kit-name">{{ kit.name }}</div>
+            <h3 class="kit-name">{{ kit.name }}</h3>
             <div class="kit-meta">{{ kit.meta }}</div>
           </div>
         </a>
@@ -291,7 +291,7 @@
   <div class="wrap">
     <div class="section-head" style="margin-bottom: 32px">
       <div class="section-eyebrow">Or browse by mood</div>
-      <div class="section-title">Shop by destination</div>
+      <h2 class="section-title">Shop by destination</h2>
     </div>
     <div class="cat-row">
       @for (chip of categoryChips; track chip.label) {

@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -7,6 +7,8 @@ import { getProductTint } from '../shop/product-catalog';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
 import { parseYouTubeId } from './youtube-embed';
+import { SeoService } from '../common/seo.service';
+import { JsonLdService } from '../common/json-ld.service';
 
 interface VideoCard {
   title: string;
@@ -29,11 +31,13 @@ interface VideoCard {
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.css',
 })
-export class ProductDetailComponent {
+export class ProductDetailComponent implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly seo = inject(SeoService);
+  private readonly jsonLd = inject(JsonLdService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
@@ -74,6 +78,41 @@ export class ProductDetailComponent {
       this.selectedItem()?.id;
       this.selectedImageIndex.set(0);
     });
+
+    // Reactive, not one-shot — the item loads async, so this fires once on the initial resolve and
+    // again on every variant switch (title/description/JSON-LD must always match what's on screen).
+    effect(() => {
+      const item = this.selectedItem();
+      if (!item) return;
+
+      this.seo.setSeo({
+        title: `${item.name}${item.brand ? ' by ' + item.brand : ''} | Travel Besty`,
+        description: item.description || `Shop ${item.name} — field-tested travel gear from Travel Besty.`,
+        ogImage: item.image,
+      });
+
+      this.jsonLd.set({
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: item.name,
+        description: item.description || undefined,
+        image: item.images.length > 0 ? item.images : item.image ? [item.image] : undefined,
+        sku: item.id,
+        brand: item.brand ? { '@type': 'Brand', name: item.brand } : undefined,
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: item.currency,
+          price: item.price,
+          availability:
+            item.soldOut || item.stock <= 0 ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+        },
+      });
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Otherwise navigating away leaves this product's schema attached to whatever page comes next.
+    this.jsonLd.clear();
   }
 
   // Every item under this product — used only to resolve a bare-route fallback and to build "You

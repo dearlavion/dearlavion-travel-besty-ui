@@ -5,6 +5,7 @@ import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
 import { TopSellingService } from './top-selling.service';
+import { SeoService } from '../common/seo.service';
 
 interface Step {
   num: string;
@@ -59,11 +60,18 @@ const BAG_TINTS = [
 })
 export class HomeComponent {
   private readonly topSelling = inject(TopSellingService);
+  private readonly seo = inject(SeoService);
 
   constructor(
     private readonly popularKitsService: PopularKitsService,
     private readonly catalog: ProductCatalogService,
   ) {
+    this.seo.setSeo({
+      title: 'Travel Besty. Personalized travel essentials for every trip.',
+      description:
+        "Tell us about your trip and we'll build a field-tested packing kit just for it — beach, mountain, or city, solo or group. Nothing extra, nothing forgotten.",
+    });
+
     this.topSelling.load(BAG_ITEM_COUNT);
 
     afterNextRender(() => {

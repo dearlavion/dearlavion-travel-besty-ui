@@ -108,7 +108,7 @@
       @for (photo of form().images; track $index) {
         <div class="media-row">
           @if (photo) {
-            <img [src]="photo" alt="" class="photo-thumb" />
+            <img [src]="photo" [alt]="'Gallery photo ' + ($index + 1)" class="photo-thumb" />
           } @else {
             <div class="photo-thumb photo-thumb-empty"></div>
           }

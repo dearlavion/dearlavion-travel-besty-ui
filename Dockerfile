@@ -16,8 +16,12 @@ RUN yarn install --frozen-lockfile
 # Copy source
 COPY . .
 
-# Build Angular app (production)
-RUN yarn build --configuration production --no-prerender
+# Build Angular app (production) — prerenders the static/catalog-listing routes marked in
+# app.routes.server.ts (Home/Travel/Shop/About) so crawlers get real HTML + the per-route
+# title/meta tags baked in, instead of the empty <app-root> shell every route used to ship.
+# Product Detail stays CSR-only (RenderMode.Server, the ** fallback) — full SSR for a dynamic,
+# backend-driven catalog is a bigger deployment change, deliberately out of scope here.
+RUN yarn build --configuration production
 
 # =========================
 # Stage 2: Runtime (Nginx)

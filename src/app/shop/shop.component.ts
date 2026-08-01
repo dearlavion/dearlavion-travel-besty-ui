@@ -1,5 +1,5 @@
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,6 +8,7 @@ import { ProductItemService, ProductItemView } from './product-item.service';
 import { CartService } from '../cart/cart.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
 import { FooterComponent } from '../common/footer/footer.component';
+import { SeoService } from '../common/seo.service';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 const PAGE_SIZE = 50;
@@ -51,6 +52,7 @@ function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlyS
 export class ShopComponent implements OnInit {
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
+  private readonly seo = inject(SeoService);
 
   protected readonly search = signal('');
   protected readonly seasons = signal<ReadonlySet<ProductSeason>>(new Set());
@@ -164,36 +166,79 @@ export class ShopComponent implements OnInit {
     this.page.set(Math.max(0, Math.min(page, this.totalPages() - 1)));
   }
 
-  constructor(private route: ActivatedRoute) {
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+  ) {
     // The one place that needs the whole catalog (browsing/search/filter) — everything else
     // (Product Detail, Cart, My Kit) either uses a targeted per-product fetch or triggers this
     // lazily itself only when it actually needs a cross-product lookup.
     this.productItems.ensureCatalogLoaded();
 
     this.mobileQuery?.addEventListener('change', (e) => this.isMobile.set(e.matches));
+
+    this.seo.setSeo({
+      title: 'Shop Travel Gear & Packing Essentials | Travel Besty',
+      description:
+        'Browse field-tested travel gear and packing essentials for beach, mountain, and city trips — filter by season, destination, and more.',
+    });
   }
 
   ngOnInit(): void {
-    // Home's "Shop by destination" chips/footer links pass this through — a light functional
-    // wiring beyond the static mockup (which has no URL-driven state at all).
-    const destinationParam = this.route.snapshot.queryParamMap.get('destination');
-    if (destinationParam === 'Beach' || destinationParam === 'Mountain' || destinationParam === 'City') {
-      this.destinations.set(new Set([destinationParam]));
+    // Seeds initial filter state from the URL — Home's "Shop by destination" chips/footer links
+    // pass a single destination this way, and (below) any of these params reflected back by
+    // syncUrl() round-trip correctly on a shared/bookmarked/reloaded link. Comma-separated so a
+    // multi-select filter state (e.g. `?destination=Beach,Mountain`) is representable too.
+    const qp = this.route.snapshot.queryParamMap;
+
+    const destinationParam = qp.get('destination');
+    if (destinationParam) {
+      const values = destinationParam
+        .split(',')
+        .filter((v): v is ProductDestination => DESTINATION_OPTIONS.some((o) => o.value === v));
+      if (values.length > 0) this.destinations.set(new Set(values));
+    }
+
+    const seasonParam = qp.get('season');
+    if (seasonParam) {
+      const values = seasonParam.split(',').filter((v): v is ProductSeason => SEASON_OPTIONS.some((o) => o.value === v));
+      if (values.length > 0) this.seasons.set(new Set(values));
     }
 
     // My Kit's "Load more suggestions" link passes a product category through here — `filtered`
     // already matches search terms against category text, so pre-filling the search box is
     // enough to land the user on the full set of that category's products.
-    const searchParam = this.route.snapshot.queryParamMap.get('search');
+    const searchParam = qp.get('search');
     if (searchParam) {
       this.search.set(searchParam);
     }
+  }
+
+  // Mirrors destination/season/search into the URL (replacing, not pushing, history) so a
+  // filtered view is a distinct, shareable, bookmarkable — and crawlable — link instead of
+  // client-only state that vanishes on reload. Deliberately excludes sort/page, which aren't
+  // meaningful "category" URLs the way destination/season/search are.
+  private syncUrl(): void {
+    const destinations = this.destinations();
+    const seasons = this.seasons();
+    const search = this.search().trim();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        destination: destinations.size > 0 ? [...destinations].join(',') : null,
+        season: seasons.size > 0 ? [...seasons].join(',') : null,
+        search: search || null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   protected setSearch(term: string): void {
     this.search.set(term);
     this.page.set(0); // a new search invalidates whatever page the shopper was on
     this.flashRefresh();
+    this.syncUrl();
   }
 
   // A re-sort reshuffles which items land on which page — without resetting to page 0, a shopper
@@ -217,6 +262,7 @@ export class ShopComponent implements OnInit {
     this.seasons.set(next);
     this.page.set(0);
     this.flashRefresh();
+    this.syncUrl();
   }
 
   protected isDestinationSelected(destination: ProductDestination): boolean {
@@ -230,6 +276,7 @@ export class ShopComponent implements OnInit {
     this.destinations.set(next);
     this.page.set(0);
     this.flashRefresh();
+    this.syncUrl();
   }
 
   protected toggleSeasonMenu(): void {
