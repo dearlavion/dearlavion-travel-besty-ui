@@ -27,6 +27,13 @@
           }
         </div>
 
+        @if (order.shipping; as ship) {
+          <div class="order-shipping">
+            <span class="order-shipping-label">Shipping to</span>
+            {{ ship.fullName }} · {{ ship.address }}, {{ ship.city }} {{ ship.postalCode }}
+          </div>
+        }
+
         <div class="status-tracker">
           @for (step of statusSteps; track step; let i = $index) {
             <div class="status-step" [class.done]="i <= stepIndex(order)">

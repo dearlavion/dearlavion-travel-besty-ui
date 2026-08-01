@@ -64,7 +64,17 @@
       <tbody>
         @for (payment of filtered(); track payment.id) {
           <tr [class.pending-row]="payment.status === 'PENDING'">
-            <td class="name-cell">#{{ payment.orderReference ?? payment.orderId }}</td>
+            <td class="name-cell">
+              #{{ payment.orderReference ?? payment.orderId }}
+              @if (payment.shipping; as ship) {
+                <div class="ship-to">
+                  <span class="ship-to-label">Ship to:</span>
+                  {{ ship.fullName }} · {{ ship.address }}, {{ ship.city }} {{ ship.postalCode }}
+                </div>
+              } @else {
+                <div class="ship-to ship-to-missing">No shipping details on file</div>
+              }
+            </td>
             <td>{{ methodLabels[payment.method] }}</td>
             <td class="num-cell">{{ payment.amount | number: '1.2-2' }} {{ payment.currency }}</td>
             <td class="ref-cell">{{ payment.referenceNumber }}</td>

@@ -14,10 +14,19 @@ export interface OrderItem {
   currency: string;
 }
 
+export interface OrderShipping {
+  fullName: string;
+  email: string;
+  address: string;
+  city: string;
+  postalCode: string;
+}
+
 export interface Order {
   id: string; // e.g. TB-123456, same generated number shown on the confirmation screen
   placedAt: string; // ISO date
   items: OrderItem[];
+  shipping?: OrderShipping; // absent only for orders placed before this field existed
   total: number; // base (USD) catalog total, including shipping
   shippingFee?: number; // flat fee actually charged (0 if the order qualified for free shipping)
   currency: string;
@@ -69,6 +78,7 @@ interface ApiOrder {
   reference: string;
   placedAt: string;
   items: OrderItem[];
+  shipping?: OrderShipping;
   total: number;
   shippingFee?: number;
   currency: string;
@@ -82,6 +92,7 @@ function mapFromApi(raw: ApiOrder): Order {
     id: raw.reference,
     placedAt: raw.placedAt,
     items: raw.items,
+    shipping: raw.shipping,
     total: raw.total,
     shippingFee: raw.shippingFee,
     currency: raw.currency,
@@ -115,6 +126,7 @@ export class OrdersService {
       this.http
         .post<ApiOrder>(API_BASE, {
           items: order.items,
+          shipping: order.shipping,
           total: order.total,
           shippingFee: order.shippingFee,
           currency: order.currency,

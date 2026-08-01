@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PricePipe } from '../common/price.pipe';
@@ -7,6 +7,7 @@ import { CartService } from '../cart/cart.service';
 import { ProfileService } from '../profile/profile.service';
 import { PAYMENT_METHODS, PaymentMethod, PaymentService } from '../payment/payment.service';
 import { Order, OrderItem, OrdersService } from './orders.service';
+import { ShippingDetailsService } from './shipping-details.service';
 import { FreeShippingNoticeComponent } from '../common/free-shipping-notice/free-shipping-notice.component';
 
 // Two steps: (1) place the order with shipping details, then (2) submit a manual proof of payment
@@ -25,6 +26,7 @@ export class CheckoutComponent {
   private readonly paymentService = inject(PaymentService);
   private readonly profile = inject(ProfileService);
   private readonly exchange = inject(ExchangeRateService);
+  private readonly shippingDetailsService = inject(ShippingDetailsService);
 
   // shipping
   fullName = '';
@@ -32,6 +34,25 @@ export class CheckoutComponent {
   address = '';
   city = '';
   postalCode = '';
+  // Opt-in checkbox: save the details above to the account for next time. Pre-checked whenever a
+  // previously-saved record is what filled the form in the first place.
+  protected readonly saveDetails = signal(false);
+
+  constructor() {
+    // Prefills once the saved record is available — synchronously in mock mode, or once the real
+    // GET /shipping-details resolves in real mode (ShippingDetailsService.details() is a signal,
+    // so this re-runs when that arrives).
+    effect(() => {
+      const saved = this.shippingDetailsService.details();
+      if (!saved) return;
+      this.fullName = saved.fullName;
+      this.email = saved.email;
+      this.address = saved.address;
+      this.city = saved.city;
+      this.postalCode = saved.postalCode;
+      this.saveDetails.set(true);
+    });
+  }
 
   // payment proof
   protected readonly methods = PAYMENT_METHODS;
@@ -72,10 +93,18 @@ export class CheckoutComponent {
     }));
     // What the shopper is asked to pay, in their currency (converted from the USD total).
     const converted = Math.round(this.placedTotalUsd * this.exchange.rateFor(this.currency()) * 100) / 100;
+    const shipping = {
+      fullName: this.fullName.trim(),
+      email: this.email.trim(),
+      address: this.address.trim(),
+      city: this.city.trim(),
+      postalCode: this.postalCode.trim(),
+    };
     const order: Order = {
       id: generatedOrderNumber,
       placedAt: new Date().toISOString(),
       items,
+      shipping,
       total: this.placedTotalUsd,
       shippingFee: this.cart.shippingCost(),
       currency: items[0]?.currency ?? 'USD',
@@ -83,6 +112,8 @@ export class CheckoutComponent {
       chargedCurrency: this.currency(),
     };
     this.ordersService.addOrder(order);
+    // Opt-in only — doesn't gate order placement on it succeeding.
+    if (this.saveDetails()) this.shippingDetailsService.save(shipping);
 
     this.orderNumber.set(generatedOrderNumber);
     this.amountPaid.set(converted);

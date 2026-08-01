@@ -3,6 +3,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
+import { OrderShipping, OrdersService } from '../checkout/orders.service';
 
 export type PaymentMethod = 'CARD' | 'GCASH' | 'MAYA' | 'MARIBANK';
 export type PaymentStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -11,6 +12,9 @@ export interface Payment {
   id: string;
   orderId: string;
   orderReference?: string;
+  // Denormalized from the order at submission time — where to ship it. Absent for payments
+  // submitted before this field existed, or (real mode) if the order itself has no shipping.
+  shipping?: OrderShipping;
   method: PaymentMethod;
   amount: number;
   currency: string;
@@ -63,6 +67,7 @@ function loadStored(): Payment[] {
 export class PaymentService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly orders = inject(OrdersService);
 
   /** The signed-in customer's own payments (for showing status on Track Packages). */
   readonly myPayments = signal<Payment[]>(environment.useMockData ? loadStored() : []);
@@ -86,10 +91,15 @@ export class PaymentService {
 
   submit(input: SubmitPaymentInput): Observable<Payment> {
     if (environment.useMockData) {
+      // Real mode gets shipping for free (denormalized server-side from the order at submission
+      // time, see payment-service's create()) — mock mode has no such backend, so look the
+      // placed order up locally the same way it's stored (OrdersService.orders()).
+      const shipping = this.orders.orders().find((o) => o.id === input.orderId)?.shipping;
       const payment: Payment = {
         id: `${Date.now()}`,
         orderId: input.orderId,
         orderReference: input.orderId,
+        shipping,
         method: input.method,
         amount: input.amount,
         currency: input.currency ?? 'PHP',

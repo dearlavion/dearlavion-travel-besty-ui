@@ -108,6 +108,11 @@
           </div>
         </div>
 
+        <label class="checkbox-field">
+          <input type="checkbox" [ngModel]="saveDetails()" (ngModelChange)="saveDetails.set($event)" name="saveDetails" />
+          <span>Save these details for next time</span>
+        </label>
+
         <button type="submit" class="place-order-btn" [disabled]="submitting()">
           {{ submitting() ? 'Placing order…' : 'Place Order' }}
         </button>

@@ -53,6 +53,24 @@
   gap: 16px;
 }
 
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.checkbox-field input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--color-coral);
+  cursor: pointer;
+}
+
 .place-order-btn {
   width: 100%;
   background: var(--color-coral);
