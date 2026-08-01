@@ -27,6 +27,8 @@ import { AdminSettingsComponent } from './admin/settings/admin-settings.componen
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
+import { TrackPackageDetailComponent } from './profile/track-packages/order-detail/track-package-detail.component';
+import { AddPaymentComponent } from './checkout/add-payment/add-payment.component';
 import { requireLoginGuard } from './auth/require-login.guard';
 
 export const routes: Routes = [
@@ -46,12 +48,14 @@ export const routes: Routes = [
       { path: '', redirectTo: 'collection', pathMatch: 'full' },
       { path: 'collection', component: MyCollectionComponent },
       { path: 'collection/:id', component: SavedKitDetailComponent },
-      { path: 'track-packages', component: TrackPackagesComponent },
+      { path: 'orders', component: TrackPackagesComponent },
+      { path: 'orders/:id', component: TrackPackageDetailComponent },
       { path: 'settings', component: ProfileSettingsComponent },
     ],
   },
   { path: 'cart', component: CartComponent },
   { path: 'checkout', component: CheckoutComponent, canActivate: [requireLoginGuard] },
+  { path: 'checkout/pay/:orderId', component: AddPaymentComponent, canActivate: [requireLoginGuard] },
   { path: 'about', component: AboutComponent },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },

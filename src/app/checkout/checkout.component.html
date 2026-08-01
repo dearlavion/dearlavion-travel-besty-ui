@@ -6,7 +6,7 @@
       Thanks — your payment for order <strong>#{{ orderNumber() }}</strong> is now <strong>pending verification</strong>.
       We'll confirm it shortly. A receipt goes to {{ email }}.
     </p>
-    <a routerLink="/profile/track-packages" class="confirm-btn">Track my order</a>
+    <a routerLink="/profile/orders" class="confirm-btn">Track my order</a>
     <a routerLink="/" class="confirm-link">Continue shopping</a>
   </div>
 } @else if (step() === 'payment') {

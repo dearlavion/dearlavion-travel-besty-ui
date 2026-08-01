@@ -1,0 +1,62 @@
+@if (!order()) {
+  <div class="empty-state">
+    <p class="empty-icon">📦</p>
+    <h1>Order not found.</h1>
+    <p>We couldn't find that order on your account.</p>
+    <a routerLink="/profile/orders" class="empty-btn">Back to Orders</a>
+  </div>
+} @else if (existingPayment(); as payment) {
+  <div class="empty-state">
+    <p class="empty-icon">✅</p>
+    <h1>Payment already submitted.</h1>
+    <p>Order #{{ order()!.id }} already has a payment on file ({{ payment.status | lowercase }}).</p>
+    <a [routerLink]="['/profile/orders', order()!.id]" class="empty-btn">View order</a>
+  </div>
+} @else {
+  <div class="checkout-page checkout-page--narrow">
+    <div class="checkout-head">
+      <p class="eyebrow">Payment</p>
+      <h1 class="checkout-title">Submit your payment</h1>
+      <p class="pay-intro">
+        Order <strong>#{{ order()!.id }}</strong> — {{ (order()!.chargedAmount ?? order()!.total) | number: '1.2-2' }}
+        {{ currency() }}. Pay via your chosen method, then submit the details and a screenshot link so we can verify it.
+      </p>
+    </div>
+
+    <form #payForm="ngForm" class="checkout-form" (ngSubmit)="submit(payForm)">
+      <div class="form-field">
+        <label for="method">Payment method</label>
+        <select id="method" name="method" class="select" [ngModel]="method()" (ngModelChange)="method.set($event)" required>
+          @for (m of methods; track m.code) {
+            <option [value]="m.code">{{ m.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="amount">Amount paid ({{ currency() }})</label>
+          <input id="amount" type="number" name="amount" min="0.01" step="0.01" [ngModel]="amountPaid()" (ngModelChange)="amountPaid.set($event)" required />
+        </div>
+        <div class="form-field">
+          <label for="reference">Reference number</label>
+          <input id="reference" type="text" name="reference" [(ngModel)]="referenceNumber" required placeholder="e.g. GCash ref #" />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="proof">Proof of payment (image URL)</label>
+        <input id="proof" type="url" name="proof" [(ngModel)]="proofImageUrl" required placeholder="https://… screenshot link" />
+        <small class="field-hint">Upload your screenshot somewhere (e.g. an image host) and paste the link here.</small>
+      </div>
+
+      @if (error()) {
+        <p class="pay-error">{{ error() }}</p>
+      }
+
+      <button type="submit" class="place-order-btn" [disabled]="submitting()">
+        {{ submitting() ? 'Submitting…' : 'Submit payment' }}
+      </button>
+    </form>
+  </div>
+}

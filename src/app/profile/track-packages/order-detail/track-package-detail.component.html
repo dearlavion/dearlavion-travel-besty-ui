@@ -1,0 +1,88 @@
+<a routerLink="/profile/orders" class="back-link">← Back to Orders</a>
+
+@if (!order()) {
+  <div class="empty-state">
+    <p class="empty-icon">📦</p>
+    <h1>Order not found.</h1>
+    <p>We couldn't find that order on your account.</p>
+  </div>
+} @else if (order(); as o) {
+  <div class="detail-head">
+    <div>
+      <h1>Order #{{ o.id }}</h1>
+      <p class="sub">Placed {{ placedDateLabel(o) }}</p>
+    </div>
+    <div class="badges">
+      @if (o.cancelled) {
+        <span class="pay-badge pay-cancelled">Cancelled</span>
+      } @else {
+        <span class="pay-badge" [class]="paymentBadge().cssClass">{{ paymentBadge().label }}</span>
+      }
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel-title">Items</h2>
+    <div class="order-items">
+      @for (item of o.items; track item.productId) {
+        <span class="order-item">{{ item.icon }} {{ item.name }} × {{ item.quantity }}</span>
+      }
+    </div>
+    <div class="total-row">
+      <span>Total</span>
+      <span class="total-value">{{ o.total | price }}</span>
+    </div>
+  </section>
+
+  @if (o.shipping; as ship) {
+    <section class="panel">
+      <h2 class="panel-title">Ship to</h2>
+      <p class="ship-name">{{ ship.fullName }}</p>
+      <p class="ship-line">{{ ship.address }}</p>
+      <p class="ship-line">{{ ship.city }} {{ ship.postalCode }}</p>
+      <p class="ship-line">{{ ship.email }}</p>
+    </section>
+  }
+
+  @if (!o.cancelled) {
+    <section class="panel">
+      <h2 class="panel-title">Delivery status</h2>
+      <div class="status-tracker">
+        @for (step of statusSteps; track step; let i = $index) {
+          <div class="status-step" [class.done]="i <= stepIndex(o)">
+            <div class="status-dot"></div>
+            <span class="status-label">{{ step }}</span>
+            @if (i < statusSteps.length - 1) {
+              <div class="status-line" [class.done]="i < stepIndex(o)"></div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  } @else {
+    <section class="panel">
+      <p class="cancelled-note">This order was cancelled and will not be fulfilled.</p>
+    </section>
+  }
+
+  @if (canAddPayment() || canCancel()) {
+    <section class="panel actions">
+      @if (canAddPayment()) {
+        <a [routerLink]="['/checkout/pay', o.id]" class="action-btn action-btn-primary">Add Payment</a>
+      }
+      @if (canCancel()) {
+        @if (!confirmingCancel()) {
+          <button type="button" class="action-btn cancel-btn" (click)="requestCancel()">Cancel Order</button>
+        } @else {
+          <div class="confirm-cancel">
+            <span>Cancel this order?</span>
+            <button type="button" class="action-btn cancel-btn-confirm" [disabled]="cancelling()" (click)="confirmCancel()">
+              {{ cancelling() ? 'Cancelling…' : 'Yes, cancel it' }}
+            </button>
+            <button type="button" class="action-btn" [disabled]="cancelling()" (click)="dismissCancel()">Never mind</button>
+          </div>
+        }
+      }
+    </section>
+  }
+}

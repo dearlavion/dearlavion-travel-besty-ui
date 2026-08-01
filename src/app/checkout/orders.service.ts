@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, map, of } from 'rxjs';
+import { Observable, map, of, tap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { environment } from '../../environments/environment';
 
@@ -49,6 +49,10 @@ export interface Order {
   // without touching payment/delivery state. Absent/false for every normal order.
   archived?: boolean;
   archivedAt?: string;
+  // Customer-initiated cancellation (see OrdersService.cancelOrder) — only settable while
+  // deliveryStatus is still 'Processing'.
+  cancelled?: boolean;
+  cancelledAt?: string;
 }
 
 const STORAGE_KEY = 'travel-besty-orders';
@@ -89,6 +93,8 @@ interface ApiOrder {
   deliveredAt?: string;
   archived?: boolean;
   archivedAt?: string;
+  cancelled?: boolean;
+  cancelledAt?: string;
 }
 
 // The backend's own Mongo `id` is opaque; `reference` (e.g. "TB-123456") is the human-facing order
@@ -109,10 +115,12 @@ function mapFromApi(raw: ApiOrder): Order {
     deliveredAt: raw.deliveredAt,
     archived: raw.archived,
     archivedAt: raw.archivedAt,
+    cancelled: raw.cancelled,
+    cancelledAt: raw.cancelledAt,
   };
 }
 
-/** Persists placed orders so /profile/track-packages can list them later — localStorage in mock
+/** Persists placed orders so /profile/orders can list them later — localStorage in mock
  * mode, the backend's `/orders` (auth-scoped) collection in real-backend mode. Also carries the
  * admin-facing fulfillment methods (list-all, mark shipped/delivered, flag inventory updated) —
  * mirrors how PaymentService mixes customer + admin methods in one class rather than splitting
@@ -168,6 +176,25 @@ export class OrdersService {
   private persist(): void {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.orders()));
+  }
+
+  /** Self-service cancellation — only while the order is still 'Processing' (the backend 409s
+   * otherwise; mock mode mirrors the same restriction so both modes behave the same). */
+  cancelOrder(idOrRef: string): Observable<Order> {
+    if (environment.useMockData) {
+      const list = this.orders().map((o) =>
+        o.id === idOrRef && o.deliveryStatus === 'Processing' && !o.cancelled
+          ? { ...o, cancelled: true, cancelledAt: new Date().toISOString() }
+          : o,
+      );
+      this.orders.set(list);
+      this.persist();
+      return of(list.find((o) => o.id === idOrRef)!);
+    }
+    return this.http.patch<ApiOrder>(`${API_BASE}/${idOrRef}/cancel`, {}).pipe(
+      map(mapFromApi),
+      tap((updated) => this.orders.update((list) => list.map((o) => (o.id === updated.id ? updated : o)))),
+    );
   }
 
   // ── Admin (fulfillment) — backs /admin/orders ───────────────────────────────────────────────
