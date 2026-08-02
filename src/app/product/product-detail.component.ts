@@ -9,6 +9,7 @@ import { CartService } from '../cart/cart.service';
 import { parseYouTubeId } from './youtube-embed';
 import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
+import { ORGANIZATION_ID, organizationNode, websiteNode, breadcrumbNode } from '../common/site-entities';
 
 interface VideoCard {
   title: string;
@@ -91,13 +92,13 @@ export class ProductDetailComponent implements OnDestroy {
         ogImage: item.image,
       });
 
-      this.jsonLd.set({
-        '@context': 'https://schema.org',
+      const productNode = {
         '@type': 'Product',
         name: item.name,
         description: item.description || undefined,
         image: item.images.length > 0 ? item.images : item.image ? [item.image] : undefined,
         sku: item.id,
+        // The manufacturer/brand of the item (e.g. "Samsonite") — distinct from who sells it.
         brand: item.brand ? { '@type': 'Brand', name: item.brand } : undefined,
         offers: {
           '@type': 'Offer',
@@ -105,7 +106,24 @@ export class ProductDetailComponent implements OnDestroy {
           price: item.price,
           availability:
             item.soldOut || item.stock <= 0 ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+          // Links this Offer to the shared Organization node — Travel Besty is the seller,
+          // regardless of which manufacturer brand the item itself is.
+          seller: { '@id': ORGANIZATION_ID },
         },
+      };
+
+      this.jsonLd.set({
+        '@context': 'https://schema.org',
+        '@graph': [
+          organizationNode(),
+          websiteNode(),
+          breadcrumbNode([
+            { name: 'Home', url: '/' },
+            { name: 'Shop', url: '/shop' },
+            { name: item.name, url: `/product/${item.productId}/items/${item.id}` },
+          ]),
+          productNode,
+        ],
       });
     });
   }

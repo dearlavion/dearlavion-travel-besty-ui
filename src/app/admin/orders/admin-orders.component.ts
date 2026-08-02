@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PricePipe } from '../../common/price.pipe';
-import { Order, OrderStatus, OrdersService } from '../../checkout/orders.service';
+import { Order, OrderStatus, OrdersService, PAYMENT_STATUS_LABEL, PaymentStatus } from '../../checkout/orders.service';
 import { PaginationComponent } from '../../common/pagination/pagination.component';
 
 type DeliveryFilter = OrderStatus | 'all' | 'Archived';
@@ -102,6 +102,10 @@ export class AdminOrdersComponent {
 
   protected goToPage(page: number): void {
     this.page.set(Math.max(0, Math.min(page, this.totalPages() - 1)));
+  }
+
+  protected paymentLabel(status: PaymentStatus): string {
+    return PAYMENT_STATUS_LABEL[status];
   }
 
   protected itemsSummary(order: Order): string {

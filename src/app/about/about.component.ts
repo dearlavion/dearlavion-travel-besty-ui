@@ -7,6 +7,8 @@ import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
 import { SeoService } from '../common/seo.service';
+import { JsonLdService } from '../common/json-ld.service';
+import { organizationNode, websiteNode, breadcrumbNode } from '../common/site-entities';
 
 // Placeholder until there's a real pop-up address to show — swap for the real one when it exists,
 // the map embed below reads from this constant so it updates automatically.
@@ -95,6 +97,7 @@ export class AboutComponent {
   private readonly catalog = inject(ProductCatalogService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly seo = inject(SeoService);
+  private readonly jsonLd = inject(JsonLdService);
   private readonly route = inject(ActivatedRoute);
   private readonly fragment = toSignal(this.route.fragment);
 
@@ -103,6 +106,11 @@ export class AboutComponent {
       title: 'About Travel Besty — Field-Tested Travel Gear',
       description:
         'Every item in a Travel Besty kit is field-tested on real trips before it ships. See how we build packing kits that actually match how you travel.',
+    });
+
+    this.jsonLd.set({
+      '@context': 'https://schema.org',
+      '@graph': [organizationNode(), websiteNode(), breadcrumbNode([{ name: 'Home', url: '/' }, { name: 'About', url: '/about' }])],
     });
 
     // Explicit, not relying on the router's default scroll behavior — same reasoning as

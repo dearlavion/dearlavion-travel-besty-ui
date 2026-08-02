@@ -11,8 +11,13 @@
       <p class="sub">Placed {{ dateLabel(o.placedAt) }}</p>
     </div>
     <div class="badges">
-      <span class="status-badge" [class.paid]="o.paymentStatus === 'PAID'" [class.rejected]="o.paymentStatus === 'REJECTED'">
-        {{ o.paymentStatus }}
+      <span
+        class="status-badge"
+        [class.paid]="o.paymentStatus === 'PAID'"
+        [class.pending]="o.paymentStatus === 'PENDING'"
+        [class.rejected]="o.paymentStatus === 'REJECTED'"
+      >
+        {{ paymentLabel(o.paymentStatus) }}
       </span>
       <span
         class="status-badge delivery"

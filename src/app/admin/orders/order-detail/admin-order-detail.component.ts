@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PricePipe } from '../../../common/price.pipe';
-import { Order, OrderItem, OrdersService } from '../../../checkout/orders.service';
+import { Order, OrderItem, OrdersService, PAYMENT_STATUS_LABEL, PaymentStatus } from '../../../checkout/orders.service';
 import { ProductItemService } from '../../../shop/product-item.service';
 import { ToastService } from '../../../common/toast/toast.service';
 
@@ -61,6 +61,10 @@ export class AdminOrderDetailComponent {
     const o = this.order();
     return !!o && o.deliveryStatus === 'Shipped';
   });
+
+  protected paymentLabel(status: PaymentStatus): string {
+    return PAYMENT_STATUS_LABEL[status];
+  }
 
   protected currentStock(item: OrderItem): number | null {
     if (!item.productItemId) return null;

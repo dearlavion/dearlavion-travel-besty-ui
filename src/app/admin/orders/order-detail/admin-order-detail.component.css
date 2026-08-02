@@ -68,6 +68,11 @@ h1 {
   color: var(--color-leaf);
 }
 
+.status-badge.pending {
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+}
+
 .status-badge.rejected {
   background: var(--color-line);
   color: var(--color-coral-deep);

@@ -10,6 +10,8 @@ import { CartService } from '../cart/cart.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { SeoService } from '../common/seo.service';
+import { JsonLdService } from '../common/json-ld.service';
+import { organizationNode, websiteNode, breadcrumbNode } from '../common/site-entities';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 const PAGE_SIZE = 50;
@@ -60,6 +62,7 @@ export class ShopComponent {
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
   private readonly seo = inject(SeoService);
+  private readonly jsonLd = inject(JsonLdService);
 
   protected readonly search = signal('');
   protected readonly seasons = signal<ReadonlySet<ProductSeason>>(new Set());
@@ -192,6 +195,36 @@ export class ShopComponent {
       title: 'Shop Travel Gear & Packing Essentials | Travel Besty',
       description:
         'Browse field-tested travel gear and packing essentials for beach, mountain, and city trips — filter by season, destination, and more.',
+    });
+
+    // Reactive: the catalog loads async (ensureCatalogLoaded() below), so this republishes once
+    // real prices are in, and stays correct if the catalog changes later — lowPrice/highPrice are
+    // computed live from the actual current catalog, never a hardcoded guess.
+    effect(() => {
+      const items = this.productItems.views();
+      const prices = items.map((i) => i.price);
+      const aggregateOfferNode: Record<string, unknown> = {
+        '@type': 'AggregateOffer',
+        priceCurrency: items[0]?.currency ?? 'USD',
+        offerCount: items.length,
+      };
+      if (prices.length > 0) {
+        aggregateOfferNode['lowPrice'] = Math.min(...prices);
+        aggregateOfferNode['highPrice'] = Math.max(...prices);
+      }
+
+      this.jsonLd.set({
+        '@context': 'https://schema.org',
+        '@graph': [
+          organizationNode(),
+          websiteNode(),
+          breadcrumbNode([
+            { name: 'Home', url: '/' },
+            { name: 'Shop', url: '/shop' },
+          ]),
+          aggregateOfferNode,
+        ],
+      });
     });
 
     // Reactive, not one-shot: Angular reuses this same component instance for navigations that

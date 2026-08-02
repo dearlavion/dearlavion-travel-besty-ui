@@ -26,8 +26,17 @@ export interface OrderShipping {
   postalCode: string;
 }
 
-export type PaymentStatus = 'UNPAID' | 'PAID' | 'REJECTED';
+export type PaymentStatus = 'UNPAID' | 'PENDING' | 'PAID' | 'REJECTED';
 export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered';
+
+// Admin-facing label for each PaymentStatus — matches the customer-facing wording used on
+// /profile/orders (PENDING = the customer has submitted proof and it's awaiting review).
+export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
+  UNPAID: 'UNPAID',
+  PENDING: 'Verifying payment',
+  PAID: 'PAID',
+  REJECTED: 'REJECTED',
+};
 
 export interface Order {
   id: string; // e.g. TB-123456, same generated number shown on the confirmation screen

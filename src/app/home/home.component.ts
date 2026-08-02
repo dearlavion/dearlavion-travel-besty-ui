@@ -7,6 +7,8 @@ import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from '../travel/popular-kit-view';
 import { TopSellingService } from './top-selling.service';
 import { SeoService } from '../common/seo.service';
+import { JsonLdService } from '../common/json-ld.service';
+import { organizationNode, websiteNode } from '../common/site-entities';
 
 interface Step {
   num: string;
@@ -62,6 +64,7 @@ const BAG_TINTS = [
 export class HomeComponent {
   private readonly topSelling = inject(TopSellingService);
   private readonly seo = inject(SeoService);
+  private readonly jsonLd = inject(JsonLdService);
   private readonly route = inject(ActivatedRoute);
   private readonly fragment = toSignal(this.route.fragment);
 
@@ -73,6 +76,11 @@ export class HomeComponent {
       title: 'Travel Besty. Personalized travel essentials for every trip.',
       description:
         "Tell us about your trip and we'll build a field-tested packing kit just for it — beach, mountain, or city, solo or group. Nothing extra, nothing forgotten.",
+    });
+
+    this.jsonLd.set({
+      '@context': 'https://schema.org',
+      '@graph': [organizationNode(), websiteNode()],
     });
 
     // Explicit, not relying on the router's default scroll behavior — same reasoning as

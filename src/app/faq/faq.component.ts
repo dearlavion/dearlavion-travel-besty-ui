@@ -2,6 +2,7 @@ import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { FooterComponent } from '../common/footer/footer.component';
 import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
+import { organizationNode, websiteNode, breadcrumbNode } from '../common/site-entities';
 import { FAQ_ITEMS } from './faq.data';
 
 // Dedicated FAQ page — the answer-engine-optimization counterpart to the SEO work elsewhere in
@@ -30,8 +31,7 @@ export class FaqComponent implements OnDestroy {
         'Answers to common questions about how Travel Besty builds your kit, payment methods, order tracking, cancellations, saved kits, and shipping.',
     });
 
-    this.jsonLd.set({
-      '@context': 'https://schema.org',
+    const faqPageNode = {
       '@type': 'FAQPage',
       mainEntity: this.items.map((item) => ({
         '@type': 'Question',
@@ -41,6 +41,16 @@ export class FaqComponent implements OnDestroy {
           text: item.answer,
         },
       })),
+    };
+
+    this.jsonLd.set({
+      '@context': 'https://schema.org',
+      '@graph': [
+        organizationNode(),
+        websiteNode(),
+        breadcrumbNode([{ name: 'Home', url: '/' }, { name: 'FAQ', url: '/faq' }]),
+        faqPageNode,
+      ],
     });
   }
 

@@ -76,9 +76,10 @@
               <span
                 class="status-badge"
                 [class.paid]="order.paymentStatus === 'PAID'"
+                [class.pending]="order.paymentStatus === 'PENDING'"
                 [class.rejected]="order.paymentStatus === 'REJECTED'"
               >
-                {{ order.paymentStatus }}
+                {{ paymentLabel(order.paymentStatus) }}
               </span>
             </td>
             <td>

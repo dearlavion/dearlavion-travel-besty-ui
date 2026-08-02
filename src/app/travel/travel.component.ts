@@ -13,6 +13,8 @@ import { TravelKitService } from './travel-kit.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
 import { environment } from '../../environments/environment';
 import { SeoService } from '../common/seo.service';
+import { JsonLdService } from '../common/json-ld.service';
+import { organizationNode, websiteNode } from '../common/site-entities';
 
 const TOTAL_STEPS = 6;
 const AUTO_ADVANCE_DELAY_MS = 350;
@@ -57,6 +59,7 @@ export class TravelComponent {
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
   private readonly seo = inject(SeoService);
+  private readonly jsonLd = inject(JsonLdService);
   private readonly fragment = toSignal(this.route.fragment);
 
   constructor() {
@@ -64,6 +67,11 @@ export class TravelComponent {
       title: 'Build Your Travel Kit | Travel Besty',
       description:
         'Tell us your destination, season, and trip length — we\'ll build a personalized packing kit, or browse our Popular Kits gallery for ready-made picks.',
+    });
+
+    this.jsonLd.set({
+      '@context': 'https://schema.org',
+      '@graph': [organizationNode(), websiteNode()],
     });
 
     // Handled explicitly rather than via Angular Router's built-in anchor-scrolling: this route is
