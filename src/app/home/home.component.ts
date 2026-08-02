@@ -1,5 +1,6 @@
-import { afterNextRender, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { afterNextRender, Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
@@ -61,6 +62,8 @@ const BAG_TINTS = [
 export class HomeComponent {
   private readonly topSelling = inject(TopSellingService);
   private readonly seo = inject(SeoService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly fragment = toSignal(this.route.fragment);
 
   constructor(
     private readonly popularKitsService: PopularKitsService,
@@ -70,6 +73,16 @@ export class HomeComponent {
       title: 'Travel Besty. Personalized travel essentials for every trip.',
       description:
         "Tell us about your trip and we'll build a field-tested packing kit just for it — beach, mountain, or city, solo or group. Nothing extra, nothing forgotten.",
+    });
+
+    // Explicit, not relying on the router's default scroll behavior — same reasoning as
+    // TravelComponent/AboutComponent: Angular reuses this component for same-route navigations
+    // (e.g. clicking the footer logo again while already on Home, possibly scrolled down), and
+    // that doesn't reliably reset scroll position on its own.
+    effect(() => {
+      this.fragment();
+      if (typeof document === 'undefined') return;
+      document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     this.topSelling.load(BAG_ITEM_COUNT);

@@ -1,6 +1,7 @@
-import { Component, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { ProductCatalogService } from '../shop/product-catalog.service';
@@ -94,6 +95,8 @@ export class AboutComponent {
   private readonly catalog = inject(ProductCatalogService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly seo = inject(SeoService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly fragment = toSignal(this.route.fragment);
 
   constructor() {
     this.seo.setSeo({
@@ -102,6 +105,15 @@ export class AboutComponent {
         'Every item in a Travel Besty kit is field-tested on real trips before it ships. See how we build packing kits that actually match how you travel.',
     });
 
+    // Explicit, not relying on the router's default scroll behavior — same reasoning as
+    // TravelComponent: Angular reuses this component for same-route navigations (e.g. clicking
+    // "About" in the footer again while already here, possibly scrolled down), and that doesn't
+    // reliably reset scroll position on its own.
+    effect(() => {
+      this.fragment();
+      if (typeof document === 'undefined') return;
+      document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
 
     // Same continuous-marquee setup as the homepage's Popular Kits section — measure card width
     // once the track has rendered, then drive the auto-scroll with a rAF loop (see

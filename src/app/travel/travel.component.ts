@@ -1,7 +1,8 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { Product } from '../shop/product-catalog';
@@ -50,17 +51,37 @@ interface SurveyRecommendationsResponse {
 })
 export class TravelComponent {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly http = inject(HttpClient);
   private readonly travelKitService = inject(TravelKitService);
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
   private readonly seo = inject(SeoService);
+  private readonly fragment = toSignal(this.route.fragment);
 
   constructor() {
     this.seo.setSeo({
       title: 'Build Your Travel Kit | Travel Besty',
       description:
         'Tell us your destination, season, and trip length — we\'ll build a personalized packing kit, or browse our Popular Kits gallery for ready-made picks.',
+    });
+
+    // Handled explicitly rather than via Angular Router's built-in anchor-scrolling: this route is
+    // reused for both the footer's "Build My Kit" (/travel, no fragment) and "Popular Kits"
+    // (/travel#popular-kits) links, and the router's automatic scroll restoration doesn't reliably
+    // reset when navigating between two fragment states of the *same* already-active route — it
+    // was leaving "Build My Kit" scrolled down at the gallery after a prior Popular Kits click.
+    // Reacting to the fragment signal directly (only re-fires when it actually changes) fixes both
+    // directions deterministically.
+    effect(() => {
+      const frag = this.fragment();
+      if (typeof document === 'undefined') return;
+      if (frag === 'popular-kits') {
+        document.getElementById('popular-kits')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        // Default target for "hero" or no fragment at all (nav bar / other plain /travel links).
+        document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
 
     // Real-backend mode only — mock mode's preview count/navigation both call the local
