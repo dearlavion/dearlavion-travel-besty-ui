@@ -212,6 +212,12 @@ h1 {
   align-items: center;
 }
 
+.hint {
+  font-size: 12px;
+  color: var(--color-ink-soft);
+  font-style: italic;
+}
+
 .action-btn {
   border: 1.5px solid var(--color-line);
   background: #fff;

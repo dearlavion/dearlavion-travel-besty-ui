@@ -61,9 +61,32 @@ export class TrackPackageDetailComponent {
     return !!o && !o.cancelled && !this.payment();
   });
 
+  // Cancellation isn't self-service once money has actually moved (PENDING: a submission is
+  // awaiting review; PAID: it's already been approved) — only UNPAID/REJECTED orders can be
+  // cancelled instantly here, matching the backend's own OrdersService.cancelOrder guard.
   protected readonly canCancel = computed(() => {
     const o = this.order();
-    return !!o && !o.cancelled && o.deliveryStatus === 'Processing';
+    return (
+      !!o &&
+      !o.cancelled &&
+      o.deliveryStatus === 'Processing' &&
+      o.paymentStatus !== 'PENDING' &&
+      o.paymentStatus !== 'PAID'
+    );
+  });
+
+  // Shown in place of the actions panel when Cancel Order isn't offered because of payment
+  // state — explains why, rather than the panel just silently vanishing.
+  protected readonly cancelBlockedNote = computed(() => {
+    const o = this.order();
+    if (!o || o.cancelled) return null;
+    if (o.paymentStatus === 'PENDING') {
+      return "Your payment is being verified — this order can no longer be cancelled while it's under review.";
+    }
+    if (o.paymentStatus === 'PAID') {
+      return 'This order has already been paid. Email hello@travelbesty.com if you need to cancel it.';
+    }
+    return null;
   });
 
   protected status(order: Order): OrderStatus {

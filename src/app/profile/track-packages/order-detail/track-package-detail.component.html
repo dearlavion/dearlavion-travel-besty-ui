@@ -84,5 +84,9 @@
         }
       }
     </section>
+  } @else if (cancelBlockedNote(); as note) {
+    <section class="panel actions">
+      <p class="hint">{{ note }}</p>
+    </section>
   }
 }
