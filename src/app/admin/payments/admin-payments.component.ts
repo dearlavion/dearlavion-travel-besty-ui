@@ -36,7 +36,7 @@ export class AdminPaymentsComponent {
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
 
-  protected readonly filter = signal<PaymentFilter>('PENDING');
+  protected readonly filter = signal<PaymentFilter>('all');
   protected readonly search = signal('');
   protected readonly page = signal(0); // 0-indexed
 

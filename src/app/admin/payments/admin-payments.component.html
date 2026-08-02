@@ -21,6 +21,7 @@
 </div>
 
 <div class="filter-chips">
+  <button type="button" class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">All</button>
   <button type="button" class="chip" [class.active]="filter() === 'PENDING'" (click)="setFilter('PENDING')">
     Pending
   </button>
@@ -30,7 +31,6 @@
   <button type="button" class="chip" [class.active]="filter() === 'REJECTED'" (click)="setFilter('REJECTED')">
     Rejected
   </button>
-  <button type="button" class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">All</button>
 </div>
 
 <div class="search-bar">
