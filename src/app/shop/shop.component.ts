@@ -1,4 +1,5 @@
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
@@ -42,6 +43,12 @@ function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlyS
   return tags.some((tag) => selected.has(tag) || tag === 'All');
 }
 
+function setsEqual<T>(a: ReadonlySet<T>, b: ReadonlySet<T>): boolean {
+  if (a.size !== b.size) return false;
+  for (const v of a) if (!b.has(v)) return false;
+  return true;
+}
+
 @Component({
   selector: 'app-shop',
   standalone: true,
@@ -49,7 +56,7 @@ function matchesFilter<T extends string>(tags: readonly T[], selected: ReadonlyS
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.css',
 })
-export class ShopComponent implements OnInit {
+export class ShopComponent {
   private readonly productItems = inject(ProductItemService);
   private readonly cart = inject(CartService);
   private readonly seo = inject(SeoService);
@@ -166,10 +173,14 @@ export class ShopComponent implements OnInit {
     this.page.set(Math.max(0, Math.min(page, this.totalPages() - 1)));
   }
 
+  private readonly queryParamMap;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
   ) {
+    this.queryParamMap = toSignal(this.route.queryParamMap);
+
     // The one place that needs the whole catalog (browsing/search/filter) — everything else
     // (Product Detail, Cart, My Kit) either uses a targeted per-product fetch or triggers this
     // lazily itself only when it actually needs a cross-product lookup.
@@ -182,36 +193,42 @@ export class ShopComponent implements OnInit {
       description:
         'Browse field-tested travel gear and packing essentials for beach, mountain, and city trips — filter by season, destination, and more.',
     });
-  }
 
-  ngOnInit(): void {
-    // Seeds initial filter state from the URL — Home's "Shop by destination" chips/footer links
-    // pass a single destination this way, and (below) any of these params reflected back by
-    // syncUrl() round-trip correctly on a shared/bookmarked/reloaded link. Comma-separated so a
-    // multi-select filter state (e.g. `?destination=Beach,Mountain`) is representable too.
-    const qp = this.route.snapshot.queryParamMap;
+    // Reactive, not one-shot: Angular reuses this same component instance for navigations that
+    // only change query params on an already-matched /shop route (e.g. clicking a footer/nav
+    // destination or season link while already here), so a one-time ngOnInit read would seed the
+    // filters correctly on first load and then silently stop working on every link after that —
+    // the URL would update but the visible filter state wouldn't. This re-derives filter state
+    // from the URL on every change, seeded from Home's "Shop by destination" chips, footer links,
+    // My Kit's "Load more suggestions" search handoff, or a shared/bookmarked/reloaded link.
+    // Comma-separated so a multi-select filter state (`?destination=Beach,Mountain`) round-trips.
+    // Only writes a signal when the parsed value actually differs from current state, so this
+    // can't loop with syncUrl()'s own (replaceUrl) navigations back into the same params.
+    effect(() => {
+      const qp = this.queryParamMap();
+      if (!qp) return;
 
-    const destinationParam = qp.get('destination');
-    if (destinationParam) {
-      const values = destinationParam
-        .split(',')
-        .filter((v): v is ProductDestination => DESTINATION_OPTIONS.some((o) => o.value === v));
-      if (values.length > 0) this.destinations.set(new Set(values));
-    }
+      const destinationParam = qp.get('destination');
+      const nextDestinations = new Set(
+        destinationParam
+          ? destinationParam
+              .split(',')
+              .filter((v): v is ProductDestination => DESTINATION_OPTIONS.some((o) => o.value === v))
+          : [],
+      );
+      if (!setsEqual(nextDestinations, this.destinations())) this.destinations.set(nextDestinations);
 
-    const seasonParam = qp.get('season');
-    if (seasonParam) {
-      const values = seasonParam.split(',').filter((v): v is ProductSeason => SEASON_OPTIONS.some((o) => o.value === v));
-      if (values.length > 0) this.seasons.set(new Set(values));
-    }
+      const seasonParam = qp.get('season');
+      const nextSeasons = new Set(
+        seasonParam
+          ? seasonParam.split(',').filter((v): v is ProductSeason => SEASON_OPTIONS.some((o) => o.value === v))
+          : [],
+      );
+      if (!setsEqual(nextSeasons, this.seasons())) this.seasons.set(nextSeasons);
 
-    // My Kit's "Load more suggestions" link passes a product category through here — `filtered`
-    // already matches search terms against category text, so pre-filling the search box is
-    // enough to land the user on the full set of that category's products.
-    const searchParam = qp.get('search');
-    if (searchParam) {
-      this.search.set(searchParam);
-    }
+      const searchParam = qp.get('search') ?? '';
+      if (searchParam !== this.search()) this.search.set(searchParam);
+    });
   }
 
   // Mirrors destination/season/search into the URL (replacing, not pushing, history) so a

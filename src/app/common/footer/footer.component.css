@@ -19,7 +19,12 @@ footer {
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 28px;
+  gap: 36px;
+}
+
+.brand-col {
+  max-width: 260px;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -33,6 +38,13 @@ footer {
 
 .logo .mark {
   flex-shrink: 0;
+}
+
+.brand-blurb {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-ink-soft);
+  margin-top: 12px;
 }
 
 .foot-links {
@@ -60,6 +72,71 @@ footer {
 
 .foot-col a:hover {
   color: var(--color-coral-deep);
+}
+
+.foot-newsletter {
+  max-width: 260px;
+  flex-shrink: 0;
+}
+
+.foot-newsletter h4 {
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-leaf);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.newsletter-copy,
+.newsletter-done {
+  font-size: 13.5px;
+  color: var(--color-ink-soft);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.newsletter-done {
+  color: var(--color-leaf);
+  font-weight: 600;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 8px;
+}
+
+.newsletter-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.newsletter-form input:focus {
+  border-color: var(--color-coral);
+}
+
+.newsletter-form button {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 18px;
+  background: var(--color-coral);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.newsletter-form button:hover {
+  background: var(--color-coral-deep);
 }
 
 .foot-bottom {
