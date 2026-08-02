@@ -62,18 +62,12 @@
         </tr>
       </thead>
       <tbody>
-        @for (payment of filtered(); track payment.id) {
+        @for (payment of pagedPayments(); track payment.id) {
           <tr [class.pending-row]="payment.status === 'PENDING'">
             <td class="name-cell">
-              #{{ payment.orderReference ?? payment.orderId }}
-              @if (payment.shipping; as ship) {
-                <div class="ship-to">
-                  <span class="ship-to-label">Ship to:</span>
-                  {{ ship.fullName }} · {{ ship.address }}, {{ ship.city }} {{ ship.postalCode }}
-                </div>
-              } @else {
-                <div class="ship-to ship-to-missing">No shipping details on file</div>
-              }
+              <a [routerLink]="['/admin/orders', payment.orderReference ?? payment.orderId]" class="order-link">
+                #{{ payment.orderReference ?? payment.orderId }}
+              </a>
             </td>
             <td>{{ methodLabels[payment.method] }}</td>
             <td class="num-cell">{{ payment.amount | number: '1.2-2' }} {{ payment.currency }}</td>
@@ -139,4 +133,6 @@
       </tbody>
     </table>
   </div>
+
+  <app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
 }

@@ -49,6 +49,10 @@ export interface Order {
   chargedAmount?: number; // total converted into the shopper's currency at checkout
   chargedCurrency?: string;
   paymentStatus: PaymentStatus;
+  // The payment-service Payment id behind the current paymentStatus — set once a payment is
+  // submitted (PENDING) or later reviewed (PAID/REJECTED). Used to load proof-of-payment details
+  // for the admin order detail page's Verify Payment panel.
+  paymentId?: string;
   // Real, admin-controlled fulfillment state (set via /admin/orders actions) — not derived from
   // elapsed time. Defaults to 'Processing' server-side for every order, including legacy ones.
   deliveryStatus: OrderStatus;
@@ -97,6 +101,7 @@ interface ApiOrder {
   shippingFee?: number;
   currency: string;
   paymentStatus: PaymentStatus;
+  paymentId?: string;
   deliveryStatus: OrderStatus;
   shippedAt?: string;
   deliveredAt?: string;
@@ -119,6 +124,7 @@ function mapFromApi(raw: ApiOrder): Order {
     shippingFee: raw.shippingFee,
     currency: raw.currency,
     paymentStatus: raw.paymentStatus,
+    paymentId: raw.paymentId,
     deliveryStatus: raw.deliveryStatus,
     shippedAt: raw.shippedAt,
     deliveredAt: raw.deliveredAt,

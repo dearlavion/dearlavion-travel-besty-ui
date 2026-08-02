@@ -1,9 +1,20 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PricePipe } from '../../../common/price.pipe';
 import { Order, OrderItem, OrdersService, PAYMENT_STATUS_LABEL, PaymentStatus } from '../../../checkout/orders.service';
 import { ProductItemService } from '../../../shop/product-item.service';
 import { ToastService } from '../../../common/toast/toast.service';
+import { Payment, PaymentMethod, PaymentService } from '../../../payment/payment.service';
+
+const METHOD_LABELS: Record<PaymentMethod, string> = {
+  GCASH: 'GCash',
+  MAYA: 'Maya',
+  MARIBANK: 'Maribank',
+  CARD: 'Card',
+};
+
+type PaymentReviewAction = 'approve' | 'reject';
 
 // Single order, opened from AdminOrdersComponent's list. The three fulfillment actions (update
 // inventory per line, mark shipped, mark delivered) all require paymentStatus === 'PAID' — the
@@ -11,7 +22,7 @@ import { ToastService } from '../../../common/toast/toast.service';
 @Component({
   selector: 'app-admin-order-detail',
   standalone: true,
-  imports: [RouterLink, PricePipe],
+  imports: [RouterLink, PricePipe, FormsModule],
   templateUrl: './admin-order-detail.component.html',
   styleUrl: './admin-order-detail.component.css',
 })
@@ -20,6 +31,7 @@ export class AdminOrderDetailComponent {
   private readonly ordersService = inject(OrdersService);
   protected readonly productItems = inject(ProductItemService);
   private readonly toast = inject(ToastService);
+  private readonly paymentService = inject(PaymentService);
 
   private readonly orderId = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -29,6 +41,13 @@ export class AdminOrderDetailComponent {
 
   protected readonly updatingInventoryFor = signal<string | null>(null);
   protected readonly submittingAction = signal(false);
+
+  protected readonly methodLabels = METHOD_LABELS;
+  protected readonly payment = signal<Payment | null>(null);
+  protected readonly paymentLoading = signal(false);
+  protected readonly paymentReviewAction = signal<PaymentReviewAction | null>(null);
+  protected readonly paymentReviewNote = signal('');
+  protected readonly submittingPaymentReview = signal(false);
 
   constructor() {
     // Cross-catalog lookup (per-line "current stock") — needs the full item list.
@@ -44,10 +63,56 @@ export class AdminOrderDetailComponent {
         this.order.set(res ?? null);
         this.loading.set(false);
         if (!res) this.loadError.set(true);
+        if (res?.paymentStatus === 'PENDING' && res.paymentId) this.loadPayment(res.paymentId);
       },
       error: () => {
         this.loadError.set(true);
         this.loading.set(false);
+      },
+    });
+  }
+
+  private loadPayment(paymentId: string): void {
+    this.paymentLoading.set(true);
+    this.paymentService.getForAdmin(paymentId).subscribe({
+      next: (res) => {
+        this.payment.set(res);
+        this.paymentLoading.set(false);
+      },
+      error: () => {
+        this.payment.set(null);
+        this.paymentLoading.set(false);
+      },
+    });
+  }
+
+  protected requestPaymentReview(action: PaymentReviewAction): void {
+    this.paymentReviewAction.set(action);
+    this.paymentReviewNote.set('');
+  }
+
+  protected cancelPaymentReview(): void {
+    this.paymentReviewAction.set(null);
+    this.paymentReviewNote.set('');
+  }
+
+  protected confirmPaymentReview(): void {
+    const action = this.paymentReviewAction();
+    const paymentId = this.payment()?.id;
+    if (!action || !paymentId) return;
+    this.submittingPaymentReview.set(true);
+    const note = this.paymentReviewNote().trim() || undefined;
+    const call = action === 'approve' ? this.paymentService.approve(paymentId, note) : this.paymentService.reject(paymentId, note);
+    call.subscribe({
+      next: () => {
+        this.submittingPaymentReview.set(false);
+        this.paymentReviewAction.set(null);
+        this.toast.success(action === 'approve' ? 'Payment approved' : 'Payment rejected');
+        this.refresh();
+      },
+      error: () => {
+        this.submittingPaymentReview.set(false);
+        this.toast.error('Failed to update payment');
       },
     });
   }

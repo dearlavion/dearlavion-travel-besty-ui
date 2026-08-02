@@ -300,3 +300,139 @@ tr:last-child td {
     position: static;
   }
 }
+
+.payment-panel {
+  margin-bottom: 24px;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.payment-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.payment-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  margin-bottom: 4px;
+}
+
+.payment-value {
+  display: block;
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.proof-thumb {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+}
+
+.proof-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+}
+
+.approve-link,
+.reject-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.approve-link {
+  color: var(--color-leaf);
+}
+
+.approve-link:hover {
+  color: var(--color-leaf-deep, var(--color-leaf));
+}
+
+.reject-link {
+  color: var(--color-coral-deep);
+}
+
+.reject-link:hover {
+  opacity: 0.75;
+}
+
+.confirm-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.note-input {
+  width: 100%;
+  border: 1.5px solid var(--color-line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  resize: vertical;
+}
+
+.note-input:focus {
+  border-color: var(--color-coral);
+  outline: none;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+}
+
+.confirm-btn.confirm-approve {
+  background: var(--color-leaf);
+}
+
+.confirm-btn.confirm-reject {
+  background: var(--color-coral-deep);
+}
+
+.confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cancel-btn {
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  color: var(--color-ink-soft);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}

@@ -32,6 +32,70 @@
     </div>
   </div>
 
+  @if (o.paymentStatus === 'PENDING') {
+    <section class="panel payment-panel">
+      <h2 class="panel-title">Verify Payment</h2>
+      @if (paymentLoading()) {
+        <p class="state-note">Loading payment details…</p>
+      } @else if (payment(); as p) {
+        <div class="payment-grid">
+          <div>
+            <span class="payment-label">Method</span>
+            <span class="payment-value">{{ methodLabels[p.method] }}</span>
+          </div>
+          <div>
+            <span class="payment-label">Amount</span>
+            <span class="payment-value">{{ p.amount | price: p.currency }}</span>
+          </div>
+          <div>
+            <span class="payment-label">Reference #</span>
+            <span class="payment-value">{{ p.referenceNumber }}</span>
+          </div>
+          <div>
+            <span class="payment-label">Proof</span>
+            <a class="proof-thumb" [href]="p.proofImageUrl" target="_blank" rel="noopener">
+              <img [src]="p.proofImageUrl" alt="Proof of payment" />
+            </a>
+          </div>
+        </div>
+
+        @if (paymentReviewAction(); as action) {
+          <div class="confirm-box">
+            <textarea
+              class="note-input"
+              rows="2"
+              placeholder="Optional note…"
+              [ngModel]="paymentReviewNote()"
+              (ngModelChange)="paymentReviewNote.set($event)"
+            ></textarea>
+            <div class="confirm-actions">
+              <button
+                type="button"
+                class="confirm-btn"
+                [class.confirm-approve]="action === 'approve'"
+                [class.confirm-reject]="action === 'reject'"
+                [disabled]="submittingPaymentReview()"
+                (click)="confirmPaymentReview()"
+              >
+                {{ submittingPaymentReview() ? 'Saving…' : action === 'approve' ? 'Confirm approve' : 'Confirm reject' }}
+              </button>
+              <button type="button" class="cancel-btn" [disabled]="submittingPaymentReview()" (click)="cancelPaymentReview()">
+                Cancel
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="action-row">
+            <button type="button" class="approve-link" (click)="requestPaymentReview('approve')">Verify &amp; Approve</button>
+            <button type="button" class="reject-link" (click)="requestPaymentReview('reject')">Reject</button>
+          </div>
+        }
+      } @else {
+        <p class="state-note state-error">Could not load payment details.</p>
+      }
+    </section>
+  }
+
   <div class="detail-grid">
     <section class="panel">
       <h2 class="panel-title">Items</h2>

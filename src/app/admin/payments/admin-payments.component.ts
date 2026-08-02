@@ -1,8 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Payment, PaymentMethod, PaymentService, PaymentStatus } from '../../payment/payment.service';
 import { ToastService } from '../../common/toast/toast.service';
+import { PaginationComponent } from '../../common/pagination/pagination.component';
 
 type PaymentFilter = 'PENDING' | 'APPROVED' | 'REJECTED' | 'all';
 type PendingAction = { id: string; kind: 'approve' | 'reject' };
@@ -14,13 +16,15 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
   CARD: 'Card',
 };
 
+const PAGE_SIZE = 10;
+
 // The verification queue: every submitted proof of payment, reviewed here before an order is
 // allowed to ship. Fetches the full list once (mirrors AdminInventoryComponent's fetch-all +
 // client-filter idiom) rather than re-hitting the backend on every chip click.
 @Component({
   selector: 'app-admin-payments',
   standalone: true,
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, RouterLink, PaginationComponent],
   templateUrl: './admin-payments.component.html',
   styleUrl: './admin-payments.component.css',
 })
@@ -34,6 +38,7 @@ export class AdminPaymentsComponent {
 
   protected readonly filter = signal<PaymentFilter>('PENDING');
   protected readonly search = signal('');
+  protected readonly page = signal(0); // 0-indexed
 
   protected readonly pendingAction = signal<PendingAction | null>(null);
   protected readonly actionNote = signal('');
@@ -86,13 +91,28 @@ export class AdminPaymentsComponent {
     return [...result].sort((a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? ''));
   });
 
+  protected readonly totalPages = computed(() => Math.max(1, Math.ceil(this.filtered().length / PAGE_SIZE)));
+
+  protected readonly currentPage = computed(() => Math.min(this.page(), this.totalPages() - 1));
+
+  protected readonly pagedPayments = computed<Payment[]>(() => {
+    const start = this.currentPage() * PAGE_SIZE;
+    return this.filtered().slice(start, start + PAGE_SIZE);
+  });
+
   protected setFilter(f: PaymentFilter): void {
     this.filter.set(f);
     this.pendingAction.set(null);
+    this.page.set(0);
   }
 
   protected setSearch(term: string): void {
     this.search.set(term);
+    this.page.set(0);
+  }
+
+  protected goToPage(page: number): void {
+    this.page.set(Math.max(0, Math.min(page, this.totalPages() - 1)));
   }
 
   protected requestAction(id: string, kind: 'approve' | 'reject'): void {

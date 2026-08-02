@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, of, tap, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { OrderShipping, OrdersService } from '../checkout/orders.service';
@@ -124,6 +124,16 @@ export class PaymentService {
     }
     const url = status ? `${ADMIN_BASE}?status=${status}` : ADMIN_BASE;
     return this.http.get<Payment[]>(url);
+  }
+
+  /** Single payment by id — used to show proof-of-payment details inline on an order (e.g. the
+   * "Verify Payment" panel on /admin/orders/:id) without loading the whole review queue. */
+  getForAdmin(id: string): Observable<Payment> {
+    if (environment.useMockData) {
+      const found = loadStored().find((p) => p.id === id);
+      return found ? of(found) : throwError(() => new Error('Payment not found'));
+    }
+    return this.http.get<Payment>(`${ADMIN_BASE}/${id}`);
   }
 
   approve(id: string, note?: string): Observable<Payment> {
