@@ -1,0 +1,123 @@
+@if (notFound()) {
+  <div class="not-found">
+    <p>We couldn't find that user.</p>
+    <a routerLink="/admin/users" class="back-link">← Back to Users</a>
+  </div>
+} @else if (loading()) {
+  <p class="state-note">Loading user…</p>
+} @else {
+  <a routerLink="/admin/users" class="back-link">← Back to Users</a>
+  <h1>{{ isEditMode() ? 'Edit User' : 'Add User' }}</h1>
+
+  @if (isEditMode() && loadedUser(); as u) {
+    <div class="status-row">
+      <span class="status-badge" [class.active]="u.active !== false" [class.deactivated]="u.active === false">
+        {{ u.active === false ? 'Deactivated' : 'Active' }}
+      </span>
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.reactivate]="u.active === false"
+        [disabled]="togglingActive()"
+        (click)="toggleActive()"
+      >
+        {{ togglingActive() ? 'Saving…' : u.active === false ? 'Reactivate' : 'Deactivate' }}
+      </button>
+    </div>
+  }
+
+  <form class="user-form" (ngSubmit)="save()">
+    @if (!isEditMode()) {
+      <label class="field-full">
+        <span>Username</span>
+        <input
+          type="text"
+          required
+          [ngModel]="form().username"
+          (ngModelChange)="updateField('username', $event)"
+          name="username"
+        />
+      </label>
+    }
+
+    <div class="field-row">
+      <label>
+        <span>Email</span>
+        <input
+          type="email"
+          required
+          [ngModel]="form().email"
+          (ngModelChange)="updateField('email', $event)"
+          name="email"
+        />
+      </label>
+
+      <label>
+        <span>Role</span>
+        <select [ngModel]="form().activeProfile" (ngModelChange)="updateField('activeProfile', $event)" name="activeProfile">
+          <option value="USER">User</option>
+          <option value="STAFF">Staff</option>
+          <option value="ADMIN">Admin</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label>
+        <span>First name</span>
+        <input type="text" [ngModel]="form().firstname" (ngModelChange)="updateField('firstname', $event)" name="firstname" />
+      </label>
+
+      <label>
+        <span>Last name</span>
+        <input type="text" [ngModel]="form().lastname" (ngModelChange)="updateField('lastname', $event)" name="lastname" />
+      </label>
+    </div>
+
+    <label class="field-full">
+      <span>Phone (optional)</span>
+      <input type="text" [ngModel]="form().phone" (ngModelChange)="updateField('phone', $event)" name="phone" />
+    </label>
+
+    @if (!isEditMode()) {
+      <label class="field-full">
+        <span>Password</span>
+        <input
+          type="password"
+          required
+          minlength="6"
+          [ngModel]="form().password"
+          (ngModelChange)="updateField('password', $event)"
+          name="password"
+        />
+      </label>
+    }
+
+    <div class="form-actions">
+      <a routerLink="/admin/users" class="cancel-btn">Cancel</a>
+      <button type="submit" class="save-btn" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : isEditMode() ? 'Save User' : '+ Add User' }}
+      </button>
+    </div>
+  </form>
+
+  @if (isEditMode()) {
+    <div class="password-form">
+      <h2>Set New Password</h2>
+      <p class="hint">Directly sets this user's password — they won't be notified.</p>
+      <div class="password-row">
+        <input
+          type="password"
+          placeholder="New password"
+          minlength="6"
+          [ngModel]="newPassword()"
+          (ngModelChange)="newPassword.set($event)"
+          name="newPassword"
+        />
+        <button type="button" class="save-btn" [disabled]="settingPassword() || newPassword().trim().length < 6" (click)="setNewPassword()">
+          {{ settingPassword() ? 'Saving…' : 'Set Password' }}
+        </button>
+      </div>
+    </div>
+  }
+}

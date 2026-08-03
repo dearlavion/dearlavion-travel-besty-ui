@@ -25,12 +25,15 @@ import { AdminOrdersComponent } from './admin/orders/admin-orders.component';
 import { AdminOrderDetailComponent } from './admin/orders/order-detail/admin-order-detail.component';
 import { AdminStatisticsComponent } from './admin/statistics/admin-statistics.component';
 import { AdminSettingsComponent } from './admin/settings/admin-settings.component';
+import { AdminUserListComponent } from './admin/users/admin-user-list.component';
+import { AdminUserFormComponent } from './admin/users/admin-user-form.component';
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
 import { TrackPackageDetailComponent } from './profile/track-packages/order-detail/track-package-detail.component';
 import { AddPaymentComponent } from './checkout/add-payment/add-payment.component';
 import { requireLoginGuard } from './auth/require-login.guard';
+import { requireAdminGuard } from './auth/require-admin.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -82,6 +85,9 @@ export const routes: Routes = [
       { path: 'orders/:id', component: AdminOrderDetailComponent },
       { path: 'statistics', component: AdminStatisticsComponent },
       { path: 'settings', component: AdminSettingsComponent },
+      { path: 'users', component: AdminUserListComponent, canActivate: [requireAdminGuard] },
+      { path: 'users/new', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
+      { path: 'users/:username', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
     ],
   },
 

@@ -1,0 +1,100 @@
+<div class="list-head">
+  <div>
+    <h1>Users</h1>
+    <p class="sub">Manage accounts and access — {{ counts().total }} total.</p>
+  </div>
+  <a routerLink="/admin/users/new" class="add-btn">+ Add User</a>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ counts().active }}</div>
+    <div class="stat-label">Active</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ counts().deactivated }}</div>
+    <div class="stat-label">Deactivated</div>
+  </div>
+</div>
+
+<div class="filter-dropdowns">
+  <label class="filter-field">
+    <span class="filter-label">Status</span>
+    <select class="filter-select" [ngModel]="statusFilter()" (ngModelChange)="setStatusFilter($event)">
+      <option value="all">All</option>
+      <option value="active">Active</option>
+      <option value="deactivated">Deactivated</option>
+    </select>
+  </label>
+  <label class="filter-field">
+    <span class="filter-label">Role</span>
+    <select class="filter-select" [ngModel]="roleFilter()" (ngModelChange)="setRoleFilter($event)">
+      <option value="all">All</option>
+      <option value="USER">User</option>
+      <option value="STAFF">Staff</option>
+      <option value="ADMIN">Admin</option>
+    </select>
+  </label>
+</div>
+
+<div class="search-bar">
+  <input
+    type="text"
+    placeholder="Search by username or email..."
+    [ngModel]="search()"
+    (ngModelChange)="setSearch($event)"
+  />
+</div>
+
+@if (loading()) {
+  <p class="state-note">Loading users…</p>
+} @else if (loadError()) {
+  <p class="state-note state-error">Could not load users. Is auth-service-v2 running?</p>
+} @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of pagedUsers(); track user.username) {
+          <tr>
+            <td class="name-cell">
+              <a [routerLink]="['/admin/users', user.username]" class="row-link">{{ user.username }}</a>
+            </td>
+            <td>{{ user.email ?? '—' }}</td>
+            <td>{{ user.activeProfile ?? 'USER' }}</td>
+            <td>
+              <span class="status-badge" [class.active]="user.active !== false" [class.deactivated]="user.active === false">
+                {{ user.active === false ? 'Deactivated' : 'Active' }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button
+                type="button"
+                class="toggle-btn"
+                [class.reactivate]="user.active === false"
+                [disabled]="pendingToggleUsername() === user.username"
+                (click)="toggleActive(user)"
+              >
+                {{ pendingToggleUsername() === user.username ? 'Saving…' : user.active === false ? 'Reactivate' : 'Deactivate' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="no-results">No users match this filter{{ search() ? ' and search' : '' }}.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+}
