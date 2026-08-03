@@ -16,9 +16,12 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
 
 type PaymentReviewAction = 'approve' | 'reject';
 
-// Single order, opened from AdminOrdersComponent's list. The three fulfillment actions (update
-// inventory per line, mark shipped, mark delivered) all require paymentStatus === 'PAID' — the
-// backend enforces this too (409s otherwise), this UI just hides/disables what can't be done yet.
+// Single order, opened from AdminOrdersComponent's list. Fulfillment actions (mark shipped, mark
+// delivered) require paymentStatus === 'PAID' — the backend enforces this too (409s otherwise),
+// this UI just hides/disables what can't be done yet. Marking shipped now also decrements catalog
+// stock for every line server-side (OrdersService.markShipped), so the per-item "Update Inventory"
+// button below is a fallback for manual pre-shipment correction or per-item retry, not a required
+// step — a normal ship leaves nothing for it to do.
 @Component({
   selector: 'app-admin-order-detail',
   standalone: true,

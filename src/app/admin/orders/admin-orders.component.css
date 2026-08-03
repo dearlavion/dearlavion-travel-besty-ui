@@ -46,33 +46,43 @@ h1 {
   margin-top: 4px;
 }
 
-.filter-chips {
+.filter-dropdowns {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 18px;
   margin-bottom: 20px;
 }
 
-.chip {
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.filter-select {
   border: 1.5px solid var(--color-line);
   background: #fff;
-  color: var(--color-ink-soft);
+  color: var(--color-ink);
   border-radius: 999px;
   padding: 8px 18px;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.18s ease;
+  outline: none;
+  min-width: 160px;
 }
 
-.chip:hover {
-  border-color: var(--color-ink);
-  color: var(--color-ink);
-}
-
-.chip.active {
-  background: var(--color-coral);
+.filter-select:focus {
   border-color: var(--color-coral);
-  color: #fff;
 }
 
 .search-bar {

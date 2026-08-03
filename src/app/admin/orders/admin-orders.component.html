@@ -20,20 +20,25 @@
   </div>
 </div>
 
-<div class="filter-chips">
-  <button type="button" class="chip" [class.active]="filter() === 'all'" (click)="setFilter('all')">All</button>
-  <button type="button" class="chip" [class.active]="filter() === 'Processing'" (click)="setFilter('Processing')">
-    Processing
-  </button>
-  <button type="button" class="chip" [class.active]="filter() === 'Shipped'" (click)="setFilter('Shipped')">
-    Shipped
-  </button>
-  <button type="button" class="chip" [class.active]="filter() === 'Delivered'" (click)="setFilter('Delivered')">
-    Delivered
-  </button>
-  <button type="button" class="chip" [class.active]="filter() === 'Archived'" (click)="setFilter('Archived')">
-    Archived
-  </button>
+<div class="filter-dropdowns">
+  <label class="filter-field">
+    <span class="filter-label">Status</span>
+    <select class="filter-select" [ngModel]="filter()" (ngModelChange)="setFilter($event)">
+      <option value="all">All</option>
+      <option value="Processing">Processing</option>
+      <option value="Shipped">Shipped</option>
+      <option value="Delivered">Delivered</option>
+      <option value="Archived">Archived</option>
+    </select>
+  </label>
+  <label class="filter-field">
+    <span class="filter-label">Payment</span>
+    <select class="filter-select" [ngModel]="paymentFilter()" (ngModelChange)="setPaymentFilter($event)">
+      @for (opt of paymentFilterOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+  </label>
 </div>
 
 <div class="search-bar">
@@ -58,8 +63,8 @@
           <th>Customer</th>
           <th>Items</th>
           <th>Total</th>
+          <th>Status</th>
           <th>Payment</th>
-          <th>Delivery</th>
           <th>Placed</th>
         </tr>
       </thead>
@@ -74,21 +79,21 @@
             <td class="num-cell">{{ order.total | price }}</td>
             <td>
               <span
+                class="status-badge delivery"
+                [class.shipped]="order.deliveryStatus === 'Shipped'"
+                [class.delivered]="order.deliveryStatus === 'Delivered'"
+              >
+                {{ order.deliveryStatus }}
+              </span>
+            </td>
+            <td>
+              <span
                 class="status-badge"
                 [class.paid]="order.paymentStatus === 'PAID'"
                 [class.pending]="order.paymentStatus === 'PENDING'"
                 [class.rejected]="order.paymentStatus === 'REJECTED'"
               >
                 {{ paymentLabel(order.paymentStatus) }}
-              </span>
-            </td>
-            <td>
-              <span
-                class="status-badge delivery"
-                [class.shipped]="order.deliveryStatus === 'Shipped'"
-                [class.delivered]="order.deliveryStatus === 'Delivered'"
-              >
-                {{ order.deliveryStatus }}
               </span>
             </td>
             <td>{{ placedDateLabel(order) }}</td>

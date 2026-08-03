@@ -6,8 +6,17 @@ import { Order, OrderStatus, OrdersService, PAYMENT_STATUS_LABEL, PaymentStatus 
 import { PaginationComponent } from '../../common/pagination/pagination.component';
 
 type DeliveryFilter = OrderStatus | 'all' | 'Archived';
+type PaymentFilter = PaymentStatus | 'all';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
+
+const PAYMENT_FILTER_OPTIONS: { value: PaymentFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'UNPAID', label: PAYMENT_STATUS_LABEL.UNPAID },
+  { value: 'PENDING', label: PAYMENT_STATUS_LABEL.PENDING },
+  { value: 'PAID', label: PAYMENT_STATUS_LABEL.PAID },
+  { value: 'REJECTED', label: PAYMENT_STATUS_LABEL.REJECTED },
+];
 
 // Every order across every customer — the fulfillment queue admin works from once a payment is
 // approved. Fetches the full list once and filters/paginates client-side (mirrors
@@ -27,6 +36,8 @@ export class AdminOrdersComponent {
   protected readonly loadError = signal(false);
 
   protected readonly filter = signal<DeliveryFilter>('all');
+  protected readonly paymentFilter = signal<PaymentFilter>('all');
+  protected readonly paymentFilterOptions = PAYMENT_FILTER_OPTIONS;
   protected readonly search = signal('');
   protected readonly page = signal(0); // 0-indexed
 
@@ -65,6 +76,7 @@ export class AdminOrdersComponent {
   // counts and page-count math both read off this rather than the visible page alone.
   protected readonly filtered = computed<Order[]>(() => {
     const f = this.filter();
+    const pf = this.paymentFilter();
     const term = this.search().trim().toLowerCase();
     let result = this.orders();
     if (f === 'Archived') {
@@ -73,6 +85,7 @@ export class AdminOrdersComponent {
       result = result.filter((o) => !o.archived);
       if (f !== 'all') result = result.filter((o) => o.deliveryStatus === f);
     }
+    if (pf !== 'all') result = result.filter((o) => o.paymentStatus === pf);
     if (term) {
       result = result.filter(
         (o) => o.id.toLowerCase().includes(term) || (o.shipping?.fullName ?? '').toLowerCase().includes(term),
@@ -92,6 +105,11 @@ export class AdminOrdersComponent {
 
   protected setFilter(f: DeliveryFilter): void {
     this.filter.set(f);
+    this.page.set(0);
+  }
+
+  protected setPaymentFilter(f: PaymentFilter): void {
+    this.paymentFilter.set(f);
     this.page.set(0);
   }
 
