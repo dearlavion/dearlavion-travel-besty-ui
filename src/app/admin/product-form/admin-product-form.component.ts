@@ -4,7 +4,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.service';
-import { Product, ProductDestination, ProductParty, ProductSeason } from '../../shop/product-catalog';
+import {
+  KIT_CATEGORY_OPTIONS,
+  KitCategory,
+  Product,
+  ProductDestination,
+  ProductParty,
+  ProductSeason,
+  ProductTransportation,
+} from '../../shop/product-catalog';
 import { ProductItemService } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
 
@@ -17,6 +25,8 @@ interface ProductFormModel {
   destinations: ProductDestination[];
   parties: ProductParty[];
   activities: string[];
+  transportModes: ProductTransportation[];
+  kitCategory: KitCategory | ''; // '' = not yet chosen — save() blocks submit until it's set
   tested: boolean;
   active: boolean;
   popular: boolean;
@@ -33,6 +43,8 @@ function emptyForm(): ProductFormModel {
     destinations: [],
     parties: [],
     activities: [],
+    transportModes: [],
+    kitCategory: '',
     tested: true,
     active: true,
     popular: false,
@@ -44,6 +56,21 @@ const SEASON_OPTIONS: ProductSeason[] = ['Summer', 'Winter', 'Rainy'];
 const DESTINATION_OPTIONS: ProductDestination[] = ['Beach', 'Mountain', 'City'];
 const PARTY_OPTIONS: ProductParty[] = ['Solo', 'Group'];
 const ACTIVITY_OPTIONS: string[] = ['Hiking', 'Swimming', 'Sightseeing', 'Business', 'Photography', 'Nightlife', 'Food', 'Relaxing'];
+const TRANSPORT_OPTIONS: ProductTransportation[] = ['Flight', 'Car', 'Train', 'Cruise'];
+
+// Pre-fills Kit Category from the free-text Category field, so most products need zero extra
+// thought — the admin just confirms or overrides. Keyed off today's actual `category` values
+// (see product-catalog.ts). No entry for "Gear": it splits into Weather vs Activity Gear, a real
+// judgment call that shouldn't get a silent default.
+const CATEGORY_SUGGESTION: Record<string, KitCategory> = {
+  Documents: 'Essentials',
+  Accessories: 'Weather Gear',
+  Electronics: 'Tech Pack',
+  Health: 'Health & Safety',
+  Clothing: 'Clothing',
+  Comfort: 'Comfort',
+  Toiletries: 'Toiletries',
+};
 
 // Shared add/edit form — no `:id` param means add mode, same toSignal(paramMap) pattern
 // ProductDetailComponent uses to detect route param changes. Purchase data (price/stock/etc) is
@@ -70,6 +97,8 @@ export class AdminProductFormComponent {
   protected readonly destinationOptions = DESTINATION_OPTIONS;
   protected readonly partyOptions = PARTY_OPTIONS;
   protected readonly activityOptions = ACTIVITY_OPTIONS;
+  protected readonly transportOptions = TRANSPORT_OPTIONS;
+  protected readonly kitCategoryOptions = KIT_CATEGORY_OPTIONS;
 
   protected readonly form = signal<ProductFormModel>(emptyForm());
   // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,
@@ -133,6 +162,8 @@ export class AdminProductFormComponent {
         destinations: [...existing.destinations],
         parties: [...existing.parties],
         activities: [...(existing.activities ?? [])],
+        transportModes: [...(existing.transportModes ?? [])],
+        kitCategory: existing.kitCategory,
         tested: existing.tested,
         active: existing.active,
         popular: existing.popular,
@@ -177,6 +208,28 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, activities: toggleInArray(f.activities, activity) }));
   }
 
+  protected isTransportChecked(mode: ProductTransportation): boolean {
+    return this.form().transportModes.includes(mode);
+  }
+
+  protected toggleTransport(mode: ProductTransportation): void {
+    this.form.update((f) => ({ ...f, transportModes: toggleInArray(f.transportModes, mode) }));
+  }
+
+  // Free-text Category changed — only auto-fills Kit Category while it's still unset, so this
+  // never clobbers a value the admin already picked (including one that happens to match the
+  // suggestion). Categories with no confident default (e.g. "Gear") leave it unset for an explicit pick.
+  protected updateCategory(value: string): void {
+    this.form.update((f) => {
+      const suggestion = f.kitCategory === '' ? CATEGORY_SUGGESTION[value.trim()] : undefined;
+      return { ...f, category: value, kitCategory: suggestion ?? f.kitCategory };
+    });
+  }
+
+  protected updateKitCategory(value: string): void {
+    this.form.update((f) => ({ ...f, kitCategory: value as KitCategory }));
+  }
+
   protected addLinkedProduct(id: string): void {
     this.form.update((f) => (f.linkedProductIds.includes(id) ? f : { ...f, linkedProductIds: [...f.linkedProductIds, id] }));
   }
@@ -187,6 +240,10 @@ export class AdminProductFormComponent {
 
   protected save(): void {
     const f = this.form();
+    if (!f.kitCategory) {
+      this.toast.show('Pick a Kit Category before saving', 'error');
+      return;
+    }
     const fields = {
       name: f.name.trim(),
       category: f.category.trim(),
@@ -196,6 +253,8 @@ export class AdminProductFormComponent {
       destinations: f.destinations,
       parties: f.parties,
       activities: f.activities,
+      transportModes: f.transportModes,
+      kitCategory: f.kitCategory,
       tested: f.tested,
       active: f.active,
       popular: f.popular,

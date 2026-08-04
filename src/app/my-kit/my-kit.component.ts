@@ -7,7 +7,7 @@ import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
 import { KitItem } from '../travel/kit-recommendation';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { buildKitFromPopularKit } from '../travel/popular-kit-view';
-import { getProductTint, Product } from '../shop/product-catalog';
+import { getProductTint, KIT_CATEGORY_OPTIONS, KitCategory, Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
@@ -21,6 +21,9 @@ import { ToastService } from '../common/toast/toast.service';
 interface DisplayItem {
   label: string;
   productId: string;
+  // The item's packing-list bucket, straight off its catalog product — null when the product
+  // can't be resolved (e.g. a manually-added or since-removed product), grouped under "Other".
+  kitCategory: KitCategory | null;
   // Each generic Product suggestion resolved down to its own purchasable default item — primary
   // match first (if it resolves), then related — capped at MAX_SUGGESTIONS.
   suggestions: ProductItemView[];
@@ -28,6 +31,13 @@ interface DisplayItem {
   moreSuggestionsCategory: string | null;
   tint: string;
 }
+
+interface DisplayGroup {
+  category: KitCategory | 'Other';
+  items: DisplayItem[];
+}
+
+const OTHER_GROUP = 'Other' as const;
 
 // Cycled per item so the kit list reads as pastel/varied, distinct from the mini product
 // card's own tint (which follows the same destination/season/popular logic as Shop).
@@ -170,12 +180,32 @@ export class MyKitComponent {
       return {
         label: item.label,
         productId: item.productId,
+        kitCategory: primary?.kitCategory ?? null,
         suggestions,
         hasMoreSuggestions: resolved.length > MAX_SUGGESTIONS,
         moreSuggestionsCategory: primary?.category ?? null,
         tint: PASTEL_TINTS[index % PASTEL_TINTS.length],
       };
     });
+  });
+
+  // Groups displayItems() by kit category, in the same canonical order as the survey/admin
+  // dropdown (KIT_CATEGORY_OPTIONS), with unresolved items bucketed under "Other" last. Only
+  // categories that actually have items are included, so the page never shows empty sections.
+  protected readonly groupedDisplayItems = computed<DisplayGroup[]>(() => {
+    const byCategory = new Map<KitCategory | 'Other', DisplayItem[]>();
+    for (const item of this.displayItems()) {
+      const key = item.kitCategory ?? OTHER_GROUP;
+      const list = byCategory.get(key);
+      if (list) {
+        list.push(item);
+      } else {
+        byCategory.set(key, [item]);
+      }
+    }
+    return [...KIT_CATEGORY_OPTIONS, OTHER_GROUP]
+      .filter((category) => byCategory.has(category))
+      .map((category) => ({ category, items: byCategory.get(category)! }));
   });
 
   protected isExpanded(productId: string): boolean {

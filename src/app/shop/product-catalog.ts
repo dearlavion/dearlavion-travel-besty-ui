@@ -5,6 +5,37 @@
 export type ProductSeason = 'Summer' | 'Winter' | 'Rainy';
 export type ProductDestination = 'Beach' | 'Mountain' | 'City';
 export type ProductParty = 'Solo' | 'Group';
+export type ProductTransportation = 'Flight' | 'Car' | 'Train' | 'Cruise';
+// The single packing-list bucket a product belongs to — powers the travel survey's "what matters
+// most to you" question (kit-recommendation.ts scores a product up when it matches the answer).
+export type KitCategory =
+  | 'Essentials'
+  | 'Clothing'
+  | 'Footwear'
+  | 'Toiletries'
+  | 'Beauty Kit'
+  | 'Tech Pack'
+  | 'Health & Safety'
+  | 'Weather Gear'
+  | 'Activity Gear'
+  | 'Comfort'
+  | 'Food & Hydration';
+
+// Canonical display order — single source of truth for the survey's tile order, the admin form's
+// dropdown, and My Kit's grouping order, so the three never drift apart.
+export const KIT_CATEGORY_OPTIONS: KitCategory[] = [
+  'Essentials',
+  'Clothing',
+  'Footwear',
+  'Toiletries',
+  'Beauty Kit',
+  'Tech Pack',
+  'Health & Safety',
+  'Weather Gear',
+  'Activity Gear',
+  'Comfort',
+  'Food & Hydration',
+];
 
 // A generic/template product — the stable concept a packing-list slot points at (e.g. "Passport
 // Wallet"). Purely presentational + taxonomy: name, category, description, tags. Purchase data
@@ -22,6 +53,8 @@ export interface Product {
   destinations: ProductDestination[]; // [] = unrestricted/all destinations
   parties: ProductParty[]; // [] = unrestricted/all party sizes
   activities?: string[]; // which activities this product suits (recommendation engine signal)
+  transportModes?: ProductTransportation[]; // [] / omitted = unrestricted — soft-boost signal, like activities
+  kitCategory: KitCategory; // required — every product belongs to exactly one packing-list bucket
   popular: boolean;
   tested: boolean;
   icon: string; // fallback display icon when a specific ProductItem doesn't set its own
@@ -72,77 +105,77 @@ export interface ProductItem {
 }
 
 export const PRODUCTS: Product[] = [
-  { id: 'passport-wallet', name: 'Passport Wallet', category: 'Documents', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '📘', active: true, description: 'Slim RFID-blocking travel document wallet.' },
-  { id: 'fast-charge-cable-set', name: 'Fast-Charge Cable Set', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🔌', active: true, description: 'Durable braided cables, phone + tablet compatible.' },
-  { id: 'travel-medication-case', name: 'Travel Medication Case', category: 'Health', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '💊', active: true, description: 'Labeled daily compartments for on-the-go meds.' },
-  { id: 'compact-first-aid-kit', name: 'Compact First-Aid Kit', category: 'Health', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🩹', active: true, description: 'Bandages, antiseptic, and essentials in one pouch.' },
-  { id: 'document-organizer-wallet', name: 'Document Organizer Wallet', category: 'Documents', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '📄', active: true, description: 'Keeps tickets, ID, and cards in one place.' },
+  { id: 'passport-wallet', name: 'Passport Wallet', category: 'Documents', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '📘', active: true, description: 'Slim RFID-blocking travel document wallet.', kitCategory: 'Essentials' },
+  { id: 'fast-charge-cable-set', name: 'Fast-Charge Cable Set', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🔌', active: true, description: 'Durable braided cables, phone + tablet compatible.', kitCategory: 'Tech Pack' },
+  { id: 'travel-medication-case', name: 'Travel Medication Case', category: 'Health', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '💊', active: true, description: 'Labeled daily compartments for on-the-go meds.', kitCategory: 'Health & Safety' },
+  { id: 'compact-first-aid-kit', name: 'Compact First-Aid Kit', category: 'Health', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🩹', active: true, description: 'Bandages, antiseptic, and essentials in one pouch.', kitCategory: 'Health & Safety' },
+  { id: 'document-organizer-wallet', name: 'Document Organizer Wallet', category: 'Documents', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '📄', active: true, description: 'Keeps tickets, ID, and cards in one place.', kitCategory: 'Essentials' },
 
-  { id: 'ripple-swimsuit', name: 'Ripple Swimsuit', category: 'Clothing', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: true, tested: true, icon: '🩱', active: true, description: 'Quick-dry, chlorine-resistant everyday swimsuit.' },
-  { id: 'quick-dry-mini-towel', name: 'Quick-Dry Mini Towel', category: 'Comfort', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: true, tested: true, icon: '🏖️', active: true, description: "Packs small, dries fast, sand won't stick." },
-  { id: 'woven-flip-flops', name: 'Woven Flip-Flops', category: 'Clothing', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '🩴', active: true, description: 'Lightweight sandals for sand and boardwalk.' },
-  { id: 'waterproof-phone-pouch', name: 'Waterproof Phone Pouch', category: 'Electronics', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '📱', active: true, description: 'Keeps your phone dry and usable in the water.' },
-  { id: 'after-sun-aloe-gel', name: 'After-Sun Aloe Gel', category: 'Toiletries', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '🌿', active: true, description: 'Cooling relief for sun-warmed skin.' },
+  { id: 'ripple-swimsuit', name: 'Ripple Swimsuit', category: 'Clothing', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: true, tested: true, icon: '🩱', active: true, description: 'Quick-dry, chlorine-resistant everyday swimsuit.', kitCategory: 'Clothing' },
+  { id: 'quick-dry-mini-towel', name: 'Quick-Dry Mini Towel', category: 'Comfort', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: true, tested: true, icon: '🏖️', active: true, description: "Packs small, dries fast, sand won't stick.", kitCategory: 'Comfort' },
+  { id: 'woven-flip-flops', name: 'Woven Flip-Flops', category: 'Clothing', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '🩴', active: true, description: 'Lightweight sandals for sand and boardwalk.', kitCategory: 'Footwear' },
+  { id: 'waterproof-phone-pouch', name: 'Waterproof Phone Pouch', category: 'Electronics', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '📱', active: true, description: 'Keeps your phone dry and usable in the water.', kitCategory: 'Tech Pack' },
+  { id: 'after-sun-aloe-gel', name: 'After-Sun Aloe Gel', category: 'Toiletries', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '🌿', active: true, description: 'Cooling relief for sun-warmed skin.', kitCategory: 'Toiletries' },
 
-  { id: 'trailhead-hiking-boots', name: 'Trailhead Hiking Boots', category: 'Clothing', seasons: [], destinations: ['Mountain'], parties: [], popular: true, tested: true, icon: '🥾', active: true, description: 'Ankle support and grip for uneven terrain.' },
-  { id: 'carbon-trekking-poles', name: 'Carbon Trekking Poles', category: 'Gear', seasons: [], destinations: ['Mountain'], parties: [], popular: false, tested: true, icon: '🥢', active: true, description: 'Collapsible poles for steep or long trails.' },
-  { id: 'ridgeline-daypack-18l', name: 'Ridgeline Daypack 18L', category: 'Gear', seasons: [], destinations: ['Mountain'], parties: [], popular: true, tested: true, icon: '🎒', active: true, description: 'Just enough room for a day on the trail.' },
-  { id: 'insect-repellent-spray', name: 'Insect Repellent Spray', category: 'Toiletries', seasons: [], destinations: ['Mountain'], parties: [], popular: false, tested: true, icon: '🦟', active: true, description: 'DEET-free formula, travel-size.' },
-  { id: 'rechargeable-headlamp', name: 'Rechargeable Headlamp', category: 'Electronics', seasons: [], destinations: ['Mountain'], parties: [], popular: false, tested: true, icon: '🔦', active: true, description: 'Hands-free light for early starts or camp.' },
+  { id: 'trailhead-hiking-boots', name: 'Trailhead Hiking Boots', category: 'Clothing', seasons: [], destinations: ['Mountain'], parties: [], popular: true, tested: true, icon: '🥾', active: true, description: 'Ankle support and grip for uneven terrain.', kitCategory: 'Footwear' },
+  { id: 'carbon-trekking-poles', name: 'Carbon Trekking Poles', category: 'Gear', seasons: [], destinations: ['Mountain'], parties: [], popular: false, tested: true, icon: '🥢', active: true, description: 'Collapsible poles for steep or long trails.', kitCategory: 'Activity Gear' },
+  { id: 'ridgeline-daypack-18l', name: 'Ridgeline Daypack 18L', category: 'Gear', seasons: [], destinations: ['Mountain'], parties: [], popular: true, tested: true, icon: '🎒', active: true, description: 'Just enough room for a day on the trail.', kitCategory: 'Activity Gear' },
+  { id: 'insect-repellent-spray', name: 'Insect Repellent Spray', category: 'Toiletries', seasons: [], destinations: ['Mountain'], parties: [], popular: false, tested: true, icon: '🦟', active: true, description: 'DEET-free formula, travel-size.', kitCategory: 'Health & Safety' },
+  { id: 'rechargeable-headlamp', name: 'Rechargeable Headlamp', category: 'Electronics', seasons: [], destinations: ['Mountain'], parties: [], popular: false, tested: true, icon: '🔦', active: true, description: 'Hands-free light for early starts or camp.', kitCategory: 'Activity Gear' },
 
-  { id: 'everyday-walking-sneakers', name: 'Everyday Walking Sneakers', category: 'Clothing', seasons: [], destinations: ['City'], parties: [], popular: true, tested: true, icon: '👟', active: true, description: 'All-day comfort for cobblestones and subways.' },
-  { id: 'crossbody-city-bag', name: 'Crossbody City Bag', category: 'Gear', seasons: [], destinations: ['City'], parties: [], popular: true, tested: true, icon: '👜', active: true, description: 'Anti-theft zip, fits phone, wallet, and a map.' },
-  { id: 'slim-power-bank-10000mah', name: 'Slim Power Bank 10000mAh', category: 'Electronics', seasons: [], destinations: ['City'], parties: [], popular: true, tested: true, icon: '🔋', active: true, description: 'A full charge for a long day of exploring.' },
-  { id: 'offline-city-map-pack', name: 'Offline City Map Pack', category: 'Electronics', seasons: [], destinations: ['City'], parties: [], popular: false, tested: true, icon: '🗺️', active: true, description: 'Pre-downloaded maps, no data needed.' },
-  { id: 'foldable-laundry-bag', name: 'Foldable Laundry Bag', category: 'Comfort', seasons: [], destinations: ['City'], parties: [], popular: false, tested: true, icon: '🧺', active: true, description: 'Keeps worn clothes separate, packs flat.' },
+  { id: 'everyday-walking-sneakers', name: 'Everyday Walking Sneakers', category: 'Clothing', seasons: [], destinations: ['City'], parties: [], popular: true, tested: true, icon: '👟', active: true, description: 'All-day comfort for cobblestones and subways.', kitCategory: 'Footwear' },
+  { id: 'crossbody-city-bag', name: 'Crossbody City Bag', category: 'Gear', seasons: [], destinations: ['City'], parties: [], popular: true, tested: true, icon: '👜', active: true, description: 'Anti-theft zip, fits phone, wallet, and a map.', kitCategory: 'Essentials' },
+  { id: 'slim-power-bank-10000mah', name: 'Slim Power Bank 10000mAh', category: 'Electronics', seasons: [], destinations: ['City'], parties: [], popular: true, tested: true, icon: '🔋', active: true, description: 'A full charge for a long day of exploring.', kitCategory: 'Tech Pack' },
+  { id: 'offline-city-map-pack', name: 'Offline City Map Pack', category: 'Electronics', seasons: [], destinations: ['City'], parties: [], popular: false, tested: true, icon: '🗺️', active: true, description: 'Pre-downloaded maps, no data needed.', kitCategory: 'Tech Pack' },
+  { id: 'foldable-laundry-bag', name: 'Foldable Laundry Bag', category: 'Comfort', seasons: [], destinations: ['City'], parties: [], popular: false, tested: true, icon: '🧺', active: true, description: 'Keeps worn clothes separate, packs flat.', kitCategory: 'Comfort' },
 
-  { id: '50ml-sunscreen-spf50', name: '50ml Sunscreen SPF50', category: 'Toiletries', seasons: ['Summer'], destinations: [], parties: [], popular: true, tested: true, icon: '🧴', active: true, description: 'Travel-size, reef-safe, broad spectrum.' },
-  { id: 'polarized-sunglasses', name: 'Polarized Sunglasses', category: 'Accessories', seasons: ['Summer'], destinations: [], parties: [], popular: true, tested: true, icon: '🕶️', active: true, description: 'UV protection with a lightweight frame.' },
-  { id: 'packable-wide-brim-hat', name: 'Packable Wide-Brim Hat', category: 'Accessories', seasons: ['Summer'], destinations: [], parties: [], popular: false, tested: true, icon: '👒', active: true, description: 'Folds flat, springs back into shape.' },
-  { id: 'breathable-linen-set', name: 'Breathable Linen Set', category: 'Clothing', seasons: ['Summer'], destinations: [], parties: [], popular: false, tested: true, icon: '👕', active: true, description: 'Lightweight layers for hot, humid days.' },
-  { id: 'cooling-neck-towel', name: 'Cooling Neck Towel', category: 'Comfort', seasons: ['Summer'], destinations: [], parties: [], popular: false, tested: true, icon: '🧣', active: true, description: 'Activates with water, stays cool for hours.' },
+  { id: '50ml-sunscreen-spf50', name: '50ml Sunscreen SPF50', category: 'Toiletries', seasons: ['Summer'], destinations: [], parties: [], popular: true, tested: true, icon: '🧴', active: true, description: 'Travel-size, reef-safe, broad spectrum.', kitCategory: 'Toiletries' },
+  { id: 'polarized-sunglasses', name: 'Polarized Sunglasses', category: 'Accessories', seasons: ['Summer'], destinations: [], parties: [], popular: true, tested: true, icon: '🕶️', active: true, description: 'UV protection with a lightweight frame.', kitCategory: 'Weather Gear' },
+  { id: 'packable-wide-brim-hat', name: 'Packable Wide-Brim Hat', category: 'Accessories', seasons: ['Summer'], destinations: [], parties: [], popular: false, tested: true, icon: '👒', active: true, description: 'Folds flat, springs back into shape.', kitCategory: 'Weather Gear' },
+  { id: 'breathable-linen-set', name: 'Breathable Linen Set', category: 'Clothing', seasons: ['Summer'], destinations: [], parties: [], popular: false, tested: true, icon: '👕', active: true, description: 'Lightweight layers for hot, humid days.', kitCategory: 'Clothing' },
+  { id: 'cooling-neck-towel', name: 'Cooling Neck Towel', category: 'Comfort', seasons: ['Summer'], destinations: [], parties: [], popular: false, tested: true, icon: '🧣', active: true, description: 'Activates with water, stays cool for hours.', kitCategory: 'Weather Gear' },
 
-  { id: 'thermal-base-layer-set', name: 'Thermal Base Layer Set', category: 'Clothing', seasons: ['Winter'], destinations: [], parties: [], popular: true, tested: true, icon: '🥼', active: true, description: 'Moisture-wicking layer for cold climates.' },
-  { id: 'insulated-touch-gloves', name: 'Insulated Touch Gloves', category: 'Accessories', seasons: ['Winter'], destinations: [], parties: [], popular: false, tested: true, icon: '🧤', active: true, description: 'Stay warm without taking them off for your phone.' },
-  { id: 'ribbed-wool-beanie', name: 'Ribbed Wool Beanie', category: 'Accessories', seasons: ['Winter'], destinations: [], parties: [], popular: false, tested: true, icon: '🧢', active: true, description: 'Soft merino wool, packs into a pocket.' },
-  { id: 'lip-skin-balm-duo', name: 'Lip & Skin Balm Duo', category: 'Toiletries', seasons: ['Winter'], destinations: [], parties: [], popular: false, tested: true, icon: '💄', active: true, description: 'Protects against wind and dry cabin air.' },
-  { id: 'merino-wool-socks-2pk', name: 'Merino Wool Socks (2pk)', category: 'Clothing', seasons: ['Winter'], destinations: [], parties: [], popular: true, tested: true, icon: '🧦', active: true, description: 'Warm, odor-resistant, all-day comfort.' },
+  { id: 'thermal-base-layer-set', name: 'Thermal Base Layer Set', category: 'Clothing', seasons: ['Winter'], destinations: [], parties: [], popular: true, tested: true, icon: '🥼', active: true, description: 'Moisture-wicking layer for cold climates.', kitCategory: 'Clothing' },
+  { id: 'insulated-touch-gloves', name: 'Insulated Touch Gloves', category: 'Accessories', seasons: ['Winter'], destinations: [], parties: [], popular: false, tested: true, icon: '🧤', active: true, description: 'Stay warm without taking them off for your phone.', kitCategory: 'Weather Gear' },
+  { id: 'ribbed-wool-beanie', name: 'Ribbed Wool Beanie', category: 'Accessories', seasons: ['Winter'], destinations: [], parties: [], popular: false, tested: true, icon: '🧢', active: true, description: 'Soft merino wool, packs into a pocket.', kitCategory: 'Weather Gear' },
+  { id: 'lip-skin-balm-duo', name: 'Lip & Skin Balm Duo', category: 'Toiletries', seasons: ['Winter'], destinations: [], parties: [], popular: false, tested: true, icon: '💄', active: true, description: 'Protects against wind and dry cabin air.', kitCategory: 'Beauty Kit' },
+  { id: 'merino-wool-socks-2pk', name: 'Merino Wool Socks (2pk)', category: 'Clothing', seasons: ['Winter'], destinations: [], parties: [], popular: true, tested: true, icon: '🧦', active: true, description: 'Warm, odor-resistant, all-day comfort.', kitCategory: 'Clothing' },
 
-  { id: 'packable-rain-jacket', name: 'Packable Rain Jacket', category: 'Clothing', seasons: ['Rainy'], destinations: [], parties: [], popular: true, tested: true, icon: '🧥', active: true, description: 'Waterproof shell that folds into its own pocket.' },
-  { id: 'compact-travel-umbrella', name: 'Compact Travel Umbrella', category: 'Gear', seasons: ['Rainy'], destinations: [], parties: [], popular: true, tested: true, icon: '☂️', active: true, description: 'Windproof frame, fits in a daypack pocket.' },
-  { id: 'waterproof-shoe-covers', name: 'Waterproof Shoe Covers', category: 'Gear', seasons: ['Rainy'], destinations: [], parties: [], popular: false, tested: true, icon: '👢', active: true, description: 'Slip over any shoe to keep feet dry.' },
-  { id: 'electronics-dry-bag', name: 'Electronics Dry Bag', category: 'Electronics', seasons: ['Rainy'], destinations: [], parties: [], popular: false, tested: true, icon: '💧', active: true, description: 'Roll-top seal keeps devices safe from rain.' },
-  { id: 'quick-dry-travel-set', name: 'Quick-Dry Travel Set', category: 'Clothing', seasons: ['Rainy'], destinations: [], parties: [], popular: false, tested: true, icon: '👚', active: true, description: 'Dries overnight even in humid conditions.' },
+  { id: 'packable-rain-jacket', name: 'Packable Rain Jacket', category: 'Clothing', seasons: ['Rainy'], destinations: [], parties: [], popular: true, tested: true, icon: '🧥', active: true, description: 'Waterproof shell that folds into its own pocket.', kitCategory: 'Weather Gear' },
+  { id: 'compact-travel-umbrella', name: 'Compact Travel Umbrella', category: 'Gear', seasons: ['Rainy'], destinations: [], parties: [], popular: true, tested: true, icon: '☂️', active: true, description: 'Windproof frame, fits in a daypack pocket.', kitCategory: 'Weather Gear' },
+  { id: 'waterproof-shoe-covers', name: 'Waterproof Shoe Covers', category: 'Gear', seasons: ['Rainy'], destinations: [], parties: [], popular: false, tested: true, icon: '👢', active: true, description: 'Slip over any shoe to keep feet dry.', kitCategory: 'Weather Gear' },
+  { id: 'electronics-dry-bag', name: 'Electronics Dry Bag', category: 'Electronics', seasons: ['Rainy'], destinations: [], parties: [], popular: false, tested: true, icon: '💧', active: true, description: 'Roll-top seal keeps devices safe from rain.', kitCategory: 'Tech Pack' },
+  { id: 'quick-dry-travel-set', name: 'Quick-Dry Travel Set', category: 'Clothing', seasons: ['Rainy'], destinations: [], parties: [], popular: false, tested: true, icon: '👚', active: true, description: 'Dries overnight even in humid conditions.', kitCategory: 'Clothing' },
 
-  { id: 'personal-safety-whistle', name: 'Personal Safety Whistle', category: 'Gear', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🔔', active: true, description: 'Lightweight, loud, and easy to clip on.' },
-  { id: 'portable-door-alarm', name: 'Portable Door Alarm', category: 'Gear', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🚪', active: true, description: 'Extra peace of mind for solo stays.' },
-  { id: 'travel-esim-card', name: 'Travel eSIM Card', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '📶', active: true, description: 'Stay connected the moment you land.' },
+  { id: 'personal-safety-whistle', name: 'Personal Safety Whistle', category: 'Gear', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🔔', active: true, description: 'Lightweight, loud, and easy to clip on.', kitCategory: 'Health & Safety' },
+  { id: 'portable-door-alarm', name: 'Portable Door Alarm', category: 'Gear', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🚪', active: true, description: 'Extra peace of mind for solo stays.', kitCategory: 'Health & Safety' },
+  { id: 'travel-esim-card', name: 'Travel eSIM Card', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '📶', active: true, description: 'Stay connected the moment you land.', kitCategory: 'Tech Pack' },
 
-  { id: 'group-first-aid-kit-large', name: 'Group First-Aid Kit (Large)', category: 'Health', seasons: [], destinations: [], parties: ['Group'], popular: false, tested: true, icon: '🧰', active: true, description: 'Sized for 4-6 travelers, restockable.' },
-  { id: 'printed-itinerary-set', name: 'Printed Itinerary Set', category: 'Documents', seasons: [], destinations: [], parties: ['Group'], popular: false, tested: true, icon: '🗒️', active: true, description: 'Shareable printed copies for the whole group.' },
-  { id: 'multi-port-charging-hub', name: 'Multi-Port Charging Hub', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🔌', active: true, description: 'Charge up to 6 devices from one outlet.' },
+  { id: 'group-first-aid-kit-large', name: 'Group First-Aid Kit (Large)', category: 'Health', seasons: [], destinations: [], parties: ['Group'], popular: false, tested: true, icon: '🧰', active: true, description: 'Sized for 4-6 travelers, restockable.', kitCategory: 'Health & Safety' },
+  { id: 'printed-itinerary-set', name: 'Printed Itinerary Set', category: 'Documents', seasons: [], destinations: [], parties: ['Group'], popular: false, tested: true, icon: '🗒️', active: true, description: 'Shareable printed copies for the whole group.', kitCategory: 'Essentials' },
+  { id: 'multi-port-charging-hub', name: 'Multi-Port Charging Hub', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🔌', active: true, description: 'Charge up to 6 devices from one outlet.', kitCategory: 'Tech Pack' },
 
-  { id: 'travel-size-toiletry-kit', name: 'Travel-Size Toiletry Kit', category: 'Toiletries', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🧴', active: true, description: 'TSA-friendly bottles, refillable and reusable.' },
-  { id: 'versatile-spare-outfit', name: 'Versatile Spare Outfit', category: 'Clothing', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '👕', active: true, description: 'One extra outfit that pairs with everything.' },
+  { id: 'travel-size-toiletry-kit', name: 'Travel-Size Toiletry Kit', category: 'Toiletries', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🧴', active: true, description: 'TSA-friendly bottles, refillable and reusable.', kitCategory: 'Toiletries', transportModes: ['Flight'] },
+  { id: 'versatile-spare-outfit', name: 'Versatile Spare Outfit', category: 'Clothing', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '👕', active: true, description: 'One extra outfit that pairs with everything.', kitCategory: 'Clothing' },
 
-  { id: 'laundry-detergent-sheets', name: 'Laundry Detergent Sheets', category: 'Toiletries', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧼', active: true, description: 'Featherlight sheets, no liquid spills.' },
-  { id: 'packing-cubes-set-of-3', name: 'Packing Cubes (Set of 3)', category: 'Gear', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🧳', active: true, description: 'Compress and organize by outfit or category.' },
-  { id: 'universal-travel-adapter', name: 'Universal Travel Adapter', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🔋', active: true, description: 'Works in 150+ countries, built-in USB ports.' },
+  { id: 'laundry-detergent-sheets', name: 'Laundry Detergent Sheets', category: 'Toiletries', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧼', active: true, description: 'Featherlight sheets, no liquid spills.', kitCategory: 'Toiletries' },
+  { id: 'packing-cubes-set-of-3', name: 'Packing Cubes (Set of 3)', category: 'Gear', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🧳', active: true, description: 'Compress and organize by outfit or category.', kitCategory: 'Essentials' },
+  { id: 'universal-travel-adapter', name: 'Universal Travel Adapter', category: 'Electronics', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🔋', active: true, description: 'Works in 150+ countries, built-in USB ports.', kitCategory: 'Tech Pack' },
 
-  { id: 'reusable-laundry-bag', name: 'Reusable Laundry Bag', category: 'Comfort', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧺', active: true, description: 'Mesh bag for longer stays between washes.' },
-  { id: 'extended-medication-organizer', name: 'Extended Medication Organizer', category: 'Health', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '💊', active: true, description: 'A full month of daily compartments.' },
-  { id: 'packing-cubes-full-set', name: 'Packing Cubes (Full Set)', category: 'Gear', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧳', active: true, description: 'Complete system for extended travel.' },
-  { id: 'foldable-spare-duffel', name: 'Foldable Spare Duffel', category: 'Gear', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🎒', active: true, description: 'Packs flat, unfolds for souvenirs on the way home.' },
+  { id: 'reusable-laundry-bag', name: 'Reusable Laundry Bag', category: 'Comfort', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧺', active: true, description: 'Mesh bag for longer stays between washes.', kitCategory: 'Comfort' },
+  { id: 'extended-medication-organizer', name: 'Extended Medication Organizer', category: 'Health', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '💊', active: true, description: 'A full month of daily compartments.', kitCategory: 'Health & Safety' },
+  { id: 'packing-cubes-full-set', name: 'Packing Cubes (Full Set)', category: 'Gear', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧳', active: true, description: 'Complete system for extended travel.', kitCategory: 'Essentials' },
+  { id: 'foldable-spare-duffel', name: 'Foldable Spare Duffel', category: 'Gear', seasons: [], destinations: [], parties: [], popular: true, tested: true, icon: '🎒', active: true, description: 'Packs flat, unfolds for souvenirs on the way home.', kitCategory: 'Essentials' },
 
   // Added for the "Beach Starter Pack" popular kit — distinct form factors from the closest
   // existing items (stick vs. 50ml liquid sunscreen; no water bottle previously in the catalog).
-  { id: 'reef-safe-stick-sunscreen', name: 'Reef-Safe Stick Sunscreen SPF30+', category: 'Toiletries', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '🧴', active: true, description: 'Solid, mess-free sunscreen stick — easy to reapply on the go.' },
-  { id: 'collapsible-silicone-water-bottle', name: 'Collapsible Silicone Water Bottle', category: 'Comfort', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🥤', active: true, description: 'Squashes flat when empty, holds 500ml when full.' },
+  { id: 'reef-safe-stick-sunscreen', name: 'Reef-Safe Stick Sunscreen SPF30+', category: 'Toiletries', seasons: ['Summer'], destinations: ['Beach'], parties: [], popular: false, tested: true, icon: '🧴', active: true, description: 'Solid, mess-free sunscreen stick — easy to reapply on the go.', kitCategory: 'Toiletries' },
+  { id: 'collapsible-silicone-water-bottle', name: 'Collapsible Silicone Water Bottle', category: 'Comfort', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🥤', active: true, description: 'Squashes flat when empty, holds 500ml when full.', kitCategory: 'Food & Hydration' },
 
   // Added for the "Airport Carry-On" popular kit — nothing in the catalog covered flight-specific
   // comfort/circulation items.
-  { id: 'compression-socks-flight', name: 'Compression Socks (Flight)', category: 'Clothing', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧦', active: true, description: 'Graduated compression to reduce leg fatigue and swelling on long flights.' },
-  { id: 'travel-pillow-eye-mask-set', name: 'Travel Pillow & Eye Mask Set', category: 'Comfort', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '😴', active: true, description: 'Memory-foam neck pillow paired with a contoured eye mask for real airport sleep.' },
+  { id: 'compression-socks-flight', name: 'Compression Socks (Flight)', category: 'Clothing', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '🧦', active: true, description: 'Graduated compression to reduce leg fatigue and swelling on long flights.', kitCategory: 'Health & Safety', transportModes: ['Flight'] },
+  { id: 'travel-pillow-eye-mask-set', name: 'Travel Pillow & Eye Mask Set', category: 'Comfort', seasons: [], destinations: [], parties: [], popular: false, tested: true, icon: '😴', active: true, description: 'Memory-foam neck pillow paired with a contoured eye mask for real airport sleep.', kitCategory: 'Comfort', transportModes: ['Flight', 'Train'] },
 ];
 
 // One default (brand: undefined) ProductItem per product, id'd as a plain sequential number (like
@@ -255,7 +288,9 @@ const SEASON_TINT: Partial<Record<ProductSeason, string>> = {
 // Shared with ProductDetailComponent so the shop grid and the product page agree on tinting.
 // Keys off the first tag in each array (if any) — every seed product carries at most one
 // destination/season today, so this preserves the exact prior visual result.
-export function getProductTint(product: Product): string {
+// Narrowed to just the 3 fields actually read (rather than the full Product) so ProductItemView
+// — the flattened Shop/Cart/My-Kit shape, which doesn't carry kitCategory — still satisfies it.
+export function getProductTint(product: Pick<Product, 'popular' | 'destinations' | 'seasons'>): string {
   if (product.popular) return 'var(--tint-violet)';
   const destination = product.destinations[0];
   const season = product.seasons[0];

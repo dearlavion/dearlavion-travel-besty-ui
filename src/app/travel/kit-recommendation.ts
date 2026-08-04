@@ -1,22 +1,31 @@
-// Deterministic kit-building formula, reverse-engineered from Travel_Kit_Scenarios.xlsx
-// (54 rows = 3 destinations x 3 seasons x 2 party types x 3 durations). Every kit = 5 fixed
-// base items + 5 destination items + 5 season items + 3 party items + 2/3/4 duration items
-// (20/21/22 total) — composable from these small tables rather than 54 hardcoded rows.
-//
-// The 50 possible items here (5+15+15+6+9) map 1:1 onto the 50 products in
-// shop/product-catalog.ts — each generic recommendation ("Compact first-aid kit") points at
-// the real store product that fulfills it (`compact-first-aid-kit`), verified by hand against
-// every catalog entry.
+// Mock-mode kit builder. Scores every product in the shared catalog against the trip answers,
+// rather than hardcoding a fixed item list per answer (the old approach — reverse-engineered from
+// Travel_Kit_Scenarios.xlsx — didn't scale: every new product needed a human to remember to add
+// its id into the right lookup table, or it silently never got recommended). Products already
+// carry their own applicability tags (seasons/destinations/parties/activities/transportModes/
+// kitCategory, see product-catalog.ts) — a new product just needs those tags set once at creation
+// and it's automatically eligible everywhere, present and future. This mirrors the shape the real
+// backend's own comment implies it already uses ("scores every real catalog product").
+import { KitCategory, PRODUCTS, Product, ProductTransportation } from '../shop/product-catalog';
+
 export type Destination = 'Beach' | 'Mountain' | 'City';
 export type Season = 'Summer' | 'Winter' | 'Rainy';
 export type Party = 'Solo' | 'Group';
 export type Duration = 'Quick escape' | 'A proper break' | 'Living it';
+export type Transportation = ProductTransportation;
+export type Gender = 'Woman' | 'Man' | 'Nonbinary' | 'Prefer not to say';
+export type { KitCategory };
 
 export interface TripAnswers {
-  destination: Destination;
+  // [] = "All" — unrestricted, same convention as a product's own Product.destinations: [].
+  destinations: Destination[];
   season: Season;
   party: Party;
   duration: Duration;
+  transportation: Transportation;
+  priorityCategories: KitCategory[];
+  activities?: string[];
+  gender?: Gender; // collected only — not scored, no gendered catalog data to key off yet
 }
 
 export interface KitItem {
@@ -25,6 +34,7 @@ export interface KitItem {
   productItemId?: string; // the specific sized/variant SKU the engine matched to the trip
 }
 
+// Always included regardless of scoring — the handful of items every trip needs.
 const BASE_ITEMS: KitItem[] = [
   { label: 'Passport / government ID', productId: 'passport-wallet' },
   { label: 'Phone + charging cable', productId: 'fast-charge-cable-set' },
@@ -32,92 +42,56 @@ const BASE_ITEMS: KitItem[] = [
   { label: 'Compact first-aid kit', productId: 'compact-first-aid-kit' },
   { label: 'Travel document wallet', productId: 'document-organizer-wallet' },
 ];
+const BASE_PRODUCT_IDS = new Set(BASE_ITEMS.map((item) => item.productId));
 
-const DESTINATION_ITEMS: Record<Destination, KitItem[]> = {
-  Beach: [
-    { label: 'Swimsuit', productId: 'ripple-swimsuit' },
-    { label: 'Quick-dry mini towel', productId: 'quick-dry-mini-towel' },
-    { label: 'Flip-flops / sandals', productId: 'woven-flip-flops' },
-    { label: 'Waterproof phone pouch', productId: 'waterproof-phone-pouch' },
-    { label: 'Aloe vera gel (after-sun)', productId: 'after-sun-aloe-gel' },
-  ],
-  Mountain: [
-    { label: 'Hiking boots', productId: 'trailhead-hiking-boots' },
-    { label: 'Trekking poles', productId: 'carbon-trekking-poles' },
-    { label: 'Daypack (15-20L)', productId: 'ridgeline-daypack-18l' },
-    { label: 'Insect repellent', productId: 'insect-repellent-spray' },
-    { label: 'Compact headlamp', productId: 'rechargeable-headlamp' },
-  ],
-  City: [
-    { label: 'Comfortable walking shoes', productId: 'everyday-walking-sneakers' },
-    { label: 'Crossbody day bag', productId: 'crossbody-city-bag' },
-    { label: 'Portable power bank', productId: 'slim-power-bank-10000mah' },
-    { label: 'Offline city map (downloaded)', productId: 'offline-city-map-pack' },
-    { label: 'Foldable laundry bag', productId: 'foldable-laundry-bag' },
-  ],
+// How many scored (non-base) items to include, by trip length — same 20/21/22-ish totals the old
+// static-table formula produced, so switching the selection mechanism doesn't jar the kit size.
+const DURATION_TARGET: Record<Duration, number> = {
+  'Quick escape': 15,
+  'A proper break': 16,
+  'Living it': 17,
 };
 
-const SEASON_ITEMS: Record<Season, KitItem[]> = {
-  Summer: [
-    { label: '50ml sunscreen SPF50', productId: '50ml-sunscreen-spf50' },
-    { label: 'Sunglasses', productId: 'polarized-sunglasses' },
-    { label: 'Wide-brim hat', productId: 'packable-wide-brim-hat' },
-    { label: 'Lightweight breathable clothing', productId: 'breathable-linen-set' },
-    { label: 'Cooling neck towel', productId: 'cooling-neck-towel' },
-  ],
-  Winter: [
-    { label: 'Thermal base layers', productId: 'thermal-base-layer-set' },
-    { label: 'Insulated gloves', productId: 'insulated-touch-gloves' },
-    { label: 'Warm beanie', productId: 'ribbed-wool-beanie' },
-    { label: 'Lip balm + moisturizer', productId: 'lip-skin-balm-duo' },
-    { label: 'Wool socks (2 pairs)', productId: 'merino-wool-socks-2pk' },
-  ],
-  Rainy: [
-    { label: 'Packable rain jacket', productId: 'packable-rain-jacket' },
-    { label: 'Compact umbrella', productId: 'compact-travel-umbrella' },
-    { label: 'Waterproof shoe covers', productId: 'waterproof-shoe-covers' },
-    { label: 'Dry bag for electronics', productId: 'electronics-dry-bag' },
-    { label: 'Quick-dry clothing set', productId: 'quick-dry-travel-set' },
-  ],
-};
+// Hard filters: a product tagged for specific destinations/seasons that don't match the trip is
+// just wrong to pack (a swimsuit for a winter mountain trip), so it's excluded outright rather
+// than merely down-scored. An empty tag array means "unrestricted" — always eligible on that axis.
+function isEligible(product: Product, answers: TripAnswers): boolean {
+  if (!product.active || BASE_PRODUCT_IDS.has(product.id)) return false;
+  // Both sides follow the same "[] = unrestricted" convention: a product with no destination tag
+  // fits any trip, and an answer of "All" (empty) doesn't exclude any product either way.
+  if (
+    product.destinations.length &&
+    answers.destinations.length &&
+    !product.destinations.some((d) => answers.destinations.includes(d))
+  ) {
+    return false;
+  }
+  if (product.seasons.length && !product.seasons.includes(answers.season)) return false;
+  return true;
+}
 
-const PARTY_ITEMS: Record<Party, KitItem[]> = {
-  Solo: [
-    { label: 'Personal safety whistle', productId: 'personal-safety-whistle' },
-    { label: 'Portable door lock/alarm', productId: 'portable-door-alarm' },
-    { label: 'Local SIM / eSIM', productId: 'travel-esim-card' },
-  ],
-  Group: [
-    { label: 'Shared first-aid kit (larger)', productId: 'group-first-aid-kit-large' },
-    { label: 'Printed itinerary copies', productId: 'printed-itinerary-set' },
-    { label: 'Multi-device charging hub', productId: 'multi-port-charging-hub' },
-  ],
-};
-
-const DURATION_ITEMS: Record<Duration, KitItem[]> = {
-  'Quick escape': [
-    { label: 'Travel-size toiletry kit', productId: 'travel-size-toiletry-kit' },
-    { label: '1 spare outfit', productId: 'versatile-spare-outfit' },
-  ],
-  'A proper break': [
-    { label: 'Laundry detergent sheets', productId: 'laundry-detergent-sheets' },
-    { label: 'Packing cubes (set of 3)', productId: 'packing-cubes-set-of-3' },
-    { label: 'Universal travel adapter', productId: 'universal-travel-adapter' },
-  ],
-  'Living it': [
-    { label: 'Reusable laundry bag', productId: 'reusable-laundry-bag' },
-    { label: 'Extra medication supply', productId: 'extended-medication-organizer' },
-    { label: 'Packing cubes (full set)', productId: 'packing-cubes-full-set' },
-    { label: 'Foldable spare duffel (for souvenirs)', productId: 'foldable-spare-duffel' },
-  ],
-};
+// Soft boosts: these make a product more likely to be picked among eligible ones, they don't
+// exclude it. kitCategory is weighted heaviest — it's the direct "what matters most to you"
+// signal, and the only one the user is asked about with the sole purpose of ranking. Multi-select:
+// any one matching category earns the full boost (not split across picks) — picking more
+// categories widens what gets prioritized, it doesn't dilute each pick's weight.
+function scoreProduct(product: Product, answers: TripAnswers): number {
+  let score = 0;
+  if (product.parties.includes(answers.party)) score += 2;
+  if (product.transportModes?.includes(answers.transportation)) score += 2;
+  const activities = answers.activities ?? [];
+  score += (product.activities ?? []).filter((activity) => activities.includes(activity)).length;
+  if (answers.priorityCategories.includes(product.kitCategory)) score += 5;
+  if (product.popular) score += 0.5; // small deterministic tiebreaker
+  return score;
+}
 
 export function buildTravelKit(answers: TripAnswers): KitItem[] {
-  return [
-    ...BASE_ITEMS,
-    ...DESTINATION_ITEMS[answers.destination],
-    ...SEASON_ITEMS[answers.season],
-    ...PARTY_ITEMS[answers.party],
-    ...DURATION_ITEMS[answers.duration],
-  ];
+  const target = DURATION_TARGET[answers.duration];
+  const scored = PRODUCTS.filter((product) => isEligible(product, answers))
+    .map((product) => ({ product, score: scoreProduct(product, answers) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, target)
+    .map(({ product }): KitItem => ({ label: product.name, productId: product.id }));
+  return [...BASE_ITEMS, ...scored];
 }

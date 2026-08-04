@@ -5,10 +5,10 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
-import { Product } from '../shop/product-catalog';
+import { KIT_CATEGORY_OPTIONS, KitCategory, Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from './popular-kit-view';
-import { buildTravelKit, Destination, Duration, Party, Season } from './kit-recommendation';
+import { buildTravelKit, Destination, Duration, Gender, Party, Season, Transportation } from './kit-recommendation';
 import { TravelKitService } from './travel-kit.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
 import { environment } from '../../environments/environment';
@@ -16,9 +16,26 @@ import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
 import { organizationNode, websiteNode } from '../common/site-entities';
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 9;
 const AUTO_ADVANCE_DELAY_MS = 350;
 const GALLERY_PAGE_SIZE = 10;
+
+export const TRANSPORTATION_OPTIONS: Transportation[] = ['Flight', 'Car', 'Train', 'Cruise'];
+
+// 'All' is a UI-only sentinel — mutually exclusive with picking specific destinations (see
+// toggleDestination()) and resolved to [] ("unrestricted", same convention product tags use)
+// before being sent to buildTravelKit()/the backend. Never a real Destination value on its own.
+export type DestinationChoice = Destination | 'All';
+export const DESTINATION_OPTIONS: DestinationChoice[] = ['Beach', 'Mountain', 'City', 'All'];
+
+// "beach", "beach and mountain", "beach, mountain, and city".
+function joinWithAnd(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+}
+
+export const GENDER_OPTIONS: Gender[] = ['Woman', 'Man', 'Nonbinary', 'Prefer not to say'];
 
 // Mirrors the backend ACTIVITIES taxonomy (store-engine product/taxonomy.ts). Multi-select, optional.
 export const ACTIVITY_OPTIONS = [
@@ -109,22 +126,43 @@ export class TravelComponent {
   protected readonly step = signal(0);
   protected readonly totalSteps = TOTAL_STEPS;
 
-  protected readonly destination = signal<Destination | null>(null);
+  protected readonly destinations = signal<DestinationChoice[]>([]);
+  protected readonly destinationOptions = DESTINATION_OPTIONS;
   protected readonly season = signal<Season | null>(null);
   protected readonly party = signal<Party | null>(null);
   protected readonly partySize = signal(2);
   protected readonly duration = signal<Duration | null>(null);
+  protected readonly transportation = signal<Transportation | null>(null);
+  protected readonly transportationOptions = TRANSPORTATION_OPTIONS;
   protected readonly activityOptions = ACTIVITY_OPTIONS;
   protected readonly activities = signal<string[]>([]);
+  protected readonly priorityCategories = signal<KitCategory[]>([]);
+  protected readonly kitCategoryOptions = KIT_CATEGORY_OPTIONS;
+  protected readonly gender = signal<Gender | null>(null);
+  protected readonly genderOptions = GENDER_OPTIONS;
+
+  // Translates the UI's DestinationChoice[] (which may contain the 'All' sentinel) into the real
+  // Destination[] the scoring engine and backend understand — 'All' (or nothing picked) becomes
+  // [], "unrestricted", exactly like an unrestricted product's own Product.destinations: [].
+  private resolvedDestinations(): Destination[] {
+    const choices = this.destinations();
+    if (choices.includes('All')) return [];
+    return choices.filter((d): d is Destination => d !== 'All');
+  }
 
   protected readonly revealSummary = computed(() => {
-    const dest = this.destination()?.toLowerCase() ?? 'trip';
+    const destinations = this.resolvedDestinations();
+    const destPart = destinations.length
+      ? `to the ${joinWithAnd(destinations.map((d) => d.toLowerCase()))}`
+      : 'wherever the wind takes you';
     const season = this.season()?.toLowerCase() ?? '';
     // Strip a leading "A "/"a " so "A proper break" reads as "proper break trip", not the
     // grammatically broken "a proper break beach" the raw label would otherwise produce.
     const durationPhrase = (this.duration() ?? '').toLowerCase().replace(/^a /, '');
     const partyPart = this.party() === 'Group' ? ` with ${this.partySize()} travelers` : '';
-    return `Built for your ${durationPhrase} ${season} trip to the ${dest}${partyPart} — here's everything you'll need.`;
+    const transport = this.transportation();
+    const transportPart = transport ? `, traveling by ${transport.toLowerCase()}` : '';
+    return `Built for your ${durationPhrase} ${season} trip ${destPart}${partyPart}${transportPart} — here's everything you'll need.`;
   });
 
   // Real-backend mode: the actual recommendation engine (POST /survey/recommendations) decides
@@ -139,30 +177,51 @@ export class TravelComponent {
   private lastFetchedAnswersKey: string | null = null;
 
   private answersKey(): string | null {
-    const destination = this.destination();
+    const destinations = this.destinations();
     const season = this.season();
     const party = this.party();
     const duration = this.duration();
-    if (!destination || !season || !party || !duration) return null;
+    const transportation = this.transportation();
+    const priorityCategories = this.priorityCategories();
+    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
+      return null;
+    }
     const partySize = party === 'Group' ? this.partySize() : undefined;
-    return JSON.stringify({ destination, season, party, partySize, duration, activities: [...this.activities()].sort() });
+    return JSON.stringify({
+      destinations: [...this.resolvedDestinations()].sort(),
+      season,
+      party,
+      partySize,
+      duration,
+      transportation,
+      priorityCategories: [...priorityCategories].sort(),
+      activities: [...this.activities()].sort(),
+      gender: this.gender(),
+    });
   }
 
   private fetchRecommendations(): void {
-    const destination = this.destination();
+    const destinations = this.destinations();
     const season = this.season();
     const party = this.party();
     const duration = this.duration();
-    if (!destination || !season || !party || !duration) return;
+    const transportation = this.transportation();
+    const priorityCategories = this.priorityCategories();
+    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
+      return;
+    }
     const partySize = party === 'Group' ? this.partySize() : undefined;
     this.http
       .post<SurveyRecommendationsResponse>(`${environment.apiUrl}/survey/recommendations`, {
-        destination,
+        destinations: this.resolvedDestinations(),
         season,
         party,
         partySize,
         duration,
+        transportation,
+        priorityCategories,
         activities: this.activities(),
+        gender: this.gender(),
       })
       .subscribe({
         next: (res) => this.recommendations.set(res),
@@ -174,19 +233,48 @@ export class TravelComponent {
     if (!environment.useMockData) {
       return this.recommendations()?.checklist.length ?? null;
     }
-    const destination = this.destination();
+    const destinations = this.destinations();
     const season = this.season();
     const party = this.party();
     const duration = this.duration();
-    if (!destination || !season || !party || !duration) {
+    const transportation = this.transportation();
+    const priorityCategories = this.priorityCategories();
+    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
       return null;
     }
-    return buildTravelKit({ destination, season, party, duration }).length;
+    return buildTravelKit({
+      destinations: this.resolvedDestinations(),
+      season,
+      party,
+      duration,
+      transportation,
+      priorityCategories,
+      activities: this.activities(),
+      gender: this.gender() ?? undefined,
+    }).length;
   });
 
-  protected selectDestination(value: Destination): void {
-    this.destination.set(value);
-    this.autoAdvance();
+  protected isDestinationSelected(choice: DestinationChoice): boolean {
+    return this.destinations().includes(choice);
+  }
+
+  // 'All' and specific picks are mutually exclusive: choosing 'All' clears any specific picks (and
+  // vice versa) rather than letting them coexist, which would be redundant/ambiguous — "Beach +
+  // All" doesn't mean anything more than "All" alone.
+  protected toggleDestination(choice: DestinationChoice): void {
+    this.destinations.update((list) => {
+      if (choice === 'All') {
+        return list.includes('All') ? [] : ['All'];
+      }
+      const withoutAll = list.filter((d) => d !== 'All');
+      return withoutAll.includes(choice)
+        ? withoutAll.filter((d) => d !== choice)
+        : [...withoutAll, choice];
+    });
+  }
+
+  protected continueFromDestinations(): void {
+    this.goNext();
   }
 
   protected selectSeason(value: Season): void {
@@ -218,6 +306,11 @@ export class TravelComponent {
     this.autoAdvance();
   }
 
+  protected selectTransportation(value: Transportation): void {
+    this.transportation.set(value);
+    this.autoAdvance();
+  }
+
   protected isActivitySelected(activity: string): boolean {
     return this.activities().includes(activity);
   }
@@ -232,6 +325,25 @@ export class TravelComponent {
     this.goNext();
   }
 
+  protected isPriorityCategorySelected(category: KitCategory): boolean {
+    return this.priorityCategories().includes(category);
+  }
+
+  protected togglePriorityCategory(category: KitCategory): void {
+    this.priorityCategories.update((list) =>
+      list.includes(category) ? list.filter((c) => c !== category) : [...list, category],
+    );
+  }
+
+  protected continueFromPriorityCategories(): void {
+    this.goNext();
+  }
+
+  protected selectGender(value: Gender): void {
+    this.gender.set(value);
+    this.autoAdvance();
+  }
+
   // Tile clicks always set their answer before calling autoAdvance(), and Party's Continue button
   // is only visible/clickable once Group is chosen — so this only matters for the one path that
   // had no answer check at all: the forward chevron, which otherwise lets a user click straight
@@ -239,15 +351,19 @@ export class TravelComponent {
   protected readonly canAdvanceFromStep = computed(() => {
     switch (this.step()) {
       case 0:
-        return this.destination() !== null;
+        return this.destinations().length > 0;
       case 1:
         return this.season() !== null;
       case 2:
-        return this.party() !== null;
-      case 3:
         return this.duration() !== null;
+      case 3:
+        return this.party() !== null;
+      case 4:
+        return this.transportation() !== null;
+      case 6:
+        return this.priorityCategories().length > 0;
       default:
-        return true; // Activities (4) is optional; Reveal (5) is the last step
+        return true; // Activities (5) and Gender (7) are optional; Reveal (8) is the last step
     }
   });
 
@@ -264,11 +380,13 @@ export class TravelComponent {
   }
 
   protected seeMyTravelKit(): void {
-    const destination = this.destination();
+    const destinations = this.destinations();
     const season = this.season();
     const party = this.party();
     const duration = this.duration();
-    if (!destination || !season || !party || !duration) {
+    const transportation = this.transportation();
+    const priorityCategories = this.priorityCategories();
+    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
       return;
     }
 
@@ -284,19 +402,31 @@ export class TravelComponent {
       const partySize = party === 'Group' ? this.partySize() : undefined;
       this.http
         .post<SurveyRecommendationsResponse>(`${environment.apiUrl}/survey/recommendations`, {
-          destination,
+          destinations: this.resolvedDestinations(),
           season,
           party,
           partySize,
           duration,
+          transportation,
+          priorityCategories,
           activities: this.activities(),
+          gender: this.gender(),
         })
         .subscribe({ next: (res) => this.navigateToKit(res), error: () => {} });
       return;
     }
 
     this.travelKitService.setKit({
-      items: buildTravelKit({ destination, season, party, duration }),
+      items: buildTravelKit({
+        destinations: this.resolvedDestinations(),
+        season,
+        party,
+        duration,
+        transportation,
+        priorityCategories,
+        activities: this.activities(),
+        gender: this.gender() ?? undefined,
+      }),
       summary: this.revealSummary(),
     });
     this.router.navigate(['/my-kit']);

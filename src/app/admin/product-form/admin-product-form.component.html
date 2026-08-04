@@ -31,17 +31,29 @@
       </label>
     </div>
 
-    <label class="field-full">
-      <span>Category</span>
-      <input
-        type="text"
-        required
-        placeholder="e.g. Electronics"
-        [ngModel]="form().category"
-        (ngModelChange)="updateField('category', $event)"
-        name="category"
-      />
-    </label>
+    <div class="field-row">
+      <label>
+        <span>Category</span>
+        <input
+          type="text"
+          required
+          placeholder="e.g. Electronics"
+          [ngModel]="form().category"
+          (ngModelChange)="updateCategory($event)"
+          name="category"
+        />
+      </label>
+
+      <label>
+        <span>Kit Category — which packing-list bucket this belongs to (boosts it when a shopper says this matters most)</span>
+        <select required [ngModel]="form().kitCategory" (ngModelChange)="updateKitCategory($event)" name="kitCategory">
+          <option value="" disabled>Choose one...</option>
+          @for (opt of kitCategoryOptions; track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </label>
+    </div>
 
     <label class="field-full">
       <span>Description</span>
@@ -95,6 +107,18 @@
         @for (opt of activityOptions; track opt) {
           <label class="checkbox-field">
             <input type="checkbox" [ngModel]="isActivityChecked(opt)" (ngModelChange)="toggleActivity(opt)" [name]="'activity-' + opt" />
+            <span>{{ opt }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="checkbox-group">
+      <span class="checkbox-group-label">Transportation (none selected = applies to all)</span>
+      <div class="checkbox-options">
+        @for (opt of transportOptions; track opt) {
+          <label class="checkbox-field">
+            <input type="checkbox" [ngModel]="isTransportChecked(opt)" (ngModelChange)="toggleTransport(opt)" [name]="'transport-' + opt" />
             <span>{{ opt }}</span>
           </label>
         }
