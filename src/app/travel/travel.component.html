@@ -26,8 +26,8 @@
 
   <div class="carousel-track">
     <!-- CARD 1: Destination (multi-select, at least one — or "All" — required) -->
-    <div class="card cream" [class.active]="step() === 0">
-      <div class="q-eyebrow">Step 1 of 8</div>
+    <div class="card cream" [class.active]="isActiveStep('destination')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">Where does your heart want to wander?</div>
       <div class="q-sub">Pick any that apply, or choose All.</div>
       <div class="tiles">
@@ -76,8 +76,8 @@
     </div>
 
     <!-- CARD 2: Season -->
-    <div class="card green" [class.active]="step() === 1">
-      <div class="q-eyebrow">Step 2 of 8</div>
+    <div class="card green" [class.active]="isActiveStep('season')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">What will the sky look like when you get there?</div>
       <div class="tiles">
         @for (opt of seasonTaxonomy(); track opt.id) {
@@ -127,8 +127,8 @@
     </div>
 
     <!-- CARD 3: Duration (fixed set of exactly 3 — admin can rename labels/subtext, not add/remove) -->
-    <div class="card marigold" [class.active]="step() === 2">
-      <div class="q-eyebrow">Step 3 of 8</div>
+    <div class="card marigold" [class.active]="isActiveStep('duration')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">How long will this chapter last?</div>
       <div class="bands">
         @for (opt of durationTaxonomy(); track opt.id) {
@@ -163,8 +163,8 @@
     </div>
 
     <!-- CARD 4: Party -->
-    <div class="card pink" [class.active]="step() === 3">
-      <div class="q-eyebrow">Step 4 of 8</div>
+    <div class="card pink" [class.active]="isActiveStep('party')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">Who's coming along for the ride?</div>
       <div class="tiles">
         @for (opt of partyTaxonomy(); track opt.id) {
@@ -205,8 +205,8 @@
     </div>
 
     <!-- CARD 5: Transportation -->
-    <div class="card cream" [class.active]="step() === 4">
-      <div class="q-eyebrow">Step 5 of 8</div>
+    <div class="card cream" [class.active]="isActiveStep('transportation')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">How are you getting there?</div>
       <div class="tiles">
         @for (opt of transportationTaxonomy(); track opt.id) {
@@ -253,8 +253,8 @@
     </div>
 
     <!-- CARD 6: Activities (multi-select, optional) -->
-    <div class="card green" [class.active]="step() === 5">
-      <div class="q-eyebrow">Step 6 of 8</div>
+    <div class="card green" [class.active]="isActiveStep('activity')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">What will you be doing?</div>
       <div class="q-sub">Pick any that apply — it tailors your kit. Optional.</div>
       <div class="activity-grid">
@@ -273,8 +273,8 @@
     </div>
 
     <!-- CARD 7: Kit Category priority (multi-select, at least one required) -->
-    <div class="card marigold" [class.active]="step() === 6">
-      <div class="q-eyebrow">Step 7 of 8</div>
+    <div class="card marigold" [class.active]="isActiveStep('kitCategory')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">What matters most to you?</div>
       <div class="q-sub">Pick any that apply — we'll prioritize these when building your kit.</div>
       <div class="activity-grid">
@@ -293,8 +293,8 @@
     </div>
 
     <!-- CARD 8: Gender (single-select, optional) -->
-    <div class="card pink" [class.active]="step() === 7">
-      <div class="q-eyebrow">Step 8 of 8</div>
+    <div class="card pink" [class.active]="isActiveStep('gender')">
+      <div class="q-eyebrow">Step {{ step() + 1 }} of 8</div>
       <div class="q-text">How do you identify?</div>
       <div class="q-sub">Optional — helps us fine-tune sizing. Skip if you'd rather not say.</div>
       <div class="activity-grid">

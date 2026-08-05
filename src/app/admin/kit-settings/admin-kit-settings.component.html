@@ -6,11 +6,26 @@
   </p>
 </div>
 
-@for (section of sections; track section.axis) {
-  <section class="taxonomy-card">
+@for (section of sections(); track section.axis) {
+  <section
+    class="taxonomy-card"
+    [class.dragging]="draggedAxis() === section.axis"
+    (dragover)="onSectionDragOver($event)"
+    (drop)="onSectionDrop(section.axis)"
+  >
     <div class="taxonomy-head">
-      <h2>{{ section.title }}</h2>
-      <p class="taxonomy-note">{{ section.description }}</p>
+      <span
+        class="drag-handle"
+        draggable="true"
+        (dragstart)="onSectionDragStart(section.axis)"
+        (dragend)="onSectionDragEnd()"
+        title="Drag to reorder this section"
+        aria-label="Drag to reorder this section"
+      >⠿</span>
+      <div>
+        <h2>{{ section.title }}</h2>
+        <p class="taxonomy-note">{{ section.description }}</p>
+      </div>
     </div>
 
     <div class="taxonomy-rows">

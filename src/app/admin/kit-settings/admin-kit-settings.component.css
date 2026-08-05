@@ -22,10 +22,43 @@
   border-radius: 16px;
   padding: 22px 24px;
   max-width: 640px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .taxonomy-card + .taxonomy-card {
   margin-top: 20px;
+}
+
+/* The dragged card itself — ghosted so the drop target underneath reads clearly. */
+.taxonomy-card.dragging {
+  opacity: 0.4;
+  border-color: var(--color-coral);
+}
+
+.taxonomy-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-ink-soft);
+  padding: 2px 4px;
+  border-radius: 6px;
+  user-select: none;
+}
+
+.drag-handle:hover {
+  color: var(--color-ink);
+  background: var(--tint-cream, #faf6ef);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .taxonomy-head h2 {

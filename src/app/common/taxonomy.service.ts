@@ -29,9 +29,26 @@ export interface TaxonomyValue {
 
 export type NewTaxonomyValue = Omit<TaxonomyValue, 'id'>;
 
+// The 8 axes' out-of-the-box display/step order — mirrors the backend's DEFAULT_AXIS_ORDER
+// (axis-order.schema.ts), used both as the fallback before axisOrder has ever loaded and as the
+// default the backend itself falls back to until an admin saves a custom order.
+export const DEFAULT_AXIS_ORDER: TaxonomyAxis[] = [
+  'destination',
+  'season',
+  'duration',
+  'party',
+  'transportation',
+  'activity',
+  'kitCategory',
+  'gender',
+];
+
 const STORAGE_KEY = 'travel-besty-taxonomies';
+const AXIS_ORDER_STORAGE_KEY = 'travel-besty-taxonomy-axis-order';
 const PUBLIC_BASE = `${environment.apiUrl}/taxonomies`;
 const ADMIN_BASE = `${environment.apiUrl}/admin/taxonomies`;
+const AXIS_ORDER_PUBLIC = `${PUBLIC_BASE}/axis-order`;
+const AXIS_ORDER_ADMIN = `${ADMIN_BASE}/axis-order`;
 
 // SSR prerenders pages that read taxonomies (e.g. /travel, /shop) and Node has no localStorage —
 // every read/write here must go through this guard or the build breaks.
@@ -41,6 +58,17 @@ function loadStored(): TaxonomyValue[] | null {
   if (!raw) return null;
   try {
     return JSON.parse(raw) as TaxonomyValue[];
+  } catch {
+    return null;
+  }
+}
+
+function loadStoredAxisOrder(): string[] | null {
+  if (typeof window === 'undefined') return null;
+  const raw = window.localStorage.getItem(AXIS_ORDER_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as string[];
   } catch {
     return null;
   }
@@ -59,9 +87,19 @@ export class TaxonomyService {
 
   readonly values = signal<TaxonomyValue[]>(environment.useMockData ? (loadStored() ?? TAXONOMY_SEED_DATA) : []);
 
+  // Admin-configurable order of the 8 axes — drives both Kit Settings' section order and the
+  // /travel survey's step order, so the two always agree. Falls back to DEFAULT_AXIS_ORDER until
+  // an admin has ever saved a custom one.
+  readonly axisOrder = signal<string[]>(
+    environment.useMockData ? (loadStoredAxisOrder() ?? DEFAULT_AXIS_ORDER) : DEFAULT_AXIS_ORDER,
+  );
+
   constructor() {
     if (!environment.useMockData) {
       this.http.get<TaxonomyValue[]>(PUBLIC_BASE).subscribe({ next: (v) => this.values.set(v), error: () => {} });
+      this.http
+        .get<{ order: string[] }>(AXIS_ORDER_PUBLIC)
+        .subscribe({ next: (res) => this.axisOrder.set(res.order), error: () => {} });
     }
   }
 
@@ -118,6 +156,19 @@ export class TaxonomyService {
 
     this.values.update((list) => list.filter((v) => v.id !== id));
     this.persist();
+  }
+
+  /** Admin: save a new axis order (drag-and-drop on Kit Settings). Applied optimistically so the
+   * page and /travel both reflect it immediately, same pattern as update()/create()/delete(). */
+  updateAxisOrder(order: string[]): void {
+    this.axisOrder.set(order);
+    if (!environment.useMockData) {
+      this.http.put<{ order: string[] }>(AXIS_ORDER_ADMIN, { order }).subscribe({ error: () => {} });
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(AXIS_ORDER_STORAGE_KEY, JSON.stringify(order));
+    }
   }
 
   private persist(): void {

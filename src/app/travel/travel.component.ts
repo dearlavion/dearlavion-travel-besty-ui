@@ -112,6 +112,13 @@ export class TravelComponent {
   protected readonly step = signal(0);
   protected readonly totalSteps = TOTAL_STEPS;
 
+  // The 8 question cards' order — admin-configurable via Kit Settings' drag-and-drop (see
+  // TaxonomyService.axisOrder), so reordering sections there directly changes which question the
+  // survey asks first. Reveal (the 9th/last card) isn't part of this — it always comes last.
+  protected isActiveStep(axisKey: string): boolean {
+    return this.taxonomy.axisOrder()[this.step()] === axisKey;
+  }
+
   // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded.
   protected readonly destinationTaxonomy = computed(() => this.taxonomy.forAxis('destination'));
   protected readonly seasonTaxonomy = computed(() => this.taxonomy.forAxis('season'));
@@ -347,21 +354,22 @@ export class TravelComponent {
   // had no answer check at all: the forward chevron, which otherwise lets a user click straight
   // through the whole wizard with every answer still null and land on a broken Reveal card.
   protected readonly canAdvanceFromStep = computed(() => {
-    switch (this.step()) {
-      case 0:
+    const axisKey = this.taxonomy.axisOrder()[this.step()];
+    switch (axisKey) {
+      case 'destination':
         return this.destinations().length > 0;
-      case 1:
+      case 'season':
         return this.season() !== null;
-      case 2:
+      case 'duration':
         return this.duration() !== null;
-      case 3:
+      case 'party':
         return this.party() !== null;
-      case 4:
+      case 'transportation':
         return this.transportation() !== null;
-      case 6:
+      case 'kitCategory':
         return this.priorityCategories().length > 0;
       default:
-        return true; // Activities (5) and Gender (7) are optional; Reveal (8) is the last step
+        return true; // Activities/Gender are optional; Reveal (beyond the 8-entry axisOrder) too
     }
   });
 

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TaxonomyAxis, TaxonomyService, TaxonomyValue } from '../../common/taxonomy.service';
 import { ToastService } from '../../common/toast/toast.service';
@@ -14,7 +14,10 @@ interface KitSettingsSection {
   showSubtext: boolean; // only duration currently renders a taxonomy row's subtext anywhere
 }
 
-const SECTIONS: KitSettingsSection[] = [
+// Per-axis metadata (title, description, which fields to show) — unordered. Display order is
+// driven separately by taxonomy.axisOrder() (see the `sections` computed below), so the section
+// cards can be drag-and-drop reordered without touching this config.
+const SECTION_CONFIG: KitSettingsSection[] = [
   {
     axis: 'destination',
     title: 'Destination',
@@ -92,10 +95,52 @@ export class AdminKitSettingsComponent {
   protected readonly taxonomy = inject(TaxonomyService);
   private readonly toast = inject(ToastService);
 
-  protected readonly sections = SECTIONS;
+  // Section cards render in taxonomy.axisOrder()'s order — reordering here is what a shopper
+  // actually sees as the /travel survey's step order (see TravelComponent.orderedAxes()), so the
+  // two never disagree. Falls back to appending any axis SECTION_CONFIG defines that axisOrder()
+  // hasn't caught up to yet (defensive — shouldn't normally happen).
+  protected readonly sections = computed<KitSettingsSection[]>(() => {
+    const order = this.taxonomy.axisOrder();
+    const byAxis = new Map(SECTION_CONFIG.map((s) => [s.axis, s]));
+    const ordered = order.map((axis) => byAxis.get(axis as TaxonomyAxis)).filter((s): s is KitSettingsSection => !!s);
+    const seen = new Set(ordered.map((s) => s.axis));
+    return [...ordered, ...SECTION_CONFIG.filter((s) => !seen.has(s.axis))];
+  });
 
   protected rowsFor(axis: TaxonomyAxis): TaxonomyValue[] {
     return this.taxonomy.forAxis(axis);
+  }
+
+  // ── Section reordering (drag-and-drop) — reorders which axis section appears first, distinct
+  // from moveUp()/moveDown() below which reorder the *values within* one axis. ──────────────────
+  protected readonly draggedAxis = signal<TaxonomyAxis | null>(null);
+
+  protected onSectionDragStart(axis: TaxonomyAxis): void {
+    this.draggedAxis.set(axis);
+  }
+
+  protected onSectionDragOver(event: DragEvent): void {
+    event.preventDefault(); // required for (drop) to fire at all
+  }
+
+  protected onSectionDrop(targetAxis: TaxonomyAxis): void {
+    const dragged = this.draggedAxis();
+    this.draggedAxis.set(null);
+    if (!dragged || dragged === targetAxis) return;
+
+    const order = [...this.taxonomy.axisOrder()];
+    const fromIndex = order.indexOf(dragged);
+    const toIndex = order.indexOf(targetAxis);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    order.splice(fromIndex, 1);
+    order.splice(toIndex, 0, dragged);
+    this.taxonomy.updateAxisOrder(order);
+    this.toast.show('Section order updated — the survey now asks in this order too', 'success');
+  }
+
+  protected onSectionDragEnd(): void {
+    this.draggedAxis.set(null);
   }
 
   protected readonly confirmingDeleteId = signal<string | null>(null);
