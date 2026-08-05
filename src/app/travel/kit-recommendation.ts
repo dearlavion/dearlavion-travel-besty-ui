@@ -8,12 +8,17 @@
 // backend's own comment implies it already uses ("scores every real catalog product").
 import { KitCategory, PRODUCTS, Product, ProductTransportation } from '../shop/product-catalog';
 
-export type Destination = 'Beach' | 'Mountain' | 'City';
-export type Season = 'Summer' | 'Winter' | 'Rainy';
-export type Party = 'Solo' | 'Group';
-export type Duration = 'Quick escape' | 'A proper break' | 'Living it';
+// No longer closed unions — these axes are now admin-editable via TaxonomyService/Kit Settings
+// (see product-catalog.ts's own widening for the same reason).
+export type Destination = string;
+export type Season = string;
+export type Party = string;
+// Stable code ('short'|'medium'|'long'), not the admin-editable display label — mirrors the
+// backend's SurveyAnswersDto/kit-engine.ts. TravelComponent resolves the label for display text
+// via TaxonomyService separately; this is only ever the scoring key.
+export type Duration = string;
 export type Transportation = ProductTransportation;
-export type Gender = 'Woman' | 'Man' | 'Nonbinary' | 'Prefer not to say';
+export type Gender = string;
 export type { KitCategory };
 
 export interface TripAnswers {
@@ -46,10 +51,11 @@ const BASE_PRODUCT_IDS = new Set(BASE_ITEMS.map((item) => item.productId));
 
 // How many scored (non-base) items to include, by trip length — same 20/21/22-ish totals the old
 // static-table formula produced, so switching the selection mechanism doesn't jar the kit size.
-const DURATION_TARGET: Record<Duration, number> = {
-  'Quick escape': 15,
-  'A proper break': 16,
-  'Living it': 17,
+// Keyed on Duration's stable code, not its admin-editable display label — see the Duration type.
+const DURATION_TARGET: Record<string, number> = {
+  short: 15,
+  medium: 16,
+  long: 17,
 };
 
 // Hard filters: a product tagged for specific destinations/seasons that don't match the trip is
@@ -87,7 +93,7 @@ function scoreProduct(product: Product, answers: TripAnswers): number {
 }
 
 export function buildTravelKit(answers: TripAnswers): KitItem[] {
-  const target = DURATION_TARGET[answers.duration];
+  const target = DURATION_TARGET[answers.duration] ?? 16;
   const scored = PRODUCTS.filter((product) => isEligible(product, answers))
     .map((product) => ({ product, score: scoreProduct(product, answers) }))
     .sort((a, b) => b.score - a.score)

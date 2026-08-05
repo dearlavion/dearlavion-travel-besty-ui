@@ -2,40 +2,17 @@
 // now"), then reshaped to match the real backend's Product model field-for-field (description,
 // seasons/destinations/parties as arrays, currency, tested, image, active) while staying mock-data/
 // localStorage-only — see the model-alignment plan for the full rationale.
-export type ProductSeason = 'Summer' | 'Winter' | 'Rainy';
-export type ProductDestination = 'Beach' | 'Mountain' | 'City';
-export type ProductParty = 'Solo' | 'Group';
-export type ProductTransportation = 'Flight' | 'Car' | 'Train' | 'Cruise';
+// Kept as named aliases for readability, but no longer closed unions — these 5 taxonomies are now
+// admin-editable data (see TaxonomyService/Kit Settings), so there's no fixed set to check at
+// compile time. The dropdowns/checkbox groups that populate them are the actual enforcement point.
+export type ProductSeason = string;
+export type ProductDestination = string;
+export type ProductParty = string;
+export type ProductTransportation = string;
 // The single packing-list bucket a product belongs to — powers the travel survey's "what matters
 // most to you" question (kit-recommendation.ts scores a product up when it matches the answer).
-export type KitCategory =
-  | 'Essentials'
-  | 'Clothing'
-  | 'Footwear'
-  | 'Toiletries'
-  | 'Beauty Kit'
-  | 'Tech Pack'
-  | 'Health & Safety'
-  | 'Weather Gear'
-  | 'Activity Gear'
-  | 'Comfort'
-  | 'Food & Hydration';
-
-// Canonical display order — single source of truth for the survey's tile order, the admin form's
-// dropdown, and My Kit's grouping order, so the three never drift apart.
-export const KIT_CATEGORY_OPTIONS: KitCategory[] = [
-  'Essentials',
-  'Clothing',
-  'Footwear',
-  'Toiletries',
-  'Beauty Kit',
-  'Tech Pack',
-  'Health & Safety',
-  'Weather Gear',
-  'Activity Gear',
-  'Comfort',
-  'Food & Hydration',
-];
+// Display order/values are admin-editable — see TaxonomyService.forAxis('kitCategory').
+export type KitCategory = string;
 
 // A generic/template product — the stable concept a packing-list slot points at (e.g. "Passport
 // Wallet"). Purely presentational + taxonomy: name, category, description, tags. Purchase data

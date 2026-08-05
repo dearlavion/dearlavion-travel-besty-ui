@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ProductDestination, ProductSeason, getProductTint } from './product-catalog';
+import { getProductTint } from './product-catalog';
 import { ProductItemService, ProductItemView } from './product-item.service';
 import { CartService } from '../cart/cart.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
@@ -12,26 +12,17 @@ import { FooterComponent } from '../common/footer/footer.component';
 import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
 import { organizationNode, websiteNode, breadcrumbNode } from '../common/site-entities';
+import { TaxonomyService } from '../common/taxonomy.service';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
+type ProductSeason = string;
+type ProductDestination = string;
 const PAGE_SIZE = 50;
 const MOBILE_PAGE_SIZE = 10;
 // Same breakpoint the stylesheet's `@media (max-width: 560px)` rules use for the mobile layout
 // (single-column grid, collapsed filters) — page size switches at the same width so "mobile" means
 // one consistent thing across layout and pagination.
 const MOBILE_BREAKPOINT = '(max-width: 560px)';
-
-const SEASON_OPTIONS: { value: ProductSeason; label: string }[] = [
-  { value: 'Summer', label: '☀️ Summer' },
-  { value: 'Winter', label: '❄️ Winter' },
-  { value: 'Rainy', label: '🌧️ Rainy' },
-];
-
-const DESTINATION_OPTIONS: { value: ProductDestination; label: string }[] = [
-  { value: 'Beach', label: '🏖️ Beach' },
-  { value: 'Mountain', label: '⛰️ Mountain' },
-  { value: 'City', label: '🏙️ City' },
-];
 
 // Empty `selected` = no filter applied (show everything). Once a chip is active, a product matches
 // if it's tagged with the selected value OR tagged 'All' — the same tri-state rule the backend's
@@ -63,6 +54,7 @@ export class ShopComponent {
   private readonly cart = inject(CartService);
   private readonly seo = inject(SeoService);
   private readonly jsonLd = inject(JsonLdService);
+  private readonly taxonomy = inject(TaxonomyService);
 
   protected readonly search = signal('');
   protected readonly seasons = signal<ReadonlySet<ProductSeason>>(new Set());
@@ -72,8 +64,14 @@ export class ShopComponent {
   protected readonly addedIds = signal<ReadonlySet<string>>(new Set());
   protected readonly page = signal(0); // 0-indexed
 
-  protected readonly seasonOptions = SEASON_OPTIONS;
-  protected readonly destinationOptions = DESTINATION_OPTIONS;
+  // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded —
+  // emoji comes off the taxonomy row instead of a local map.
+  protected readonly seasonOptions = computed(() =>
+    this.taxonomy.forAxis('season').map((v) => ({ value: v.value, label: v.emoji ? `${v.emoji} ${v.value}` : v.value })),
+  );
+  protected readonly destinationOptions = computed(() =>
+    this.taxonomy.forAxis('destination').map((v) => ({ value: v.value, label: v.emoji ? `${v.emoji} ${v.value}` : v.value })),
+  );
 
   protected readonly seasonMenuOpen = signal(false);
   protected readonly destinationMenuOpen = signal(false);
@@ -242,19 +240,19 @@ export class ShopComponent {
       if (!qp) return;
 
       const destinationParam = qp.get('destination');
+      const validDestinations = this.destinationOptions();
       const nextDestinations = new Set(
         destinationParam
-          ? destinationParam
-              .split(',')
-              .filter((v): v is ProductDestination => DESTINATION_OPTIONS.some((o) => o.value === v))
+          ? destinationParam.split(',').filter((v): v is ProductDestination => validDestinations.some((o) => o.value === v))
           : [],
       );
       if (!setsEqual(nextDestinations, this.destinations())) this.destinations.set(nextDestinations);
 
       const seasonParam = qp.get('season');
+      const validSeasons = this.seasonOptions();
       const nextSeasons = new Set(
         seasonParam
-          ? seasonParam.split(',').filter((v): v is ProductSeason => SEASON_OPTIONS.some((o) => o.value === v))
+          ? seasonParam.split(',').filter((v): v is ProductSeason => validSeasons.some((o) => o.value === v))
           : [],
       );
       if (!setsEqual(nextSeasons, this.seasons())) this.seasons.set(nextSeasons);

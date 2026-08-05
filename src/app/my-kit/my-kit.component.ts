@@ -7,7 +7,7 @@ import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
 import { KitItem } from '../travel/kit-recommendation';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
 import { buildKitFromPopularKit } from '../travel/popular-kit-view';
-import { getProductTint, KIT_CATEGORY_OPTIONS, KitCategory, Product } from '../shop/product-catalog';
+import { getProductTint, Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { ProductItemService, ProductItemView } from '../shop/product-item.service';
 import { CartService } from '../cart/cart.service';
@@ -17,13 +17,14 @@ import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 import { NewsletterService } from './newsletter.service';
 import { NewsletterPopupComponent } from './newsletter-popup/newsletter-popup.component';
 import { ToastService } from '../common/toast/toast.service';
+import { TaxonomyService } from '../common/taxonomy.service';
 
 interface DisplayItem {
   label: string;
   productId: string;
   // The item's packing-list bucket, straight off its catalog product — null when the product
   // can't be resolved (e.g. a manually-added or since-removed product), grouped under "Other".
-  kitCategory: KitCategory | null;
+  kitCategory: string | null;
   // Each generic Product suggestion resolved down to its own purchasable default item — primary
   // match first (if it resolves), then related — capped at MAX_SUGGESTIONS.
   suggestions: ProductItemView[];
@@ -33,7 +34,7 @@ interface DisplayItem {
 }
 
 interface DisplayGroup {
-  category: KitCategory | 'Other';
+  category: string;
   items: DisplayItem[];
 }
 
@@ -75,6 +76,7 @@ export class MyKitComponent {
   private readonly savedKitsService = inject(SavedKitsService);
   private readonly newsletter = inject(NewsletterService);
   private readonly toast = inject(ToastService);
+  private readonly taxonomy = inject(TaxonomyService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
@@ -190,10 +192,11 @@ export class MyKitComponent {
   });
 
   // Groups displayItems() by kit category, in the same canonical order as the survey/admin
-  // dropdown (KIT_CATEGORY_OPTIONS), with unresolved items bucketed under "Other" last. Only
-  // categories that actually have items are included, so the page never shows empty sections.
+  // dropdown (the admin-editable kitCategory taxonomy, see TaxonomyService/Kit Settings), with
+  // unresolved items bucketed under "Other" last. Only categories that actually have items are
+  // included, so the page never shows empty sections.
   protected readonly groupedDisplayItems = computed<DisplayGroup[]>(() => {
-    const byCategory = new Map<KitCategory | 'Other', DisplayItem[]>();
+    const byCategory = new Map<string, DisplayItem[]>();
     for (const item of this.displayItems()) {
       const key = item.kitCategory ?? OTHER_GROUP;
       const list = byCategory.get(key);
@@ -203,7 +206,7 @@ export class MyKitComponent {
         byCategory.set(key, [item]);
       }
     }
-    return [...KIT_CATEGORY_OPTIONS, OTHER_GROUP]
+    return [...this.taxonomy.forAxis('kitCategory').map((v) => v.value), OTHER_GROUP]
       .filter((category) => byCategory.has(category))
       .map((category) => ({ category, items: byCategory.get(category)! }));
   });

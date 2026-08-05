@@ -63,7 +63,7 @@
           </button>
           @if (seasonMenuOpen()) {
             <div class="dropdown-panel">
-              @for (opt of seasonOptions; track opt.value) {
+              @for (opt of seasonOptions(); track opt.value) {
                 <label class="dropdown-option">
                   <input
                     type="checkbox"
@@ -94,7 +94,7 @@
           </button>
           @if (destinationMenuOpen()) {
             <div class="dropdown-panel">
-              @for (opt of destinationOptions; track opt.value) {
+              @for (opt of destinationOptions(); track opt.value) {
                 <label class="dropdown-option">
                   <input
                     type="checkbox"

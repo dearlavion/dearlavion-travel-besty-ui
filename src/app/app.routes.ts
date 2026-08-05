@@ -27,6 +27,7 @@ import { AdminStatisticsComponent } from './admin/statistics/admin-statistics.co
 import { AdminSettingsComponent } from './admin/settings/admin-settings.component';
 import { AdminUserListComponent } from './admin/users/admin-user-list.component';
 import { AdminUserFormComponent } from './admin/users/admin-user-form.component';
+import { AdminKitSettingsComponent } from './admin/kit-settings/admin-kit-settings.component';
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
@@ -88,6 +89,7 @@ export const routes: Routes = [
       { path: 'users', component: AdminUserListComponent, canActivate: [requireAdminGuard] },
       { path: 'users/new', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
       { path: 'users/:username', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
+      { path: 'kit-settings', component: AdminKitSettingsComponent, canActivate: [requireAdminGuard] },
     ],
   },
 

@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FooterComponent } from '../common/footer/footer.component';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
-import { KIT_CATEGORY_OPTIONS, KitCategory, Product } from '../shop/product-catalog';
+import { Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from './popular-kit-view';
 import { buildTravelKit, Destination, Duration, Gender, Party, Season, Transportation } from './kit-recommendation';
@@ -15,18 +15,17 @@ import { environment } from '../../environments/environment';
 import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
 import { organizationNode, websiteNode } from '../common/site-entities';
+import { TaxonomyService } from '../common/taxonomy.service';
 
 const TOTAL_STEPS = 9;
 const AUTO_ADVANCE_DELAY_MS = 350;
 const GALLERY_PAGE_SIZE = 10;
 
-export const TRANSPORTATION_OPTIONS: Transportation[] = ['Flight', 'Car', 'Train', 'Cruise'];
-
 // 'All' is a UI-only sentinel — mutually exclusive with picking specific destinations (see
 // toggleDestination()) and resolved to [] ("unrestricted", same convention product tags use)
-// before being sent to buildTravelKit()/the backend. Never a real Destination value on its own.
+// before being sent to buildTravelKit()/the backend. Never a real Destination value on its own,
+// so it's never part of the admin-editable destination taxonomy either.
 export type DestinationChoice = Destination | 'All';
-export const DESTINATION_OPTIONS: DestinationChoice[] = ['Beach', 'Mountain', 'City', 'All'];
 
 // "beach", "beach and mountain", "beach, mountain, and city".
 function joinWithAnd(items: string[]): string {
@@ -34,20 +33,6 @@ function joinWithAnd(items: string[]): string {
   if (items.length === 2) return `${items[0]} and ${items[1]}`;
   return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
 }
-
-export const GENDER_OPTIONS: Gender[] = ['Woman', 'Man', 'Nonbinary', 'Prefer not to say'];
-
-// Mirrors the backend ACTIVITIES taxonomy (store-engine product/taxonomy.ts). Multi-select, optional.
-export const ACTIVITY_OPTIONS = [
-  'Hiking',
-  'Swimming',
-  'Sightseeing',
-  'Business',
-  'Photography',
-  'Nightlife',
-  'Food',
-  'Relaxing',
-] as const;
 
 interface KitChecklistItem {
   label: string;
@@ -77,6 +62,7 @@ export class TravelComponent {
   private readonly catalog = inject(ProductCatalogService);
   private readonly seo = inject(SeoService);
   private readonly jsonLd = inject(JsonLdService);
+  private readonly taxonomy = inject(TaxonomyService);
   private readonly fragment = toSignal(this.route.fragment);
 
   constructor() {
@@ -126,20 +112,32 @@ export class TravelComponent {
   protected readonly step = signal(0);
   protected readonly totalSteps = TOTAL_STEPS;
 
+  // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded.
+  protected readonly destinationTaxonomy = computed(() => this.taxonomy.forAxis('destination'));
+  protected readonly seasonTaxonomy = computed(() => this.taxonomy.forAxis('season'));
+  // Fixed at exactly 3 rows (admin can rename value/subtext, not add/remove) — see Kit Settings.
+  protected readonly durationTaxonomy = computed(() => this.taxonomy.forAxis('duration'));
+  protected readonly partyTaxonomy = computed(() => this.taxonomy.forAxis('party'));
+  protected readonly transportationTaxonomy = computed(() => this.taxonomy.forAxis('transportation'));
+  protected readonly activityTaxonomy = computed(() => this.taxonomy.forAxis('activity'));
+  protected readonly kitCategoryTaxonomy = computed(() => this.taxonomy.forAxis('kitCategory'));
+  protected readonly genderTaxonomy = computed(() => this.taxonomy.forAxis('gender'));
+
   protected readonly destinations = signal<DestinationChoice[]>([]);
-  protected readonly destinationOptions = DESTINATION_OPTIONS;
   protected readonly season = signal<Season | null>(null);
   protected readonly party = signal<Party | null>(null);
   protected readonly partySize = signal(2);
+  // Holds Duration's stable code ('short'|'medium'|'long'), never the display label — see
+  // kit-recommendation.ts's Duration type. durationLabel() below resolves it back to a label for
+  // display text (revealSummary()).
   protected readonly duration = signal<Duration | null>(null);
+  protected readonly durationLabel = computed(
+    () => this.durationTaxonomy().find((d) => d.code === this.duration())?.value ?? '',
+  );
   protected readonly transportation = signal<Transportation | null>(null);
-  protected readonly transportationOptions = TRANSPORTATION_OPTIONS;
-  protected readonly activityOptions = ACTIVITY_OPTIONS;
   protected readonly activities = signal<string[]>([]);
-  protected readonly priorityCategories = signal<KitCategory[]>([]);
-  protected readonly kitCategoryOptions = KIT_CATEGORY_OPTIONS;
+  protected readonly priorityCategories = signal<string[]>([]);
   protected readonly gender = signal<Gender | null>(null);
-  protected readonly genderOptions = GENDER_OPTIONS;
 
   // Translates the UI's DestinationChoice[] (which may contain the 'All' sentinel) into the real
   // Destination[] the scoring engine and backend understand — 'All' (or nothing picked) becomes
@@ -158,7 +156,7 @@ export class TravelComponent {
     const season = this.season()?.toLowerCase() ?? '';
     // Strip a leading "A "/"a " so "A proper break" reads as "proper break trip", not the
     // grammatically broken "a proper break beach" the raw label would otherwise produce.
-    const durationPhrase = (this.duration() ?? '').toLowerCase().replace(/^a /, '');
+    const durationPhrase = this.durationLabel().toLowerCase().replace(/^a /, '');
     const partyPart = this.party() === 'Group' ? ` with ${this.partySize()} travelers` : '';
     const transport = this.transportation();
     const transportPart = transport ? `, traveling by ${transport.toLowerCase()}` : '';
@@ -325,11 +323,11 @@ export class TravelComponent {
     this.goNext();
   }
 
-  protected isPriorityCategorySelected(category: KitCategory): boolean {
+  protected isPriorityCategorySelected(category: string): boolean {
     return this.priorityCategories().includes(category);
   }
 
-  protected togglePriorityCategory(category: KitCategory): void {
+  protected togglePriorityCategory(category: string): void {
     this.priorityCategories.update((list) =>
       list.includes(category) ? list.filter((c) => c !== category) : [...list, category],
     );

@@ -136,6 +136,17 @@
   height: 64px;
 }
 
+/* Fallback icon for admin-added taxonomy values with no bespoke illustration above. */
+.tile-emoji {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  line-height: 1;
+}
+
 .tile-label {
   font-size: 14px;
   font-weight: 700;

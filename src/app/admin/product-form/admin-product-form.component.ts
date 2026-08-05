@@ -4,29 +4,22 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.service';
-import {
-  KIT_CATEGORY_OPTIONS,
-  KitCategory,
-  Product,
-  ProductDestination,
-  ProductParty,
-  ProductSeason,
-  ProductTransportation,
-} from '../../shop/product-catalog';
+import { Product } from '../../shop/product-catalog';
 import { ProductItemService } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
+import { TaxonomyService } from '../../common/taxonomy.service';
 
 interface ProductFormModel {
   name: string;
   category: string;
   description: string;
   icon: string;
-  seasons: ProductSeason[];
-  destinations: ProductDestination[];
-  parties: ProductParty[];
+  seasons: string[];
+  destinations: string[];
+  parties: string[];
   activities: string[];
-  transportModes: ProductTransportation[];
-  kitCategory: KitCategory | ''; // '' = not yet chosen — save() blocks submit until it's set
+  transportModes: string[];
+  kitCategory: string; // '' = not yet chosen — save() blocks submit until it's set
   tested: boolean;
   active: boolean;
   popular: boolean;
@@ -52,17 +45,11 @@ function emptyForm(): ProductFormModel {
   };
 }
 
-const SEASON_OPTIONS: ProductSeason[] = ['Summer', 'Winter', 'Rainy'];
-const DESTINATION_OPTIONS: ProductDestination[] = ['Beach', 'Mountain', 'City'];
-const PARTY_OPTIONS: ProductParty[] = ['Solo', 'Group'];
-const ACTIVITY_OPTIONS: string[] = ['Hiking', 'Swimming', 'Sightseeing', 'Business', 'Photography', 'Nightlife', 'Food', 'Relaxing'];
-const TRANSPORT_OPTIONS: ProductTransportation[] = ['Flight', 'Car', 'Train', 'Cruise'];
-
 // Pre-fills Kit Category from the free-text Category field, so most products need zero extra
 // thought — the admin just confirms or overrides. Keyed off today's actual `category` values
 // (see product-catalog.ts). No entry for "Gear": it splits into Weather vs Activity Gear, a real
 // judgment call that shouldn't get a silent default.
-const CATEGORY_SUGGESTION: Record<string, KitCategory> = {
+const CATEGORY_SUGGESTION: Record<string, string> = {
   Documents: 'Essentials',
   Accessories: 'Weather Gear',
   Electronics: 'Tech Pack',
@@ -88,17 +75,19 @@ export class AdminProductFormComponent {
   private readonly catalog = inject(ProductCatalogService);
   protected readonly productItems = inject(ProductItemService);
   private readonly toast = inject(ToastService);
+  private readonly taxonomy = inject(TaxonomyService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly editingId = computed(() => this.paramMap()?.get('id') ?? null);
   protected readonly isEditMode = computed(() => this.editingId() !== null);
 
-  protected readonly seasonOptions = SEASON_OPTIONS;
-  protected readonly destinationOptions = DESTINATION_OPTIONS;
-  protected readonly partyOptions = PARTY_OPTIONS;
-  protected readonly activityOptions = ACTIVITY_OPTIONS;
-  protected readonly transportOptions = TRANSPORT_OPTIONS;
-  protected readonly kitCategoryOptions = KIT_CATEGORY_OPTIONS;
+  // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded.
+  protected readonly seasonOptions = computed(() => this.taxonomy.forAxis('season').map((v) => v.value));
+  protected readonly destinationOptions = computed(() => this.taxonomy.forAxis('destination').map((v) => v.value));
+  protected readonly partyOptions = computed(() => this.taxonomy.forAxis('party').map((v) => v.value));
+  protected readonly activityOptions = computed(() => this.taxonomy.forAxis('activity').map((v) => v.value));
+  protected readonly transportOptions = computed(() => this.taxonomy.forAxis('transportation').map((v) => v.value));
+  protected readonly kitCategoryOptions = computed(() => this.taxonomy.forAxis('kitCategory').map((v) => v.value));
 
   protected readonly form = signal<ProductFormModel>(emptyForm());
   // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,
@@ -176,27 +165,27 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
-  protected isSeasonChecked(season: ProductSeason): boolean {
+  protected isSeasonChecked(season: string): boolean {
     return this.form().seasons.includes(season);
   }
 
-  protected toggleSeason(season: ProductSeason): void {
+  protected toggleSeason(season: string): void {
     this.form.update((f) => ({ ...f, seasons: toggleInArray(f.seasons, season) }));
   }
 
-  protected isDestinationChecked(destination: ProductDestination): boolean {
+  protected isDestinationChecked(destination: string): boolean {
     return this.form().destinations.includes(destination);
   }
 
-  protected toggleDestination(destination: ProductDestination): void {
+  protected toggleDestination(destination: string): void {
     this.form.update((f) => ({ ...f, destinations: toggleInArray(f.destinations, destination) }));
   }
 
-  protected isPartyChecked(party: ProductParty): boolean {
+  protected isPartyChecked(party: string): boolean {
     return this.form().parties.includes(party);
   }
 
-  protected toggleParty(party: ProductParty): void {
+  protected toggleParty(party: string): void {
     this.form.update((f) => ({ ...f, parties: toggleInArray(f.parties, party) }));
   }
 
@@ -208,11 +197,11 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, activities: toggleInArray(f.activities, activity) }));
   }
 
-  protected isTransportChecked(mode: ProductTransportation): boolean {
+  protected isTransportChecked(mode: string): boolean {
     return this.form().transportModes.includes(mode);
   }
 
-  protected toggleTransport(mode: ProductTransportation): void {
+  protected toggleTransport(mode: string): void {
     this.form.update((f) => ({ ...f, transportModes: toggleInArray(f.transportModes, mode) }));
   }
 
@@ -227,7 +216,7 @@ export class AdminProductFormComponent {
   }
 
   protected updateKitCategory(value: string): void {
-    this.form.update((f) => ({ ...f, kitCategory: value as KitCategory }));
+    this.form.update((f) => ({ ...f, kitCategory: value }));
   }
 
   protected addLinkedProduct(id: string): void {

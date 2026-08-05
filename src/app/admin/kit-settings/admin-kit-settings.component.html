@@ -1,0 +1,85 @@
+<div class="settings-head">
+  <h1 class="settings-title">Kit Settings</h1>
+  <p class="settings-sub">
+    The option lists behind the /travel survey and product tagging — add, rename, reorder, or remove
+    values here and they show up everywhere they're used, no code changes needed.
+  </p>
+</div>
+
+@for (section of sections; track section.axis) {
+  <section class="taxonomy-card">
+    <div class="taxonomy-head">
+      <h2>{{ section.title }}</h2>
+      <p class="taxonomy-note">{{ section.description }}</p>
+    </div>
+
+    <div class="taxonomy-rows">
+      @for (row of rowsFor(section.axis); track row.id; let first = $first; let last = $last) {
+        <div class="taxonomy-row">
+          <div class="reorder-col">
+            <button type="button" class="reorder-btn" [disabled]="first" (click)="moveUp(section.axis, row)" aria-label="Move up">▲</button>
+            <button type="button" class="reorder-btn" [disabled]="last" (click)="moveDown(section.axis, row)" aria-label="Move down">▼</button>
+          </div>
+
+          @if (section.showEmoji) {
+            <input
+              type="text"
+              class="emoji-input"
+              placeholder="🏖️"
+              [value]="row.emoji ?? ''"
+              (change)="renameEmoji(row.id, $any($event.target).value)"
+            />
+          }
+
+          <input
+            type="text"
+            class="value-input"
+            [value]="row.value"
+            (change)="renameValue(row.id, $any($event.target).value)"
+          />
+
+          @if (section.showSubtext) {
+            <input
+              type="text"
+              class="subtext-input"
+              placeholder="e.g. 2–4 days"
+              [value]="row.subtext ?? ''"
+              (change)="renameSubtext(row.id, $any($event.target).value)"
+            />
+            <span class="code-badge" title="Stable scoring key — not editable">{{ row.code }}</span>
+          }
+
+          @if (section.allowAddDelete) {
+            <div class="row-actions">
+              @if (confirmingDeleteId() === row.id) {
+                <span class="confirm-row">
+                  Delete?
+                  <button type="button" class="confirm-yes" (click)="confirmDelete(row.id)">Yes</button>
+                  <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+                </span>
+              } @else {
+                <button type="button" class="delete-link" (click)="requestDelete(row.id)">Delete</button>
+              }
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="no-results">No values yet.</div>
+      }
+    </div>
+
+    @if (section.allowAddDelete) {
+      <div class="add-row">
+        <input
+          type="text"
+          class="value-input"
+          placeholder="Add a new value..."
+          [ngModel]="draftFor(section.axis)"
+          (ngModelChange)="setDraft(section.axis, $event)"
+          (keydown.enter)="addValue(section.axis)"
+        />
+        <button type="button" class="add-btn" (click)="addValue(section.axis)">Add</button>
+      </div>
+    }
+  </section>
+}

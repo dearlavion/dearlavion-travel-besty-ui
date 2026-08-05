@@ -6,6 +6,12 @@
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["start"],
       "port": 4200
+    },
+    {
+      "name": "dearlavion-travel-besty-ui-realbackend",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["start:dev"],
+      "port": 4200
     }
   ]
 }

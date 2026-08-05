@@ -31,31 +31,38 @@
       <div class="q-text">Where does your heart want to wander?</div>
       <div class="q-sub">Pick any that apply, or choose All.</div>
       <div class="tiles">
-        <div class="tile" [class.selected]="isDestinationSelected('Beach')" (click)="toggleDestination('Beach')">
-          <svg viewBox="0 0 64 64">
-            <circle cx="32" cy="20" r="9" fill="#F2AE3E" />
-            <path d="M6 40c8-6 16-6 26 0s18 6 26 0" stroke="#6E9B5C" stroke-width="3" fill="none" stroke-linecap="round" />
-            <path d="M6 50c8-6 16-6 26 0s18 6 26 0" stroke="#E38B4E" stroke-width="3" fill="none" stroke-linecap="round" />
-          </svg>
-          <div class="tile-label">Beach</div>
-        </div>
-        <div class="tile" [class.selected]="isDestinationSelected('Mountain')" (click)="toggleDestination('Mountain')">
-          <svg viewBox="0 0 64 64">
-            <path d="M4 50L22 22l10 14 6-8 22 22z" fill="#6E9B5C" />
-            <path d="M22 22l6 8-6 9-8-11z" fill="#fff" opacity=".85" />
-            <circle cx="48" cy="16" r="6" fill="#F2AE3E" />
-          </svg>
-          <div class="tile-label">Mountain</div>
-        </div>
-        <div class="tile" [class.selected]="isDestinationSelected('City')" (click)="toggleDestination('City')">
-          <svg viewBox="0 0 64 64">
-            <rect x="8" y="26" width="10" height="28" fill="#B695C4" />
-            <rect x="20" y="14" width="12" height="40" fill="#E38B4E" />
-            <rect x="34" y="22" width="10" height="32" fill="#B695C4" />
-            <rect x="46" y="32" width="10" height="22" fill="#6E9B5C" />
-          </svg>
-          <div class="tile-label">City</div>
-        </div>
+        @for (opt of destinationTaxonomy(); track opt.id) {
+          <div class="tile" [class.selected]="isDestinationSelected(opt.value)" (click)="toggleDestination(opt.value)">
+            @switch (opt.value) {
+              @case ('Beach') {
+                <svg viewBox="0 0 64 64">
+                  <circle cx="32" cy="20" r="9" fill="#F2AE3E" />
+                  <path d="M6 40c8-6 16-6 26 0s18 6 26 0" stroke="#6E9B5C" stroke-width="3" fill="none" stroke-linecap="round" />
+                  <path d="M6 50c8-6 16-6 26 0s18 6 26 0" stroke="#E38B4E" stroke-width="3" fill="none" stroke-linecap="round" />
+                </svg>
+              }
+              @case ('Mountain') {
+                <svg viewBox="0 0 64 64">
+                  <path d="M4 50L22 22l10 14 6-8 22 22z" fill="#6E9B5C" />
+                  <path d="M22 22l6 8-6 9-8-11z" fill="#fff" opacity=".85" />
+                  <circle cx="48" cy="16" r="6" fill="#F2AE3E" />
+                </svg>
+              }
+              @case ('City') {
+                <svg viewBox="0 0 64 64">
+                  <rect x="8" y="26" width="10" height="28" fill="#B695C4" />
+                  <rect x="20" y="14" width="12" height="40" fill="#E38B4E" />
+                  <rect x="34" y="22" width="10" height="32" fill="#B695C4" />
+                  <rect x="46" y="32" width="10" height="22" fill="#6E9B5C" />
+                </svg>
+              }
+              @default {
+                <div class="tile-emoji">{{ opt.emoji || '📍' }}</div>
+              }
+            }
+            <div class="tile-label">{{ opt.value }}</div>
+          </div>
+        }
         <div class="tile" [class.selected]="isDestinationSelected('All')" (click)="toggleDestination('All')">
           <svg viewBox="0 0 64 64">
             <circle cx="32" cy="32" r="22" fill="none" stroke="#3A2E2E" stroke-width="2.2" />
@@ -73,88 +80,85 @@
       <div class="q-eyebrow">Step 2 of 8</div>
       <div class="q-text">What will the sky look like when you get there?</div>
       <div class="tiles">
-        <div class="tile" [class.selected]="season() === 'Summer'" (click)="selectSeason('Summer')">
-          <svg viewBox="0 0 64 64">
-            <circle cx="32" cy="32" r="12" fill="#F2AE3E" />
-            <g stroke="#E38B4E" stroke-width="3" stroke-linecap="round">
-              <line x1="32" y1="8" x2="32" y2="16" />
-              <line x1="32" y1="48" x2="32" y2="56" />
-              <line x1="8" y1="32" x2="16" y2="32" />
-              <line x1="48" y1="32" x2="56" y2="32" />
-            </g>
-          </svg>
-          <div class="tile-label">Summer</div>
-        </div>
-        <div class="tile" [class.selected]="season() === 'Winter'" (click)="selectSeason('Winter')">
-          <svg viewBox="0 0 64 64">
-            <g stroke="#B695C4" stroke-width="3" stroke-linecap="round">
-              <line x1="32" y1="10" x2="32" y2="54" />
-              <line x1="12" y1="20" x2="52" y2="44" />
-              <line x1="12" y1="44" x2="52" y2="20" />
-            </g>
-          </svg>
-          <div class="tile-label">Winter</div>
-        </div>
-        <div class="tile" [class.selected]="season() === 'Rainy'" (click)="selectSeason('Rainy')">
-          <svg viewBox="0 0 64 64">
-            <path
-              d="M14 30a12 12 0 0 1 22-7 10 10 0 0 1 12 10 9 9 0 0 1-2 18H16a10 10 0 0 1-2-21z"
-              fill="#B695C4"
-            />
-            <g stroke="#6E9B5C" stroke-width="3" stroke-linecap="round">
-              <line x1="22" y1="50" x2="18" y2="58" />
-              <line x1="32" y1="50" x2="28" y2="58" />
-              <line x1="42" y1="50" x2="38" y2="58" />
-            </g>
-          </svg>
-          <div class="tile-label">Rainy</div>
-        </div>
+        @for (opt of seasonTaxonomy(); track opt.id) {
+          <div class="tile" [class.selected]="season() === opt.value" (click)="selectSeason(opt.value)">
+            @switch (opt.value) {
+              @case ('Summer') {
+                <svg viewBox="0 0 64 64">
+                  <circle cx="32" cy="32" r="12" fill="#F2AE3E" />
+                  <g stroke="#E38B4E" stroke-width="3" stroke-linecap="round">
+                    <line x1="32" y1="8" x2="32" y2="16" />
+                    <line x1="32" y1="48" x2="32" y2="56" />
+                    <line x1="8" y1="32" x2="16" y2="32" />
+                    <line x1="48" y1="32" x2="56" y2="32" />
+                  </g>
+                </svg>
+              }
+              @case ('Winter') {
+                <svg viewBox="0 0 64 64">
+                  <g stroke="#B695C4" stroke-width="3" stroke-linecap="round">
+                    <line x1="32" y1="10" x2="32" y2="54" />
+                    <line x1="12" y1="20" x2="52" y2="44" />
+                    <line x1="12" y1="44" x2="52" y2="20" />
+                  </g>
+                </svg>
+              }
+              @case ('Rainy') {
+                <svg viewBox="0 0 64 64">
+                  <path
+                    d="M14 30a12 12 0 0 1 22-7 10 10 0 0 1 12 10 9 9 0 0 1-2 18H16a10 10 0 0 1-2-21z"
+                    fill="#B695C4"
+                  />
+                  <g stroke="#6E9B5C" stroke-width="3" stroke-linecap="round">
+                    <line x1="22" y1="50" x2="18" y2="58" />
+                    <line x1="32" y1="50" x2="28" y2="58" />
+                    <line x1="42" y1="50" x2="38" y2="58" />
+                  </g>
+                </svg>
+              }
+              @default {
+                <div class="tile-emoji">{{ opt.emoji || '🌤️' }}</div>
+              }
+            }
+            <div class="tile-label">{{ opt.value }}</div>
+          </div>
+        }
       </div>
     </div>
 
-    <!-- CARD 3: Duration -->
+    <!-- CARD 3: Duration (fixed set of exactly 3 — admin can rename labels/subtext, not add/remove) -->
     <div class="card marigold" [class.active]="step() === 2">
       <div class="q-eyebrow">Step 3 of 8</div>
       <div class="q-text">How long will this chapter last?</div>
       <div class="bands">
-        <div
-          class="band"
-          [class.selected]="duration() === 'Quick escape'"
-          (click)="selectDuration('Quick escape')"
-        >
-          <div>
-            <div class="band-label">Quick escape</div>
-            <div class="band-sub">2–4 days</div>
+        @for (opt of durationTaxonomy(); track opt.id) {
+          <div class="band" [class.selected]="duration() === opt.code" (click)="selectDuration(opt.code!)">
+            <div>
+              <div class="band-label">{{ opt.value }}</div>
+              <div class="band-sub">{{ opt.subtext }}</div>
+            </div>
+            @switch (opt.code) {
+              @case ('short') {
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                  <rect x="4" y="8" width="16" height="11" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
+                  <path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
+                </svg>
+              }
+              @case ('medium') {
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="7" width="18" height="13" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
+                  <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
+                </svg>
+              }
+              @case ('long') {
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="6" width="20" height="15" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
+                  <path d="M7 6V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
+                </svg>
+              }
+            }
           </div>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-            <rect x="4" y="8" width="16" height="11" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
-            <path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
-          </svg>
-        </div>
-        <div
-          class="band"
-          [class.selected]="duration() === 'A proper break'"
-          (click)="selectDuration('A proper break')"
-        >
-          <div>
-            <div class="band-label">A proper break</div>
-            <div class="band-sub">1–2 weeks</div>
-          </div>
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="7" width="18" height="13" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
-            <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
-          </svg>
-        </div>
-        <div class="band" [class.selected]="duration() === 'Living it'" (click)="selectDuration('Living it')">
-          <div>
-            <div class="band-label">Living it</div>
-            <div class="band-sub">3+ weeks</div>
-          </div>
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-            <rect x="2" y="6" width="20" height="15" rx="2" stroke="#3A2E2E" stroke-width="1.8" />
-            <path d="M7 6V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" stroke="#3A2E2E" stroke-width="1.8" />
-          </svg>
-        </div>
+        }
       </div>
     </div>
 
@@ -163,22 +167,32 @@
       <div class="q-eyebrow">Step 4 of 8</div>
       <div class="q-text">Who's coming along for the ride?</div>
       <div class="tiles">
-        <div class="tile" [class.selected]="party() === 'Solo'" (click)="selectParty('Solo')">
-          <svg viewBox="0 0 64 64">
-            <circle cx="32" cy="20" r="9" fill="#E38B4E" />
-            <path d="M16 54c2-14 12-18 16-18s14 4 16 18z" fill="#F2AE3E" />
-          </svg>
-          <div class="tile-label">Just me</div>
-        </div>
-        <div class="tile" [class.selected]="party() === 'Group'" (click)="selectParty('Group')">
-          <svg viewBox="0 0 64 64">
-            <circle cx="22" cy="18" r="7" fill="#B695C4" />
-            <path d="M10 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#B695C4" />
-            <circle cx="42" cy="18" r="7" fill="#E38B4E" />
-            <path d="M30 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#E38B4E" />
-          </svg>
-          <div class="tile-label">Group</div>
-        </div>
+        @for (opt of partyTaxonomy(); track opt.id) {
+          <div class="tile" [class.selected]="party() === opt.value" (click)="selectParty(opt.value)">
+            @switch (opt.value) {
+              @case ('Solo') {
+                <svg viewBox="0 0 64 64">
+                  <circle cx="32" cy="20" r="9" fill="#E38B4E" />
+                  <path d="M16 54c2-14 12-18 16-18s14 4 16 18z" fill="#F2AE3E" />
+                </svg>
+                <div class="tile-label">Just me</div>
+              }
+              @case ('Group') {
+                <svg viewBox="0 0 64 64">
+                  <circle cx="22" cy="18" r="7" fill="#B695C4" />
+                  <path d="M10 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#B695C4" />
+                  <circle cx="42" cy="18" r="7" fill="#E38B4E" />
+                  <path d="M30 46c1.5-11 9-14 12-14s10.5 3 12 14z" fill="#E38B4E" />
+                </svg>
+                <div class="tile-label">Group</div>
+              }
+              @default {
+                <div class="tile-emoji">{{ opt.emoji || '🧳' }}</div>
+                <div class="tile-label">{{ opt.value }}</div>
+              }
+            }
+          </div>
+        }
       </div>
       <div class="counter-row" [class.show]="party() === 'Group'">
         <button class="counter-btn" (click)="decrementPartySize()">−</button>
@@ -195,40 +209,46 @@
       <div class="q-eyebrow">Step 5 of 8</div>
       <div class="q-text">How are you getting there?</div>
       <div class="tiles">
-        <div class="tile" [class.selected]="transportation() === 'Flight'" (click)="selectTransportation('Flight')">
-          <svg viewBox="0 0 64 64">
-            <path d="M6 34L58 10 30 58l-6-20-18-4z" fill="#B695C4" />
-          </svg>
-          <div class="tile-label">Flight</div>
-        </div>
-        <div class="tile" [class.selected]="transportation() === 'Car'" (click)="selectTransportation('Car')">
-          <svg viewBox="0 0 64 64">
-            <rect x="8" y="30" width="48" height="16" rx="6" fill="#E38B4E" />
-            <path d="M16 30l6-10h20l6 10z" fill="#E38B4E" />
-            <circle cx="20" cy="48" r="6" fill="#3A2E2E" />
-            <circle cx="44" cy="48" r="6" fill="#3A2E2E" />
-          </svg>
-          <div class="tile-label">Car</div>
-        </div>
-        <div class="tile" [class.selected]="transportation() === 'Train'" (click)="selectTransportation('Train')">
-          <svg viewBox="0 0 64 64">
-            <rect x="14" y="10" width="36" height="34" rx="8" fill="#6E9B5C" />
-            <rect x="20" y="18" width="10" height="10" fill="#fff" />
-            <rect x="34" y="18" width="10" height="10" fill="#fff" />
-            <rect x="10" y="48" width="10" height="6" rx="2" fill="#3A2E2E" />
-            <rect x="44" y="48" width="10" height="6" rx="2" fill="#3A2E2E" />
-          </svg>
-          <div class="tile-label">Train</div>
-        </div>
-        <div class="tile" [class.selected]="transportation() === 'Cruise'" (click)="selectTransportation('Cruise')">
-          <svg viewBox="0 0 64 64">
-            <path d="M10 40h44l-6 12H16z" fill="#F2AE3E" />
-            <rect x="22" y="18" width="20" height="18" rx="2" fill="#fff" />
-            <rect x="28" y="8" width="8" height="10" fill="#B695C4" />
-            <path d="M4 44c8 6 16 6 26 0s18 6 26 0" stroke="#6E9B5C" stroke-width="3" fill="none" stroke-linecap="round" />
-          </svg>
-          <div class="tile-label">Cruise</div>
-        </div>
+        @for (opt of transportationTaxonomy(); track opt.id) {
+          <div class="tile" [class.selected]="transportation() === opt.value" (click)="selectTransportation(opt.value)">
+            @switch (opt.value) {
+              @case ('Flight') {
+                <svg viewBox="0 0 64 64">
+                  <path d="M6 34L58 10 30 58l-6-20-18-4z" fill="#B695C4" />
+                </svg>
+              }
+              @case ('Car') {
+                <svg viewBox="0 0 64 64">
+                  <rect x="8" y="30" width="48" height="16" rx="6" fill="#E38B4E" />
+                  <path d="M16 30l6-10h20l6 10z" fill="#E38B4E" />
+                  <circle cx="20" cy="48" r="6" fill="#3A2E2E" />
+                  <circle cx="44" cy="48" r="6" fill="#3A2E2E" />
+                </svg>
+              }
+              @case ('Train') {
+                <svg viewBox="0 0 64 64">
+                  <rect x="14" y="10" width="36" height="34" rx="8" fill="#6E9B5C" />
+                  <rect x="20" y="18" width="10" height="10" fill="#fff" />
+                  <rect x="34" y="18" width="10" height="10" fill="#fff" />
+                  <rect x="10" y="48" width="10" height="6" rx="2" fill="#3A2E2E" />
+                  <rect x="44" y="48" width="10" height="6" rx="2" fill="#3A2E2E" />
+                </svg>
+              }
+              @case ('Cruise') {
+                <svg viewBox="0 0 64 64">
+                  <path d="M10 40h44l-6 12H16z" fill="#F2AE3E" />
+                  <rect x="22" y="18" width="20" height="18" rx="2" fill="#fff" />
+                  <rect x="28" y="8" width="8" height="10" fill="#B695C4" />
+                  <path d="M4 44c8 6 16 6 26 0s18 6 26 0" stroke="#6E9B5C" stroke-width="3" fill="none" stroke-linecap="round" />
+                </svg>
+              }
+              @default {
+                <div class="tile-emoji">{{ opt.emoji || '🚗' }}</div>
+              }
+            }
+            <div class="tile-label">{{ opt.value }}</div>
+          </div>
+        }
       </div>
     </div>
 
@@ -238,14 +258,14 @@
       <div class="q-text">What will you be doing?</div>
       <div class="q-sub">Pick any that apply — it tailors your kit. Optional.</div>
       <div class="activity-grid">
-        @for (activity of activityOptions; track activity) {
+        @for (opt of activityTaxonomy(); track opt.id) {
           <button
             type="button"
             class="activity-chip"
-            [class.selected]="isActivitySelected(activity)"
-            (click)="toggleActivity(activity)"
+            [class.selected]="isActivitySelected(opt.value)"
+            (click)="toggleActivity(opt.value)"
           >
-            {{ activity }}
+            {{ opt.value }}
           </button>
         }
       </div>
@@ -258,14 +278,14 @@
       <div class="q-text">What matters most to you?</div>
       <div class="q-sub">Pick any that apply — we'll prioritize these when building your kit.</div>
       <div class="activity-grid">
-        @for (cat of kitCategoryOptions; track cat) {
+        @for (opt of kitCategoryTaxonomy(); track opt.id) {
           <button
             type="button"
             class="activity-chip"
-            [class.selected]="isPriorityCategorySelected(cat)"
-            (click)="togglePriorityCategory(cat)"
+            [class.selected]="isPriorityCategorySelected(opt.value)"
+            (click)="togglePriorityCategory(opt.value)"
           >
-            {{ cat }}
+            {{ opt.value }}
           </button>
         }
       </div>
@@ -278,14 +298,14 @@
       <div class="q-text">How do you identify?</div>
       <div class="q-sub">Optional — helps us fine-tune sizing. Skip if you'd rather not say.</div>
       <div class="activity-grid">
-        @for (opt of genderOptions; track opt) {
+        @for (opt of genderTaxonomy(); track opt.id) {
           <button
             type="button"
             class="activity-chip"
-            [class.selected]="gender() === opt"
-            (click)="selectGender(opt)"
+            [class.selected]="gender() === opt.value"
+            (click)="selectGender(opt.value)"
           >
-            {{ opt }}
+            {{ opt.value }}
           </button>
         }
       </div>
