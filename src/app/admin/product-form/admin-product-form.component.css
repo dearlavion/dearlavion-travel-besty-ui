@@ -90,6 +90,57 @@ textarea:focus {
   height: 18px;
 }
 
+/* Groups every field that feeds the Build a Kit recommendation engine (Kit Category, Seasons,
+   Destinations, Party, Activities, Transportation) into one visually distinct, hard-to-miss box —
+   getting these wrong silently breaks recommendations rather than throwing an error, so the section
+   is deliberately loud rather than blending in with the rest of the form. */
+.kit-builder-box {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--tint-marigold);
+  border: 2px solid var(--color-marigold);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.kit-builder-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid rgba(58, 46, 46, 0.12);
+}
+
+.kit-builder-warning-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.kit-builder-warning strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-coral-deep);
+  text-transform: none;
+  margin-bottom: 4px;
+}
+
+.kit-builder-warning p {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.kit-builder-warning a {
+  color: var(--color-coral-deep);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .dropdown-field {
   display: flex;
   flex-direction: column;

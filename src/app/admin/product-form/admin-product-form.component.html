@@ -31,29 +31,17 @@
       </label>
     </div>
 
-    <div class="field-row">
-      <label>
-        <span>Category</span>
-        <input
-          type="text"
-          required
-          placeholder="e.g. Electronics"
-          [ngModel]="form().category"
-          (ngModelChange)="updateCategory($event)"
-          name="category"
-        />
-      </label>
-
-      <label>
-        <span>Kit Category — which packing-list bucket this belongs to (boosts it when a shopper says this matters most)</span>
-        <select required [ngModel]="form().kitCategory" (ngModelChange)="updateKitCategory($event)" name="kitCategory">
-          <option value="" disabled>Choose one...</option>
-          @for (opt of kitCategoryOptions(); track opt) {
-            <option [value]="opt">{{ opt }}</option>
-          }
-        </select>
-      </label>
-    </div>
+    <label class="field-full">
+      <span>Category</span>
+      <input
+        type="text"
+        required
+        placeholder="e.g. Electronics"
+        [ngModel]="form().category"
+        (ngModelChange)="updateCategory($event)"
+        name="category"
+      />
+    </label>
 
     <label class="field-full">
       <span>Description</span>
@@ -65,50 +53,74 @@
       ></textarea>
     </label>
 
-    <div class="dropdown-field">
-      <span class="dropdown-field-label">Seasons (none selected = applies to all)</span>
-      <app-multi-select-dropdown
-        [options]="seasonOptions()"
-        [selected]="form().seasons"
-        (toggleValue)="toggleSeason($event)"
-      />
-    </div>
+    <div class="field-full kit-builder-box">
+      <div class="kit-builder-warning">
+        <span class="kit-builder-warning-icon">⚠️</span>
+        <div>
+          <strong>These fields decide what this product gets recommended for.</strong>
+          <p>
+            Every field below feeds the <a routerLink="/travel">Build a Kit</a> survey's recommendation
+            engine — get them wrong and this product either shows up in kits it doesn't belong in, or
+            never shows up at all. Take a moment to set them carefully.
+          </p>
+        </div>
+      </div>
 
-    <div class="dropdown-field">
-      <span class="dropdown-field-label">Destinations (none selected = applies to all)</span>
-      <app-multi-select-dropdown
-        [options]="destinationOptions()"
-        [selected]="form().destinations"
-        (toggleValue)="toggleDestination($event)"
-      />
-    </div>
+      <label>
+        <span>Kit Category — which packing-list bucket this belongs to (boosts it when a shopper says this matters most)</span>
+        <select required [ngModel]="form().kitCategory" (ngModelChange)="updateKitCategory($event)" name="kitCategory">
+          <option value="" disabled>Choose one...</option>
+          @for (opt of kitCategoryOptions(); track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </label>
 
-    <div class="dropdown-field">
-      <span class="dropdown-field-label">Party size (none selected = applies to all)</span>
-      <app-multi-select-dropdown
-        [options]="partyOptions()"
-        [selected]="form().parties"
-        (toggleValue)="toggleParty($event)"
-      />
-    </div>
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">Seasons (none selected = applies to all)</span>
+        <app-multi-select-dropdown
+          [options]="seasonOptions()"
+          [selected]="form().seasons"
+          (toggleValue)="toggleSeason($event)"
+        />
+      </div>
 
-    <div class="dropdown-field">
-      <span class="dropdown-field-label">Activities (which trips this suits — powers the survey)</span>
-      <app-multi-select-dropdown
-        [options]="activityOptions()"
-        [selected]="form().activities"
-        emptyLabel="None"
-        (toggleValue)="toggleActivity($event)"
-      />
-    </div>
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">Destinations (none selected = applies to all)</span>
+        <app-multi-select-dropdown
+          [options]="destinationOptions()"
+          [selected]="form().destinations"
+          (toggleValue)="toggleDestination($event)"
+        />
+      </div>
 
-    <div class="dropdown-field">
-      <span class="dropdown-field-label">Transportation (none selected = applies to all)</span>
-      <app-multi-select-dropdown
-        [options]="transportOptions()"
-        [selected]="form().transportModes"
-        (toggleValue)="toggleTransport($event)"
-      />
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">Party size (none selected = applies to all)</span>
+        <app-multi-select-dropdown
+          [options]="partyOptions()"
+          [selected]="form().parties"
+          (toggleValue)="toggleParty($event)"
+        />
+      </div>
+
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">Activities (which trips this suits — powers the survey)</span>
+        <app-multi-select-dropdown
+          [options]="activityOptions()"
+          [selected]="form().activities"
+          emptyLabel="None"
+          (toggleValue)="toggleActivity($event)"
+        />
+      </div>
+
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">Transportation (none selected = applies to all)</span>
+        <app-multi-select-dropdown
+          [options]="transportOptions()"
+          [selected]="form().transportModes"
+          (toggleValue)="toggleTransport($event)"
+        />
+      </div>
     </div>
 
     <div class="field-full checkbox-stack">
