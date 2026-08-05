@@ -65,64 +65,50 @@
       ></textarea>
     </label>
 
-    <div class="checkbox-group">
-      <span class="checkbox-group-label">Seasons (none selected = applies to all)</span>
-      <div class="checkbox-options">
-        @for (opt of seasonOptions(); track opt) {
-          <label class="checkbox-field">
-            <input type="checkbox" [ngModel]="isSeasonChecked(opt)" (ngModelChange)="toggleSeason(opt)" [name]="'season-' + opt" />
-            <span>{{ opt }}</span>
-          </label>
-        }
-      </div>
+    <div class="dropdown-field">
+      <span class="dropdown-field-label">Seasons (none selected = applies to all)</span>
+      <app-multi-select-dropdown
+        [options]="seasonOptions()"
+        [selected]="form().seasons"
+        (toggleValue)="toggleSeason($event)"
+      />
     </div>
 
-    <div class="checkbox-group">
-      <span class="checkbox-group-label">Destinations (none selected = applies to all)</span>
-      <div class="checkbox-options">
-        @for (opt of destinationOptions(); track opt) {
-          <label class="checkbox-field">
-            <input type="checkbox" [ngModel]="isDestinationChecked(opt)" (ngModelChange)="toggleDestination(opt)" [name]="'destination-' + opt" />
-            <span>{{ opt }}</span>
-          </label>
-        }
-      </div>
+    <div class="dropdown-field">
+      <span class="dropdown-field-label">Destinations (none selected = applies to all)</span>
+      <app-multi-select-dropdown
+        [options]="destinationOptions()"
+        [selected]="form().destinations"
+        (toggleValue)="toggleDestination($event)"
+      />
     </div>
 
-    <div class="checkbox-group">
-      <span class="checkbox-group-label">Party size (none selected = applies to all)</span>
-      <div class="checkbox-options">
-        @for (opt of partyOptions(); track opt) {
-          <label class="checkbox-field">
-            <input type="checkbox" [ngModel]="isPartyChecked(opt)" (ngModelChange)="toggleParty(opt)" [name]="'party-' + opt" />
-            <span>{{ opt }}</span>
-          </label>
-        }
-      </div>
+    <div class="dropdown-field">
+      <span class="dropdown-field-label">Party size (none selected = applies to all)</span>
+      <app-multi-select-dropdown
+        [options]="partyOptions()"
+        [selected]="form().parties"
+        (toggleValue)="toggleParty($event)"
+      />
     </div>
 
-    <div class="checkbox-group">
-      <span class="checkbox-group-label">Activities (which trips this suits — powers the survey)</span>
-      <div class="checkbox-options">
-        @for (opt of activityOptions(); track opt) {
-          <label class="checkbox-field">
-            <input type="checkbox" [ngModel]="isActivityChecked(opt)" (ngModelChange)="toggleActivity(opt)" [name]="'activity-' + opt" />
-            <span>{{ opt }}</span>
-          </label>
-        }
-      </div>
+    <div class="dropdown-field">
+      <span class="dropdown-field-label">Activities (which trips this suits — powers the survey)</span>
+      <app-multi-select-dropdown
+        [options]="activityOptions()"
+        [selected]="form().activities"
+        emptyLabel="None"
+        (toggleValue)="toggleActivity($event)"
+      />
     </div>
 
-    <div class="checkbox-group">
-      <span class="checkbox-group-label">Transportation (none selected = applies to all)</span>
-      <div class="checkbox-options">
-        @for (opt of transportOptions(); track opt) {
-          <label class="checkbox-field">
-            <input type="checkbox" [ngModel]="isTransportChecked(opt)" (ngModelChange)="toggleTransport(opt)" [name]="'transport-' + opt" />
-            <span>{{ opt }}</span>
-          </label>
-        }
-      </div>
+    <div class="dropdown-field">
+      <span class="dropdown-field-label">Transportation (none selected = applies to all)</span>
+      <app-multi-select-dropdown
+        [options]="transportOptions()"
+        [selected]="form().transportModes"
+        (toggleValue)="toggleTransport($event)"
+      />
     </div>
 
     <div class="field-full checkbox-stack">

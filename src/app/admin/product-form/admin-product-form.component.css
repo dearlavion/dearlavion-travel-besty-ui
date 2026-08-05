@@ -90,30 +90,17 @@ textarea:focus {
   height: 18px;
 }
 
-.checkbox-group {
+.dropdown-field {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  align-items: flex-start;
 }
 
-.checkbox-group-label {
+.dropdown-field-label {
   font-size: 12.5px;
   font-weight: 700;
   color: var(--color-ink-soft);
-}
-
-.checkbox-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-}
-
-.checkbox-options .checkbox-field {
-  padding-top: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-ink);
-  text-transform: none;
 }
 
 .checkbox-stack {

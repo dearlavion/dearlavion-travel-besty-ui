@@ -1,0 +1,20 @@
+<div class="filter-dropdown">
+  <button type="button" class="dropdown-toggle" [class.active]="selected().length > 0" (click)="toggleOpen()">
+    {{ buttonLabel() }}
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="chevron" [class.open]="open()">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+  @if (open()) {
+    <div class="dropdown-panel">
+      @for (opt of displayOptions(); track opt) {
+        <label class="dropdown-option">
+          <input type="checkbox" [checked]="isSelected(opt)" (change)="onToggleValue(opt)" />
+          <span>{{ opt }}</span>
+        </label>
+      } @empty {
+        <div class="dropdown-empty">No options yet — add some in Kit Settings.</div>
+      }
+    </div>
+  }
+</div>

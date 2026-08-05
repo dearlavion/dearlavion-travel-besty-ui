@@ -8,6 +8,7 @@ import { Product } from '../../shop/product-catalog';
 import { ProductItemService } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
 import { TaxonomyService } from '../../common/taxonomy.service';
+import { MultiSelectDropdownComponent } from '../../common/multi-select-dropdown/multi-select-dropdown.component';
 
 interface ProductFormModel {
   name: string;
@@ -66,7 +67,7 @@ const CATEGORY_SUGGESTION: Record<string, string> = {
 @Component({
   selector: 'app-admin-product-form',
   standalone: true,
-  imports: [FormsModule, RouterLink, CurrencyPipe],
+  imports: [FormsModule, RouterLink, CurrencyPipe, MultiSelectDropdownComponent],
   templateUrl: './admin-product-form.component.html',
   styleUrl: './admin-product-form.component.css',
 })
@@ -165,44 +166,24 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
-  protected isSeasonChecked(season: string): boolean {
-    return this.form().seasons.includes(season);
-  }
-
   protected toggleSeason(season: string): void {
-    this.form.update((f) => ({ ...f, seasons: toggleInArray(f.seasons, season) }));
-  }
-
-  protected isDestinationChecked(destination: string): boolean {
-    return this.form().destinations.includes(destination);
+    this.form.update((f) => ({ ...f, seasons: toggleWithAllSentinel(f.seasons, season) }));
   }
 
   protected toggleDestination(destination: string): void {
-    this.form.update((f) => ({ ...f, destinations: toggleInArray(f.destinations, destination) }));
-  }
-
-  protected isPartyChecked(party: string): boolean {
-    return this.form().parties.includes(party);
+    this.form.update((f) => ({ ...f, destinations: toggleWithAllSentinel(f.destinations, destination) }));
   }
 
   protected toggleParty(party: string): void {
-    this.form.update((f) => ({ ...f, parties: toggleInArray(f.parties, party) }));
-  }
-
-  protected isActivityChecked(activity: string): boolean {
-    return this.form().activities.includes(activity);
+    this.form.update((f) => ({ ...f, parties: toggleWithAllSentinel(f.parties, party) }));
   }
 
   protected toggleActivity(activity: string): void {
-    this.form.update((f) => ({ ...f, activities: toggleInArray(f.activities, activity) }));
-  }
-
-  protected isTransportChecked(mode: string): boolean {
-    return this.form().transportModes.includes(mode);
+    this.form.update((f) => ({ ...f, activities: toggleWithAllSentinel(f.activities, activity) }));
   }
 
   protected toggleTransport(mode: string): void {
-    this.form.update((f) => ({ ...f, transportModes: toggleInArray(f.transportModes, mode) }));
+    this.form.update((f) => ({ ...f, transportModes: toggleWithAllSentinel(f.transportModes, mode) }));
   }
 
   // Free-text Category changed — only auto-fills Kit Category while it's still unset, so this
@@ -288,6 +269,13 @@ export class AdminProductFormComponent {
   }
 }
 
-function toggleInArray<T>(list: readonly T[], value: T): T[] {
-  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+// 'All' and specific picks are mutually exclusive: choosing 'All' clears any specific picks (and
+// vice versa) rather than letting them coexist — mirrors TravelComponent's own Destination 'All'
+// sentinel handling (toggleDestination()).
+function toggleWithAllSentinel(list: readonly string[], value: string): string[] {
+  if (value === 'All') {
+    return list.includes('All') ? [] : ['All'];
+  }
+  const withoutAll = list.filter((v) => v !== 'All');
+  return withoutAll.includes(value) ? withoutAll.filter((v) => v !== value) : [...withoutAll, value];
 }
