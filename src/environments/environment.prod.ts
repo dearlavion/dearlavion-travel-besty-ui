@@ -12,5 +12,7 @@ export const environment = {
   // silently falls back to mailto: in prod until this is set (see auth.interceptor.ts's
   // `.filter(Boolean)` on the backends list).
   notificationUrl: '',
+  // Not deployed yet — dearlavion-spring-master-data-service is local-only for now.
+  masterDataUrl: '',
   customer: 'travel-besty',
 };

@@ -1,0 +1,50 @@
+@if (notFound()) {
+  <div class="not-found">
+    <p>We couldn't find that item.</p>
+    <a [routerLink]="['/admin/master', collectionPath()]" class="back-link">← Back to {{ collectionLabel() }}</a>
+  </div>
+} @else {
+  <a [routerLink]="['/admin/master', collectionPath()]" class="back-link">← Back to {{ collectionLabel() }}</a>
+  <h1>Edit {{ collectionLabel() }}</h1>
+
+  @if (loaded()) {
+    <form class="item-form" (ngSubmit)="save()">
+      <div class="field-row">
+        <label>
+          <span>Value</span>
+          <input type="text" required [ngModel]="form().value" (ngModelChange)="updateField('value', $event)" name="value" />
+        </label>
+
+        <label>
+          <span>Order</span>
+          <input type="number" [ngModel]="form().order" (ngModelChange)="updateField('order', $event)" name="order" />
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label>
+          <span>Emoji</span>
+          <input type="text" [ngModel]="form().emoji" (ngModelChange)="updateField('emoji', $event)" name="emoji" />
+        </label>
+
+        <label>
+          <span>Subtext</span>
+          <input type="text" [ngModel]="form().subtext" (ngModelChange)="updateField('subtext', $event)" name="subtext" />
+        </label>
+      </div>
+
+      @if (code()) {
+        <label class="field-full">
+          <span>Code</span>
+          <input type="text" [value]="code()" disabled />
+        </label>
+        <p class="hint">Code is a fixed key used by scoring logic — it can't be changed here.</p>
+      }
+
+      <div class="form-actions">
+        <a [routerLink]="['/admin/master', collectionPath()]" class="cancel-btn">Cancel</a>
+        <button type="submit" class="save-btn" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save Changes' }}</button>
+      </div>
+    </form>
+  }
+}

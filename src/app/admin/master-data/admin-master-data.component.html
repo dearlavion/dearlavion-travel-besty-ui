@@ -1,0 +1,33 @@
+<div class="list-head">
+  <div>
+    <h1>Master Data</h1>
+    <p class="sub">Reference-data collections from dearlavion-spring-master-data-service</p>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Collection</th>
+        <th>Items</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of pagedRows(); track row.key) {
+        <tr>
+          <td class="kit-cell">
+            <a [routerLink]="['/admin/master', row.path]" class="kit-name">{{ row.label }}</a>
+          </td>
+          <td class="num-cell">{{ row.count === null ? '…' : row.count }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="2" class="no-results">No collections found.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
