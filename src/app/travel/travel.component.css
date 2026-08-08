@@ -169,10 +169,41 @@
   color: var(--color-ink);
 }
 
-/* Duration only — same tile shell as destination/season, just wide enough for its subtext line
-   (e.g. "just enough time to unwind") without wrapping to 3+ lines. */
+/* Duration only — narrower than the default tile so all 4 fixed options sit on a single row at
+   desktop widths instead of wrapping to 2 rows and tripping .tiles' overflow-y scrollbar. Each
+   option also gets its own pastel tint + icon color (via currentColor) instead of plain white,
+   since with only 4 fixed, non-growing options there's no admin-added-value uniformity to protect. */
 .duration-tile {
-  width: 148px;
+  width: 128px;
+  padding: 12px 8px 10px;
+}
+
+.duration-tile svg {
+  width: 40px;
+  height: 40px;
+}
+
+.duration-tile-day {
+  --duration-tint: var(--tint-yellow);
+  --duration-color: #d9a441;
+}
+.duration-tile-short {
+  --duration-tint: var(--tint-blue);
+  --duration-color: #4c86a8;
+}
+.duration-tile-medium {
+  --duration-tint: var(--tint-green);
+  --duration-color: #6e9b5c;
+}
+.duration-tile-long {
+  --duration-tint: var(--tint-violet);
+  --duration-color: #8a5fa8;
+}
+
+.duration-tile,
+.tile.selected.duration-tile {
+  background: var(--duration-tint);
+  color: var(--duration-color);
 }
 
 .tile-sub {
