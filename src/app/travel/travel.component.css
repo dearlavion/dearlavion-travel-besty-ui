@@ -566,3 +566,20 @@
   border-color: #6e9b5c;
   color: #fff;
 }
+
+@media (max-width: 600px) {
+  /* Activities/Kit Category chips: at desktop chip size only ~2 fit per row on a mobile-width
+     card, so a full 8–11 chip list (incl. multi-word labels like "Health & Safety") wraps to 5-6
+     rows and blows past .activity-grid's max-height, tripping the scrollbar. Smaller chips fit
+     more per row and shrink each row, and the max-height gets a little more headroom too. Placed
+     after the base .activity-chip rules (not in the earlier 600px block above) since they'd
+     otherwise lose the cascade to those later-declared, equal-specificity base rules. */
+  .activity-grid {
+    gap: 8px;
+    max-height: 260px;
+  }
+  .activity-chip {
+    font-size: 12.5px;
+    padding: 7px 12px;
+  }
+}
