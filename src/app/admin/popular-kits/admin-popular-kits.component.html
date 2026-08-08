@@ -15,39 +15,54 @@
   />
 </div>
 
-<div class="kit-grid">
-  @for (kit of pagedKits(); track kit.id) {
-    <div class="kit-card">
-      <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
-      <div class="kit-body">
-        <div class="kit-name">{{ kit.name }}</div>
-        <div class="kit-tag">{{ kit.tag }}</div>
-        <div class="kit-product-count">{{ kit.productIds.length }} products linked</div>
-        <div class="kit-badges">
-          <span class="badge">{{ kit.destination }}</span>
-          <span class="badge">{{ kit.season }}</span>
-          <span class="badge">{{ kit.party }}</span>
-          <span class="badge">{{ kit.duration }}</span>
-        </div>
-      </div>
-      <div class="kit-actions">
-        @if (confirmingDeleteId() === kit.id) {
-          <span class="confirm-row">
-            Delete?
-            <button type="button" class="confirm-yes" (click)="confirmDelete(kit.id)">Yes</button>
-            <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
-          </span>
-        } @else {
-          <a [routerLink]="['/admin/popular-kits', kit.id, 'edit']" class="edit-link">Edit</a>
-          <button type="button" class="delete-link" (click)="requestDelete(kit.id)">Delete</button>
-        }
-      </div>
-    </div>
-  } @empty {
-    <p class="no-results">
-      {{ search() ? 'No kits match your search.' : 'No popular kits yet — add one to feature it on the homepage.' }}
-    </p>
-  }
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Kit</th>
+        <th>Tag</th>
+        <th>Products</th>
+        <th>Badges</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (kit of pagedKits(); track kit.id) {
+        <tr>
+          <td class="kit-cell">
+            <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
+            <a [routerLink]="['/admin/popular-kits', kit.id, 'edit']" class="kit-name">{{ kit.name }}</a>
+          </td>
+          <td>{{ kit.tag }}</td>
+          <td class="num-cell">{{ kit.productIds.length }}</td>
+          <td class="kit-badges">
+            <span class="badge">{{ kit.destination }}</span>
+            <span class="badge">{{ kit.season }}</span>
+            <span class="badge">{{ kit.party }}</span>
+            <span class="badge">{{ kit.duration }}</span>
+          </td>
+          <td class="actions-cell">
+            @if (confirmingDeleteId() === kit.id) {
+              <span class="confirm-row">
+                Delete?
+                <button type="button" class="confirm-yes" (click)="confirmDelete(kit.id)">Yes</button>
+                <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+              </span>
+            } @else {
+              <a [routerLink]="['/admin/popular-kits', kit.id, 'edit']" class="edit-link">Edit</a>
+              <button type="button" class="delete-link" (click)="requestDelete(kit.id)">Delete</button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" class="no-results">
+            {{ search() ? 'No kits match your search.' : 'No popular kits yet — add one to feature it on the homepage.' }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
 </div>
 
 <app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
