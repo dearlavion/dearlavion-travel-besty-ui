@@ -11,6 +11,9 @@ export const environment = {
   paymentUrl: 'http://localhost:4001',
   // Real auth-service-v2 (username/email + password login, issues the JWT store-engine verifies).
   authUrl: 'http://localhost:9081',
+  // dearlavion-notification-service (Java v1) — only used for "Email my kit" today. Verifies the
+  // same bearer token against authUrl, so no separate login step is needed.
+  notificationUrl: 'http://localhost:8083',
   // Which tenant this app is — sent as the X-Customer header on auth calls (one auth instance
   // serves many customers, each with its own authentication-<customer> DB).
   customer: 'travel-besty',

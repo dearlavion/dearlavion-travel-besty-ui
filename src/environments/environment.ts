@@ -9,6 +9,8 @@ export const environment = {
   authUrl: '',
   // Empty in mock mode — payments are stored locally.
   paymentUrl: '',
+  // Empty in mock mode — "Email my kit" falls back to the client-side mailto: link.
+  notificationUrl: '',
   // Tenant id sent as X-Customer on real auth calls (unused in mock mode).
   customer: 'travel-besty',
 };

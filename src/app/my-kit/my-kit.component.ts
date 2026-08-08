@@ -18,6 +18,8 @@ import { NewsletterService } from './newsletter.service';
 import { NewsletterPopupComponent } from './newsletter-popup/newsletter-popup.component';
 import { ToastService } from '../common/toast/toast.service';
 import { TaxonomyService } from '../common/taxonomy.service';
+import { KitEmailService } from './kit-email.service';
+import { environment } from '../../environments/environment';
 
 interface DisplayItem {
   label: string;
@@ -75,6 +77,7 @@ export class MyKitComponent {
   private readonly auth = inject(AuthService);
   private readonly savedKitsService = inject(SavedKitsService);
   private readonly newsletter = inject(NewsletterService);
+  private readonly kitEmail = inject(KitEmailService);
   private readonly toast = inject(ToastService);
   private readonly taxonomy = inject(TaxonomyService);
   private readonly paramMap = toSignal(this.route.paramMap);
@@ -132,6 +135,7 @@ export class MyKitComponent {
   protected readonly showSaveInput = signal(false);
   protected readonly saveName = signal('');
   protected readonly exporting = signal(false);
+  protected readonly sendingEmail = signal(false);
   protected readonly showNewsletterPopup = signal(false);
 
   // Add-item picker state (only rendered when isSavedKit())
@@ -323,11 +327,30 @@ export class MyKitComponent {
     }
   }
 
-  /** Open the user's email client with the kit list pre-filled. */
+  /** Logged in (and the notification backend is actually deployed): asks the backend to send the
+   * kit to the caller's own account email. Logged out, or notificationUrl isn't configured for
+   * this environment yet (see environment.prod.ts) — falls back to the original mailto: link, so
+   * anonymous visitors and not-yet-deployed environments see no regression. */
   protected emailKit(): void {
     const payload = this.exportPayload();
     if (!payload || typeof window === 'undefined') return;
-    window.location.href = buildKitMailto(payload);
+
+    if (!this.isLoggedIn() || !environment.notificationUrl) {
+      window.location.href = buildKitMailto(payload);
+      return;
+    }
+
+    this.sendingEmail.set(true);
+    this.kitEmail.send(payload).subscribe({
+      next: () => {
+        this.sendingEmail.set(false);
+        this.toast.success('Kit emailed — check your inbox!');
+      },
+      error: () => {
+        this.sendingEmail.set(false);
+        this.toast.error('Could not email your kit. Please try again.');
+      },
+    });
   }
 
   protected startSave(): void {

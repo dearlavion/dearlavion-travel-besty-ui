@@ -8,5 +8,9 @@ export const environment = {
   apiUrl: 'https://api-store.dearlavion.site',
   paymentUrl: 'https://api-pay.dearlavion.site',
   authUrl: 'https://api-auth.dearlavion.site',
+  // Not deployed yet — dearlavion-notification-service is local-only for now. "Email my kit"
+  // silently falls back to mailto: in prod until this is set (see auth.interceptor.ts's
+  // `.filter(Boolean)` on the backends list).
+  notificationUrl: '',
   customer: 'travel-besty',
 };

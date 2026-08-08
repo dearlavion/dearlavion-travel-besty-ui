@@ -17,7 +17,7 @@ export const httpErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const toast = inject(ToastService);
   const router = inject(Router);
 
-  const backends = [environment.apiUrl, environment.paymentUrl].filter(Boolean);
+  const backends = [environment.apiUrl, environment.paymentUrl, environment.notificationUrl].filter(Boolean);
   const isBackendRequest = backends.some((base) => req.url.startsWith(base));
 
   return next(req).pipe(
