@@ -7,6 +7,22 @@
   <a routerLink="/admin/popular-kits" class="back-link">← Back to Popular Kits</a>
   <h1>{{ isEditMode() ? 'Edit Popular Kit' : 'Add Popular Kit' }}</h1>
 
+  <!-- Same card the storefront actually renders (home marquee / travel gallery) — sized and
+       styled identically, so what an admin sees here is what shoppers will see. -->
+  <div class="kit-preview">
+    <div class="kit-preview-card">
+      @if (form().image) {
+        <img class="kit-preview-thumb" [src]="form().image" [alt]="form().name || 'Kit preview'" />
+      } @else {
+        <div class="kit-preview-thumb kit-preview-thumb-empty">No image yet</div>
+      }
+      <div class="kit-preview-info">
+        <h3 class="kit-preview-name">{{ form().name || 'Untitled kit' }}</h3>
+        <div class="kit-preview-meta">{{ linkedProducts().length }} items · {{ form().tag || '—' }}</div>
+      </div>
+    </div>
+  </div>
+
   <form class="kit-form" (ngSubmit)="save()">
     <div class="field-row">
       <label>

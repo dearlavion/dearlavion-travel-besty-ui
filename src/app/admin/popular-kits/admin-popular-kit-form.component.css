@@ -23,6 +23,58 @@ h1 {
   margin-bottom: 28px;
 }
 
+.kit-preview {
+  margin-bottom: 28px;
+}
+
+/* Mirrors home.component.css's .kit-card/.kit-thumb/.kit-info exactly (same storefront card the
+   homepage marquee and travel gallery render) — kept as a fixed-size single card here rather than
+   the marquee's flex/vw sizing, since there's only ever one preview on this page. */
+.kit-preview-card {
+  width: 260px;
+  max-width: 100%;
+  background: var(--tint-yellow);
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: 0 22px 42px -20px rgba(58, 46, 46, 0.22);
+}
+
+.kit-preview-thumb {
+  display: block;
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--color-ink);
+}
+
+.kit-preview-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--tint-cream);
+}
+
+.kit-preview-info {
+  padding: 18px 18px 22px;
+}
+
+.kit-preview-name {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--color-ink);
+  margin-bottom: 4px;
+}
+
+.kit-preview-meta {
+  font-size: 12.5px;
+  color: var(--color-ink-soft);
+  font-weight: 600;
+}
+
 .kit-form {
   background: #fff;
   border: 1px solid var(--color-line);
