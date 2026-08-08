@@ -46,10 +46,11 @@
               name="email"
               placeholder="you@example.com"
               required
+              [disabled]="submitting()"
               [ngModel]="email()"
               (ngModelChange)="email.set($event)"
             />
-            <button type="submit">Subscribe</button>
+            <button type="submit" [disabled]="submitting()">{{ submitting() ? 'Subscribing…' : 'Subscribe' }}</button>
           </form>
         }
       </div>

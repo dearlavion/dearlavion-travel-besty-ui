@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NewsletterService } from '../../my-kit/newsletter.service';
+import { ToastService } from '../toast/toast.service';
 
 // Shared across every page — identical link structure and closing tagline everywhere, so both
 // live here rather than being re-passed (and easy to forget, or drift) at each call site.
@@ -19,14 +20,33 @@ import { NewsletterService } from '../../my-kit/newsletter.service';
 })
 export class FooterComponent {
   protected readonly newsletter = inject(NewsletterService);
+  private readonly toast = inject(ToastService);
 
   protected readonly tagline = '© 2026 Travel Besty. Personalized travel essentials for every trip.';
   protected readonly email = signal('');
+  protected readonly submitting = signal(false);
 
   protected subscribe(): void {
     const value = this.email().trim();
-    if (!value) return;
-    this.newsletter.subscribe(value).subscribe();
-    this.email.set('');
+    if (!value || this.submitting()) return;
+
+    this.submitting.set(true);
+    this.newsletter.subscribe(value).subscribe({
+      next: (res) => {
+        this.submitting.set(false);
+        this.email.set('');
+        this.toast.success(
+          res.alreadySubscribed
+            ? "You're already subscribed!"
+            : 'Thanks for subscribing! Check your inbox.',
+        );
+      },
+      error: () => {
+        // Leave the typed email in place so retrying doesn't mean retyping it — and the form
+        // stays visible since newsletter.subscribed() never flipped true on a failed request.
+        this.submitting.set(false);
+        this.toast.error("Couldn't subscribe right now — please try again.");
+      },
+    });
   }
 }
