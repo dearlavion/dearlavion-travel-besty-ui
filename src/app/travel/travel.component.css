@@ -39,7 +39,12 @@
 
 .carousel-track {
   position: relative;
-  height: 520px;
+  /* Tall enough that a fully-grown tile grid (2 rows, the .tiles/.activity-grid/.bands cap below)
+     plus a card's heading/sub/button chrome fits without the card itself ever needing to scroll —
+     avoids a flexbox footgun where centered content taller than its container clips at the *top*
+     instead of scrolling there. The per-grid max-height caps stay in as a backstop for anything
+     that somehow grows past 2 rows. */
+  height: 620px;
 }
 
 .card {
@@ -56,6 +61,11 @@
   transform: translateX(40px) scale(0.98);
   pointer-events: none;
   transition: opacity 0.45s ease, transform 0.45s ease;
+  /* Safety net: whichever axis has the most admin-added options (tiles/chips/bands), this keeps
+     the Continue button reachable by scrolling the card itself rather than letting content spill
+     past the fixed-height track — the .tiles/.activity-grid/.bands caps below handle it before
+     this ever needs to kick in, but it's the backstop if an admin adds a lot of options. */
+  overflow-y: auto;
 }
 
 .card.active {
@@ -101,23 +111,29 @@
 
 .tiles {
   display: flex;
-  gap: 18px;
+  gap: 14px;
   flex-wrap: wrap;
   justify-content: center;
+  /* Caps growth as admin-added options pile up — scrolls internally instead of pushing the
+     Continue button toward (or past) the card's bottom edge. Sized to exactly 2 full tile rows
+     (2 × ~112px + 14px gap + padding) so it never clips a row mid-tile before scrolling kicks in. */
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 4px; /* room for .tile's hover lift/shadow so scrolling doesn't clip it */
 }
 
 .tile {
-  width: 150px;
+  width: 122px;
   background: #fff;
   border-radius: 20px;
-  padding: 16px 14px 14px;
+  padding: 14px 10px 12px;
   cursor: pointer;
   border: 2.5px solid transparent;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tile:hover {
@@ -132,14 +148,14 @@
 }
 
 .tile svg {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
 }
 
 /* Fallback icon for admin-added taxonomy values with no bespoke illustration above. */
 .tile-emoji {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,6 +208,11 @@
   gap: 12px;
   width: 100%;
   max-width: 360px;
+  /* Duration is fixed at exactly 3 rows (Kit Settings can't add/remove it), but capped here too
+     for consistency with .tiles/.activity-grid's growth-safety treatment. */
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
 }
 
 .band {
@@ -475,7 +496,7 @@
 
 @media (max-width: 600px) {
   .carousel-track {
-    height: 600px;
+    height: 680px;
   }
   .card {
     padding: 36px 22px;
@@ -505,6 +526,11 @@
   justify-content: center;
   gap: 10px;
   margin-bottom: 22px;
+  /* Same growth-safety cap as .tiles — Kit Category/Activities/Gender can all grow via Kit
+     Settings, so this scrolls internally instead of pushing the Continue button out of the card. */
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
 }
 
 .activity-chip {
