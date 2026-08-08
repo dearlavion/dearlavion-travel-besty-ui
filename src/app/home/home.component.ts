@@ -95,8 +95,18 @@ export class HomeComponent {
 
     this.topSelling.load(BAG_ITEM_COUNT);
 
-    afterNextRender(() => {
+    // Re-measure whenever the kit list changes length — in real mode (useMockData: false)
+    // PopularKitsService.kits starts as [] and only fills in once the /popular-kits GET
+    // resolves, which lands well after the initial afterNextRender below. Measuring only once,
+    // against that still-empty track, left cardStep/loopWidth stuck at 0 forever (autoplay never
+    // starts, arrow/dot clicks silently no-op) even after the real cards rendered.
+    effect(() => {
+      this.kitCards();
+      if (typeof document === 'undefined') return;
       this.measureMarquee();
+    });
+
+    afterNextRender(() => {
       window.addEventListener('resize', () => this.measureMarquee());
       requestAnimationFrame((t) => this.runMarqueeLoop(t));
     });
