@@ -30,7 +30,6 @@
       @for (kit of pagedKits(); track kit.id) {
         <tr>
           <td class="kit-cell">
-            <img class="kit-thumb" [src]="kit.image" [alt]="kit.name" loading="lazy" />
             <a [routerLink]="['/admin/popular-kits', kit.id, 'edit']" class="kit-name">{{ kit.name }}</a>
           </td>
           <td>{{ kit.tag }}</td>
