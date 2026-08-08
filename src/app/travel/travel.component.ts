@@ -122,7 +122,7 @@ export class TravelComponent {
   // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded.
   protected readonly destinationTaxonomy = computed(() => this.taxonomy.forAxis('destination'));
   protected readonly seasonTaxonomy = computed(() => this.taxonomy.forAxis('season'));
-  // Fixed at exactly 3 rows (admin can rename value/subtext, not add/remove) — see Kit Settings.
+  // Fixed at exactly 4 rows (admin can rename value/subtext, not add/remove) — see Kit Settings.
   protected readonly durationTaxonomy = computed(() => this.taxonomy.forAxis('duration'));
   protected readonly partyTaxonomy = computed(() => this.taxonomy.forAxis('party'));
   protected readonly transportationTaxonomy = computed(() => this.taxonomy.forAxis('transportation'));

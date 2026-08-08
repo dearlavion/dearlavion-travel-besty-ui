@@ -69,7 +69,7 @@ const SECTION_CONFIG: KitSettingsSection[] = [
   {
     axis: 'duration',
     title: 'Duration',
-    description: 'Trip length bands — fixed at exactly 3. Rename the label or the helper text; adding or removing bands isn\'t supported, since the kit-sizing engine keys off them directly.',
+    description: 'Trip length bands — fixed at exactly 4. Rename the label or the helper text; adding or removing bands isn\'t supported, since the kit-sizing engine keys off them directly.',
     allowAddDelete: false,
     showEmoji: false,
     showSubtext: true,

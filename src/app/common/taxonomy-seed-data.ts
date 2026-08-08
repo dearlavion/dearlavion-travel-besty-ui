@@ -41,9 +41,10 @@ export const TAXONOMY_SEED_DATA: TaxonomyValue[] = [
   { id: 'kitCategory-comfort', axis: 'kitCategory', value: 'Comfort', order: 9 },
   { id: 'kitCategory-food-hydration', axis: 'kitCategory', value: 'Food & Hydration', order: 10 },
 
-  { id: 'duration-short', axis: 'duration', value: 'Quick escape', order: 0, subtext: '2–4 days', code: 'short' },
-  { id: 'duration-medium', axis: 'duration', value: 'A proper break', order: 1, subtext: '1–2 weeks', code: 'medium' },
-  { id: 'duration-long', axis: 'duration', value: 'Living it', order: 2, subtext: '3+ weeks', code: 'long' },
+  { id: 'duration-day', axis: 'duration', value: 'Day Tour', order: 0, subtext: '1 day', code: 'day' },
+  { id: 'duration-short', axis: 'duration', value: 'Quick escape', order: 1, subtext: '2–4 days', code: 'short' },
+  { id: 'duration-medium', axis: 'duration', value: 'A proper break', order: 2, subtext: '1–2 weeks', code: 'medium' },
+  { id: 'duration-long', axis: 'duration', value: 'Living it', order: 3, subtext: '3+ weeks', code: 'long' },
 
   { id: 'gender-woman', axis: 'gender', value: 'Woman', order: 0 },
   { id: 'gender-man', axis: 'gender', value: 'Man', order: 1 },
