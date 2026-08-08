@@ -40,19 +40,19 @@
           <p class="newsletter-done">✓ You're subscribed — Travel tips and new kits headed your way.</p>
         } @else {
           <p class="newsletter-copy">Travel tips and new kits, straight to your inbox.</p>
-          <form class="newsletter-form" (ngSubmit)="subscribe()">
-            <input
-              type="email"
-              name="email"
-              placeholder="you@example.com"
-              required
-              [disabled]="submitting()"
-              [ngModel]="email()"
-              (ngModelChange)="email.set($event)"
-            />
-            <button type="submit" [disabled]="submitting()">{{ submitting() ? 'Subscribing…' : 'Subscribe' }}</button>
-          </form>
         }
+        <form class="newsletter-form" (ngSubmit)="subscribe()">
+          <input
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+            [disabled]="submitting()"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+          />
+          <button type="submit" [disabled]="submitting()">{{ submitting() ? 'Subscribing…' : 'Subscribe' }}</button>
+        </form>
       </div>
     </div>
     <div class="foot-bottom">{{ tagline }}</div>
