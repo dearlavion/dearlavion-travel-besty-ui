@@ -35,6 +35,7 @@ import { TrackPackageDetailComponent } from './profile/track-packages/order-deta
 import { AddPaymentComponent } from './checkout/add-payment/add-payment.component';
 import { requireLoginGuard } from './auth/require-login.guard';
 import { requireAdminGuard } from './auth/require-admin.guard';
+import { confirmLeaveMyKitGuard } from './my-kit/confirm-leave.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -42,7 +43,7 @@ export const routes: Routes = [
   { path: 'shop', component: ShopComponent },
   { path: 'product/:id', component: ProductDetailComponent },
   { path: 'product/:id/items/:itemId', component: ProductDetailComponent },
-  { path: 'my-kit', component: MyKitComponent },
+  { path: 'my-kit', component: MyKitComponent, canDeactivate: [confirmLeaveMyKitGuard] },
   { path: 'my-kit/:savedId', component: MyKitComponent },
   { path: 'popular/:id', component: MyKitComponent },
   {

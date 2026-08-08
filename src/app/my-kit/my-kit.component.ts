@@ -3,6 +3,7 @@ import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Observable, Subject, of } from 'rxjs';
 import { TravelKitService, BuiltKit } from '../travel/travel-kit.service';
 import { KitItem } from '../travel/kit-recommendation';
 import { PopularKitsService } from '../admin/popular-kits/popular-kits.service';
@@ -16,6 +17,7 @@ import { SavedKitsService } from './saved-kits.service';
 import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 import { NewsletterService } from './newsletter.service';
 import { NewsletterPopupComponent } from './newsletter-popup/newsletter-popup.component';
+import { ConfirmLeavePopupComponent } from './confirm-leave-popup/confirm-leave-popup.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { ToastService } from '../common/toast/toast.service';
 import { TaxonomyService } from '../common/taxonomy.service';
@@ -63,7 +65,7 @@ const RELATED_LOOKUP_LIMIT = 20;
 @Component({
   selector: 'app-my-kit',
   standalone: true,
-  imports: [RouterLink, PricePipe, FormsModule, NewsletterPopupComponent, FooterComponent],
+  imports: [RouterLink, PricePipe, FormsModule, NewsletterPopupComponent, ConfirmLeavePopupComponent, FooterComponent],
   templateUrl: './my-kit.component.html',
   styleUrl: './my-kit.component.css',
 })
@@ -129,13 +131,42 @@ export class MyKitComponent {
   // content, not personal).
   protected readonly isSavedKit = computed(() => this.savedId() !== null);
 
+  // Set synchronously the moment confirmSave() succeeds, before showAndReload()'s reload actually
+  // fires — otherwise isEphemeralKit() below would still read true on a bare /my-kit save (the
+  // URL never changes to /my-kit/:id, see confirmSave()'s own comment on why not), so both the
+  // beforeunload listener and confirmLeaveMyKitGuard would immediately re-prompt "leave unsaved
+  // changes?" right after the user just saved.
+  private readonly justSaved = signal(false);
+
   // True only for the bare /my-kit quiz-result case (see the `kit` computed above) — the one
-  // path where a refresh silently loses the built kit, since TravelKitService holds it in
-  // memory only. /my-kit/:savedId and /popular/:id both resolve from persisted data and survive
-  // a refresh fine, so they don't need this warning.
-  protected readonly isEphemeralKit = computed(
-    () => this.kit() !== null && this.savedId() === null && !this.paramMap()?.get('id'),
+  // path where a refresh (or navigating away in-app, see confirm-leave.guard.ts) silently loses
+  // the built kit, since TravelKitService holds it in memory only. /my-kit/:savedId and
+  // /popular/:id both resolve from persisted data and survive either fine, so they don't need
+  // this warning. Public (not protected) so confirmLeaveMyKitGuard can read it.
+  readonly isEphemeralKit = computed(
+    () => !this.justSaved() && this.kit() !== null && this.savedId() === null && !this.paramMap()?.get('id'),
   );
+
+  // Custom in-app replacement for window.confirm() — called by confirmLeaveMyKitGuard
+  // (CanDeactivate) when routing away from an unsaved bare /my-kit via a router link. Opens
+  // ConfirmLeavePopupComponent and resolves once the user picks Yes/Cancel (or dismisses the
+  // backdrop, treated the same as Cancel).
+  protected readonly showLeaveConfirm = signal(false);
+  private leaveConfirmResult$: Subject<boolean> | null = null;
+
+  confirmLeave(): Observable<boolean> {
+    if (!this.isEphemeralKit()) return of(true);
+    this.leaveConfirmResult$ = new Subject<boolean>();
+    this.showLeaveConfirm.set(true);
+    return this.leaveConfirmResult$.asObservable();
+  }
+
+  protected resolveLeaveConfirm(result: boolean): void {
+    this.showLeaveConfirm.set(false);
+    this.leaveConfirmResult$?.next(result);
+    this.leaveConfirmResult$?.complete();
+    this.leaveConfirmResult$ = null;
+  }
 
   @HostListener('window:beforeunload', ['$event'])
   protected warnBeforeUnload(event: BeforeUnloadEvent): void {
@@ -397,6 +428,7 @@ export class MyKitComponent {
     }
 
     const saved = this.savedKitsService.save(this.saveName(), k);
+    this.justSaved.set(true);
     this.showSaveInput.set(false);
     // Stays right here rather than redirecting to /my-kit/:id — same reason the admin item/product
     // forms' create flow doesn't jump straight to the new resource's own page: save()'s returned

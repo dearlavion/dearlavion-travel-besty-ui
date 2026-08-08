@@ -1,0 +1,10 @@
+<div class="overlay-backdrop" (click)="onBackdropClick($event)">
+  <div class="overlay-card">
+    <p class="overlay-title">Are you sure to leave your kit? It will not be saved :(</p>
+
+    <div class="overlay-actions">
+      <button type="button" class="yes-btn" (click)="confirmed.emit()">Yes</button>
+      <button type="button" class="cancel-btn" (click)="cancelled.emit()">Cancel</button>
+    </div>
+  </div>
+</div>

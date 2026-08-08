@@ -192,4 +192,11 @@
   />
 }
 
+@if (showLeaveConfirm()) {
+  <app-confirm-leave-popup
+    (confirmed)="resolveLeaveConfirm(true)"
+    (cancelled)="resolveLeaveConfirm(false)"
+  />
+}
+
 <app-footer />
