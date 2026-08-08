@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 const TOKEN_KEY = 'travel-besty-auth-token';
@@ -114,6 +114,27 @@ export class AuthService {
       { username, email, password },
       { headers: this.tenantHeaders },
     );
+  }
+
+  /** Self-service: update the caller's own account email. Real mode hits auth-service-v3's
+   * PATCH /auth/me (authenticated via authInterceptor's bearer token — the backend derives the
+   * target user from that token, never trusts a client-supplied identifier). Mock mode has no
+   * backend, so it just rewrites the local stub identity. Either way, mirrors the confirmed email
+   * into the user signal + storage so every consumer (nav, kit-email, etc.) sees it immediately. */
+  updateEmail(email: string): Observable<{ email: string }> {
+    if (!environment.useMockData) {
+      return this.http
+        .patch<{ email: string }>(`${environment.authUrl}/auth/me`, { email })
+        .pipe(tap((res) => this.patchUserEmail(res.email)));
+    }
+    this.patchUserEmail(email);
+    return of({ email });
+  }
+
+  private patchUserEmail(email: string): void {
+    const current = this.user();
+    if (!current) return;
+    this.setSession(this.token()!, { ...current, email });
   }
 
   /** Mock-mode only: become a local stub identity without any backend call. */

@@ -132,8 +132,8 @@
       <button type="button" class="kit-action-btn" (click)="downloadPdf()" [disabled]="exporting()">
         {{ exporting() ? 'Preparing…' : '⬇ Download PDF' }}
       </button>
-      <button type="button" class="kit-action-btn" (click)="emailKit()" [disabled]="sendingEmail()">
-        {{ sendingEmail() ? 'Sending…' : '✉ Email my kit' }}
+      <button type="button" class="kit-action-btn" (click)="emailKit()" [disabled]="sendingEmail() || emailSent()">
+        {{ sendingEmail() ? 'Sending…' : emailSent() ? '✓ Emailed' : '✉ Email my kit' }}
       </button>
       @if (isSavedKit()) {
         <button

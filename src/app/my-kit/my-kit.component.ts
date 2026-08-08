@@ -183,6 +183,11 @@ export class MyKitComponent {
   protected readonly saveName = signal('');
   protected readonly exporting = signal(false);
   protected readonly sendingEmail = signal(false);
+  // Stays true once a real backend send succeeds, disabling the button for the rest of this page
+  // view — prevents firing the same kit contents to the inbox multiple times from repeat clicks.
+  // Not set for the logged-out/mock mailto: fallback, since that only opens a compose window and
+  // doesn't confirm anything was actually sent.
+  protected readonly emailSent = signal(false);
   protected readonly showNewsletterPopup = signal(false);
 
   // Add-item picker state (only rendered when isSavedKit())
@@ -391,6 +396,7 @@ export class MyKitComponent {
     this.kitEmail.send(payload).subscribe({
       next: () => {
         this.sendingEmail.set(false);
+        this.emailSent.set(true);
         this.toast.success('Kit emailed — check your inbox!');
       },
       error: () => {
