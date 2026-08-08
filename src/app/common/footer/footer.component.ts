@@ -11,6 +11,8 @@ import { ToastService } from '../toast/toast.service';
 // newsletter signup reusing the existing NewsletterService (already backed by a real endpoint and
 // already used by My Kit's PDF-download opt-in popup) — a standard marketing-footer element that
 // costs nothing new on the backend.
+const CONFIRMATION_MS = 5000;
+
 @Component({
   selector: 'app-footer',
   standalone: true,
@@ -25,6 +27,12 @@ export class FooterComponent {
   protected readonly tagline = '© 2026 Travel Besty. Personalized travel essentials for every trip.';
   protected readonly email = signal('');
   protected readonly submitting = signal(false);
+  // Transient — separate from newsletter.subscribed() (which persists across visits so the My Kit
+  // popup knows not to ask again). This only drives the footer's own "✓ You're subscribed" line,
+  // which should fade back to the normal copy after a few seconds rather than replacing the input
+  // permanently — the input/button stay usable the whole time either way.
+  protected readonly justSubscribed = signal(false);
+  private confirmationTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   protected subscribe(): void {
     const value = this.email().trim();
@@ -40,10 +48,14 @@ export class FooterComponent {
             ? "You're already subscribed!"
             : 'Thanks for subscribing! Check your inbox.',
         );
+
+        if (this.confirmationTimeoutId) clearTimeout(this.confirmationTimeoutId);
+        this.justSubscribed.set(true);
+        this.confirmationTimeoutId = setTimeout(() => this.justSubscribed.set(false), CONFIRMATION_MS);
       },
       error: () => {
-        // Leave the typed email in place so retrying doesn't mean retyping it — and the form
-        // stays visible since newsletter.subscribed() never flipped true on a failed request.
+        // Leave the typed email in place so retrying doesn't mean retyping it — the input/button
+        // were never hidden on failure to begin with.
         this.submitting.set(false);
         this.toast.error("Couldn't subscribe right now — please try again.");
       },
