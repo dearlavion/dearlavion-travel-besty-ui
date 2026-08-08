@@ -1,0 +1,119 @@
+:host {
+  display: block;
+}
+
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(58, 46, 46, 0.38);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+
+.overlay-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: var(--color-bg);
+  border-radius: 28px;
+  padding: 40px 34px 34px;
+  box-shadow: 0 40px 80px -24px rgba(58, 46, 46, 0.35);
+  text-align: center;
+  animation: float-in 0.32s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.overlay-title {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: clamp(20px, 1vw + 16px, 24px);
+  color: var(--color-ink);
+  margin-bottom: 8px;
+}
+
+.overlay-sub {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.name-input {
+  width: 100%;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-ink);
+  outline: none;
+  text-align: center;
+  margin-bottom: 22px;
+  box-sizing: border-box;
+}
+
+.name-input:focus {
+  border-color: var(--color-coral);
+}
+
+.overlay-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.confirm-btn,
+.cancel-btn {
+  border: none;
+  padding: 13px 30px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.confirm-btn {
+  background: var(--color-coral);
+  color: #fff;
+}
+
+.confirm-btn:hover {
+  background: var(--color-coral-deep);
+}
+
+.cancel-btn {
+  background: var(--tint-cream);
+  color: var(--color-ink);
+}
+
+.cancel-btn:hover {
+  background: var(--color-line);
+}
+
+@media (max-width: 480px) {
+  .overlay-card {
+    padding: 34px 24px 26px;
+    border-radius: 22px;
+  }
+
+  .overlay-actions {
+    flex-direction: column;
+  }
+}

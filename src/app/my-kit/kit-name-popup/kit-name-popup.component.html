@@ -1,0 +1,23 @@
+<div class="overlay-backdrop" (click)="onBackdropClick($event)">
+  <div class="overlay-card">
+    <p class="overlay-title">Name your kit</p>
+    <p class="overlay-sub">This name will be used for the email subject and the PDF file.</p>
+
+    <form (ngSubmit)="confirm()">
+      <input
+        type="text"
+        class="name-input"
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        name="kitName"
+        placeholder="e.g. Beach Getaway Kit"
+        autofocus
+      />
+
+      <div class="overlay-actions">
+        <button type="submit" class="confirm-btn">Continue</button>
+        <button type="button" class="cancel-btn" (click)="cancelled.emit()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

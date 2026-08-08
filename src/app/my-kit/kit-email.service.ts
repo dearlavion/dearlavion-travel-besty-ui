@@ -6,10 +6,23 @@ import { KitExport } from './kit-export';
 
 const EMAIL_KIT_URL = `${environment.notificationUrl}/notification/email/kit`;
 
+interface KitEmailSuggestion {
+  productId: string;
+  itemId: string;
+  name: string;
+}
+
 interface KitEmailBody {
   kitTitle: string;
   summary: string;
-  items: { label: string; productName?: string; price?: number }[];
+  items: {
+    label: string;
+    kitCategory?: string;
+    productName?: string;
+    price?: number;
+    suggestions: KitEmailSuggestion[];
+  }[];
+  destination?: string;
 }
 
 function toBody(k: KitExport): KitEmailBody {
@@ -18,9 +31,15 @@ function toBody(k: KitExport): KitEmailBody {
     summary: k.summary,
     items: k.items.map((it) => ({
       label: it.label,
+      kitCategory: it.kitCategory ?? undefined,
       productName: it.product?.name,
       price: it.product?.price,
+      // Up to 3 clickable product suggestions per item (see KitEmailController's grouped-by-
+      // category kit card) — id/productId, not the resolved item itself, since the backend only
+      // needs enough to build a /product/:id/items/:itemId link.
+      suggestions: (it.suggestions ?? []).map((s) => ({ productId: s.productId, itemId: s.id, name: s.name })),
     })),
+    destination: k.destination,
   };
 }
 

@@ -199,4 +199,12 @@
   />
 }
 
+@if (showKitNamePopup()) {
+  <app-kit-name-popup
+    [initialName]="kit()?.title ?? ''"
+    (confirmed)="resolveKitNamePopup($event)"
+    (cancelled)="resolveKitNamePopup(null)"
+  />
+}
+
 <app-footer />

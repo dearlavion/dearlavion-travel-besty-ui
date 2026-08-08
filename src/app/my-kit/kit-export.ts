@@ -4,7 +4,11 @@ import type { ProductItemView } from '../shop/product-item.service';
 export interface KitExport {
   title: string;
   summary: string;
-  items: { label: string; product?: ProductItemView }[];
+  // kitCategory/suggestions are only consumed by kit-email.service.ts (the backend-sent "Email
+  // my kit" — groups by category, shows up to 3 clickable product suggestions per item); the
+  // mailto:/PDF renderers below only ever read label/product, same as before.
+  items: { label: string; kitCategory?: string | null; product?: ProductItemView; suggestions?: ProductItemView[] }[];
+  destination?: string;
 }
 
 function itemLines(k: KitExport): string[] {

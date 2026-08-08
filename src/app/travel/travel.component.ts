@@ -155,6 +155,14 @@ export class TravelComponent {
     return choices.filter((d): d is Destination => d !== 'All');
   }
 
+  // Human-readable destination(s) for BuiltKit.destination (e.g. "Beach and Mountains") — used
+  // by "Email my kit"'s subject line. Undefined for the unrestricted/"All" case, same as
+  // resolvedDestinations()'s own [] convention.
+  private destinationLabel(): string | undefined {
+    const destinations = this.resolvedDestinations();
+    return destinations.length ? joinWithAnd(destinations) : undefined;
+  }
+
   protected readonly revealSummary = computed(() => {
     const destinations = this.resolvedDestinations();
     const destPart = destinations.length
@@ -434,6 +442,7 @@ export class TravelComponent {
         gender: this.gender() ?? undefined,
       }),
       summary: this.revealSummary(),
+      destination: this.destinationLabel(),
     });
     this.router.navigate(['/my-kit']);
   }
@@ -444,6 +453,7 @@ export class TravelComponent {
     this.travelKitService.setKit({
       items: res.checklist.map((c) => ({ label: c.label, productId: c.productId, productItemId: c.productItemId })),
       summary: this.revealSummary(),
+      destination: this.destinationLabel(),
     });
     this.router.navigate(['/my-kit']);
   }

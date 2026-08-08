@@ -18,6 +18,7 @@ import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 import { NewsletterService } from './newsletter.service';
 import { NewsletterPopupComponent } from './newsletter-popup/newsletter-popup.component';
 import { ConfirmLeavePopupComponent } from './confirm-leave-popup/confirm-leave-popup.component';
+import { KitNamePopupComponent } from './kit-name-popup/kit-name-popup.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { ToastService } from '../common/toast/toast.service';
 import { TaxonomyService } from '../common/taxonomy.service';
@@ -65,7 +66,15 @@ const RELATED_LOOKUP_LIMIT = 20;
 @Component({
   selector: 'app-my-kit',
   standalone: true,
-  imports: [RouterLink, PricePipe, FormsModule, NewsletterPopupComponent, ConfirmLeavePopupComponent, FooterComponent],
+  imports: [
+    RouterLink,
+    PricePipe,
+    FormsModule,
+    NewsletterPopupComponent,
+    ConfirmLeavePopupComponent,
+    KitNamePopupComponent,
+    FooterComponent,
+  ],
   templateUrl: './my-kit.component.html',
   styleUrl: './my-kit.component.css',
 })
@@ -166,6 +175,26 @@ export class MyKitComponent {
     this.leaveConfirmResult$?.next(result);
     this.leaveConfirmResult$?.complete();
     this.leaveConfirmResult$ = null;
+  }
+
+  // Asked once per Email/Download click via KitNamePopupComponent — the chosen name becomes the
+  // email subject ("Travel Besty, Your {name} Travel Kit is here") and the PDF's file name.
+  // Prefilled from the kit's current title (see promptKitName()), so an already-named saved kit
+  // is a one-click confirm rather than real friction.
+  protected readonly showKitNamePopup = signal(false);
+  private kitNamePopupResult$: Subject<string | null> | null = null;
+
+  private promptKitName(): Observable<string | null> {
+    this.kitNamePopupResult$ = new Subject<string | null>();
+    this.showKitNamePopup.set(true);
+    return this.kitNamePopupResult$.asObservable();
+  }
+
+  protected resolveKitNamePopup(name: string | null): void {
+    this.showKitNamePopup.set(false);
+    this.kitNamePopupResult$?.next(name);
+    this.kitNamePopupResult$?.complete();
+    this.kitNamePopupResult$ = null;
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -334,27 +363,43 @@ export class MyKitComponent {
 
   // ── Export / save actions ──────────────────────────────────────────────
 
-  /** Flatten the current kit for email/PDF export. */
-  private exportPayload(): KitExport | null {
+  /** Flatten the current kit for email/PDF export. `name` (from the KitNamePopupComponent
+   * prompt in downloadPdf()/emailKit() below) becomes the PDF's file name and the email subject
+   * — falls back to the kit's own title if the user left the prompt's input untouched. */
+  private exportPayload(name: string): KitExport | null {
     const k = this.kit();
     if (!k) return null;
     return {
-      title: k.title ?? 'Your Travel Kit',
+      title: name.trim() || k.title || 'Your Travel Kit',
       summary: k.summary,
-      items: this.displayItems().map((d) => ({ label: d.label, product: d.suggestions[0] })),
+      items: this.displayItems().map((d) => ({
+        label: d.label,
+        kitCategory: d.kitCategory,
+        product: d.suggestions[0],
+        suggestions: d.suggestions,
+      })),
+      destination: k.destination,
     };
   }
 
-  /** Download the kit as a PDF — first offers the optional newsletter opt-in (unless this
-   * browser already subscribed), since that's the one moment a visitor has shown real intent to
-   * keep something from the site. Declining or dismissing the popup still downloads the PDF; the
-   * subscribe prompt never blocks it. */
+  // Holds the name entered in KitNamePopupComponent between that prompt resolving and the
+  // (possibly async, via the newsletter popup) download/send actually running.
+  private pendingKitName = '';
+
+  /** Download the kit as a PDF — first asks for a name (used as the file name), then offers the
+   * optional newsletter opt-in (unless this browser already subscribed), since that's the one
+   * moment a visitor has shown real intent to keep something from the site. Declining or
+   * dismissing the newsletter popup still downloads the PDF; it never blocks the download. */
   protected downloadPdf(): void {
-    if (!this.newsletter.subscribed()) {
-      this.showNewsletterPopup.set(true);
-      return;
-    }
-    void this.performDownload();
+    this.promptKitName().subscribe((name) => {
+      if (name === null) return;
+      this.pendingKitName = name;
+      if (!this.newsletter.subscribed()) {
+        this.showNewsletterPopup.set(true);
+        return;
+      }
+      void this.performDownload();
+    });
   }
 
   protected onNewsletterSubscribe(email: string): void {
@@ -369,7 +414,7 @@ export class MyKitComponent {
   }
 
   private async performDownload(): Promise<void> {
-    const payload = this.exportPayload();
+    const payload = this.exportPayload(this.pendingKitName);
     if (!payload) return;
     this.exporting.set(true);
     try {
@@ -379,13 +424,22 @@ export class MyKitComponent {
     }
   }
 
-  /** Logged in (and the notification backend is actually deployed): asks the backend to send the
-   * kit to the caller's own account email. Logged out, or notificationUrl isn't configured for
-   * this environment yet (see environment.prod.ts) — falls back to the original mailto: link, so
-   * anonymous visitors and not-yet-deployed environments see no regression. */
+  /** Asks for a kit name, then — if logged in and the notification backend is actually deployed
+   * — sends it to the backend to email to the caller's own account email. Logged out, or
+   * notificationUrl isn't configured for this environment yet (see environment.prod.ts) — falls
+   * back to the original mailto: link, so anonymous visitors and not-yet-deployed environments
+   * see no regression. */
   protected emailKit(): void {
-    const payload = this.exportPayload();
-    if (!payload || typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return;
+    this.promptKitName().subscribe((name) => {
+      if (name === null) return;
+      this.doEmailKit(name);
+    });
+  }
+
+  private doEmailKit(name: string): void {
+    const payload = this.exportPayload(name);
+    if (!payload) return;
 
     if (!this.isLoggedIn() || !environment.notificationUrl) {
       window.location.href = buildKitMailto(payload);

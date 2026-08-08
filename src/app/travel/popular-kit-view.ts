@@ -46,5 +46,6 @@ export function buildKitFromPopularKit(kit: PopularKit, catalog: ProductCatalogS
     items,
     summary: `Built for your ${durationPhrase} ${season.toLowerCase()} trip to the ${destination.toLowerCase()}${partyPart} — here's everything you'll need.`,
     title: kit.name,
+    destination,
   };
 }
