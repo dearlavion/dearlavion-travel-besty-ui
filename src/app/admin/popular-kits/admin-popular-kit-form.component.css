@@ -24,7 +24,16 @@ h1 {
 }
 
 .kit-preview {
-  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.kit-preview-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
 }
 
 /* Mirrors home.component.css's .kit-card/.kit-thumb/.kit-info exactly (same storefront card the
