@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, HostListener, inject, signal } from '@angular/core';
 import { PricePipe } from '../common/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -16,6 +16,7 @@ import { SavedKitsService } from './saved-kits.service';
 import { buildKitMailto, downloadKitPdf, KitExport } from './kit-export';
 import { NewsletterService } from './newsletter.service';
 import { NewsletterPopupComponent } from './newsletter-popup/newsletter-popup.component';
+import { FooterComponent } from '../common/footer/footer.component';
 import { ToastService } from '../common/toast/toast.service';
 import { TaxonomyService } from '../common/taxonomy.service';
 import { KitEmailService } from './kit-email.service';
@@ -62,7 +63,7 @@ const RELATED_LOOKUP_LIMIT = 20;
 @Component({
   selector: 'app-my-kit',
   standalone: true,
-  imports: [RouterLink, PricePipe, FormsModule, NewsletterPopupComponent],
+  imports: [RouterLink, PricePipe, FormsModule, NewsletterPopupComponent, FooterComponent],
   templateUrl: './my-kit.component.html',
   styleUrl: './my-kit.component.css',
 })
@@ -127,6 +128,21 @@ export class MyKitComponent {
   // quiz result (bare /my-kit, nothing to persist to) and not /popular/:id (admin-curated shared
   // content, not personal).
   protected readonly isSavedKit = computed(() => this.savedId() !== null);
+
+  // True only for the bare /my-kit quiz-result case (see the `kit` computed above) — the one
+  // path where a refresh silently loses the built kit, since TravelKitService holds it in
+  // memory only. /my-kit/:savedId and /popular/:id both resolve from persisted data and survive
+  // a refresh fine, so they don't need this warning.
+  protected readonly isEphemeralKit = computed(
+    () => this.kit() !== null && this.savedId() === null && !this.paramMap()?.get('id'),
+  );
+
+  @HostListener('window:beforeunload', ['$event'])
+  protected warnBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.isEphemeralKit()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  }
 
   protected readonly expandedIds = signal<ReadonlySet<string>>(new Set());
   protected readonly addedIds = signal<ReadonlySet<string>>(new Set());
