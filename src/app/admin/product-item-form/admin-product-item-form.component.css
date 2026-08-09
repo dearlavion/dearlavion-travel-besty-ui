@@ -490,4 +490,27 @@ select:focus {
   .field-row {
     grid-template-columns: 1fr;
   }
+
+  /* Delete/Preview/Cancel/Save all fit on one line at desktop widths but not at phone widths —
+   * without wrapping, flex just shrinks/overflows them into each other. Delete (or its confirm
+   * prompt) gets its own full-width row since it's the odd one out (left-aligned, destructive);
+   * the other three become equal-width stacked buttons. */
+  .form-actions {
+    flex-wrap: wrap;
+  }
+
+  .delete-link,
+  .confirm-row {
+    flex-basis: 100%;
+    margin-right: 0;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .preview-btn,
+  .cancel-btn,
+  .save-btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
 }
