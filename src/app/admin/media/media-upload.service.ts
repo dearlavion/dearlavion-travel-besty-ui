@@ -13,21 +13,22 @@ interface UploadUrlResponse {
   publicUrl: string | null;
 }
 
-interface DriveFinalizeResponse {
+interface DriveUploadResponse {
   publicUrl: string;
   fileId: string;
 }
 
-/** Admin file-upload for product/kit photos. Both targets go through store-engine's admin-gated
- * broker (dearlavion-media-service has no auth of its own) to get an upload URL, then the browser
- * PUTs the file bytes directly to that URL — store-engine never sees the file bytes either way:
- * - Media Storage (default, "s3"): the URL is a presigned MinIO PUT. Its host isn't one of
- *   auth.interceptor.ts's known backends, so no bearer token gets attached to that PUT — the
- *   presigned URL carries its own auth.
- * - Google Drive ("drive"): the URL is a Drive resumable-upload session URI (also not a known
- *   backend, same reasoning). Unlike S3, Drive returns the created file's metadata (including its
- *   id) in the PUT response body, and the file isn't public yet — a second call to the broker's
- *   finalize endpoint is needed to grant "anyone with the link" access and get the real URL. */
+/** Admin file-upload for product/kit photos. The two targets use different patterns:
+ * - Media Storage (default, "s3"): store-engine's admin-gated broker returns a presigned MinIO PUT
+ *   URL, and the browser PUTs the file bytes directly to it — store-engine never sees the bytes.
+ *   That URL's host isn't one of auth.interceptor.ts's known backends, so no bearer token gets
+ *   attached to that PUT either — the presigned URL carries its own auth.
+ * - Google Drive ("drive"): uploaded as one multipart POST to the broker instead of a direct PUT.
+ *   Drive's resumable-upload API does return a session URI the browser could PUT to directly (like
+ *   the S3 path), but that PUT's response is missing Access-Control-Allow-Origin — the browser
+ *   blocks reading it even though Drive does create the file. So this path is proxied: the broker
+ *   (and media-service behind it) does the actual Drive upload server-side and hands back the
+ *   public URL directly. */
 @Injectable({ providedIn: 'root' })
 export class MediaUploadService {
   private readonly http = inject(HttpClient);
@@ -43,7 +44,6 @@ export class MediaUploadService {
         contentType,
         fileSize: file.size,
         folder,
-        provider: 's3',
       }),
     );
 
@@ -56,29 +56,12 @@ export class MediaUploadService {
     return publicUrl!;
   }
 
-  async uploadViaGoogleDrive(file: File, folder: MediaFolder): Promise<string> {
-    const contentType = file.type || 'application/octet-stream';
-
-    const { uploadUrl } = await firstValueFrom(
-      this.http.post<UploadUrlResponse>(`${environment.apiUrl}/admin/media/upload-url`, {
-        fileName: file.name,
-        contentType,
-        fileSize: file.size,
-        folder,
-        provider: 'drive',
-      }),
-    );
-
-    // Drive's resumable-upload PUT, sent whole in one shot (fine for the small images admins
-    // upload here), returns the completed file's resource — we only need its id.
-    const uploaded = await firstValueFrom(
-      this.http.put<{ id: string }>(uploadUrl, file, { headers: { 'Content-Type': contentType } }),
-    );
+  async uploadViaGoogleDrive(file: File): Promise<string> {
+    const form = new FormData();
+    form.append('file', file, file.name);
 
     const { publicUrl } = await firstValueFrom(
-      this.http.post<DriveFinalizeResponse>(`${environment.apiUrl}/admin/media/drive/finalize`, {
-        fileId: uploaded.id,
-      }),
+      this.http.post<DriveUploadResponse>(`${environment.apiUrl}/admin/media/drive/upload`, form),
     );
 
     return publicUrl;

@@ -67,7 +67,7 @@ export class ImageUploadFieldComponent {
     try {
       const url =
         this.target() === 'drive'
-          ? await this.mediaUpload.uploadViaGoogleDrive(file, this.folder())
+          ? await this.mediaUpload.uploadViaGoogleDrive(file)
           : await this.mediaUpload.uploadViaMediaService(file, this.folder());
       this.valueChange.emit(url);
     } catch {
