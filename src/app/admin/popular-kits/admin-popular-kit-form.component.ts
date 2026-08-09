@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -48,6 +48,8 @@ const DURATION_OPTIONS: Duration[] = ['Quick escape', 'A proper break', 'Living 
   styleUrl: './admin-popular-kit-form.component.css',
 })
 export class AdminPopularKitFormComponent {
+  @ViewChild(ImageUploadFieldComponent) private readonly imageField?: ImageUploadFieldComponent;
+
   private readonly route = inject(ActivatedRoute);
   private readonly popularKits = inject(PopularKitsService);
   protected readonly catalog = inject(ProductCatalogService);
@@ -65,6 +67,7 @@ export class AdminPopularKitFormComponent {
   protected readonly form = signal<PopularKitFormModel>(emptyForm());
   protected readonly notFound = signal(false);
   protected readonly productSearch = signal('');
+  protected readonly saving = signal(false);
 
   // Products matching the current search, for the "add a product" checklist below.
   protected readonly searchResults = computed<Product[]>(() => {
@@ -120,7 +123,17 @@ export class AdminPopularKitFormComponent {
     this.form.update((f) => ({ ...f, productIds: f.productIds.filter((pid) => pid !== id) }));
   }
 
-  protected save(): void {
+  protected async save(): Promise<void> {
+    this.saving.set(true);
+    if (this.imageField?.hasPendingUpload()) {
+      try {
+        await this.imageField.commitUpload();
+      } catch {
+        this.saving.set(false);
+        return; // commitUpload() already toasted the specific failure
+      }
+    }
+
     const f = this.form();
     const fields: NewPopularKit = {
       name: f.name.trim(),

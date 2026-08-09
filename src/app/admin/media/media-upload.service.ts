@@ -4,7 +4,6 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export type MediaFolder = 'products' | 'popular-kits';
-export type UploadTarget = 's3' | 'drive';
 
 interface UploadUrlResponse {
   uploadUrl: string;

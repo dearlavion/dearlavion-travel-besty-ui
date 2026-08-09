@@ -6,13 +6,23 @@
 } @else {
   <a [routerLink]="backLink()" class="back-link">← {{ backLabel() }}</a>
   <h1>{{ isEditMode() ? 'Edit Item' : 'Add Item' }}</h1>
-  <dl class="item-identity">
-    <div><dt>Name</dt><dd>{{ product()?.icon }} {{ effectiveName() }}</dd></div>
-    <div><dt>Brand</dt><dd>{{ effectiveBrand() }}</dd></div>
-    <div><dt>Parent product</dt><dd>{{ productId() }}</dd></div>
-  </dl>
 
   <form class="item-form" (ngSubmit)="save()">
+    <div class="product-preview">
+      <span class="product-preview-label">Product Preview</span>
+      <div class="product-preview-card">
+        @if (effectiveCover()) {
+          <img class="product-preview-thumb" [src]="effectiveCover()" [alt]="effectiveName() || 'Product preview'" />
+        } @else {
+          <div class="product-preview-thumb product-preview-thumb-empty">No image yet</div>
+        }
+        <div class="product-preview-info">
+          <h3 class="product-preview-name">{{ effectiveName() || 'Untitled item' }}</h3>
+          <div class="product-preview-meta">{{ effectiveBrand() }}</div>
+        </div>
+      </div>
+    </div>
+
     <label class="field-full">
       <span>Name</span>
       <input
@@ -115,14 +125,24 @@
           <app-image-upload-field folder="products" [value]="photo" (valueChange)="updateImage($index, $event)" />
           <button
             type="button"
-            class="cover-btn"
+            class="icon-btn cover-btn"
             [class.is-cover]="isCoverPhoto(photo)"
             [disabled]="!photo"
+            [title]="isCoverPhoto(photo) ? 'Cover photo' : 'Set as cover'"
+            [attr.aria-label]="isCoverPhoto(photo) ? 'Cover photo' : 'Set as cover'"
             (click)="setCoverImage(photo)"
           >
-            {{ isCoverPhoto(photo) ? '★ Cover' : 'Set as cover' }}
+            {{ isCoverPhoto(photo) ? '★' : '☆' }}
           </button>
-          <button type="button" class="media-remove-btn" (click)="removeImage($index)" aria-label="Remove photo">✕</button>
+          <button
+            type="button"
+            class="icon-btn media-remove-btn"
+            title="Remove photo"
+            aria-label="Remove photo"
+            (click)="removeImage($index)"
+          >
+            ✕
+          </button>
         </div>
       }
       @if (form().images.length < maxMedia) {
@@ -155,7 +175,15 @@
             (ngModelChange)="updateVideoField($index, 'author', $event)"
             [name]="'video-author-' + $index"
           />
-          <button type="button" class="media-remove-btn" (click)="removeVideo($index)" aria-label="Remove video">✕</button>
+          <button
+            type="button"
+            class="icon-btn media-remove-btn"
+            title="Remove video"
+            aria-label="Remove video"
+            (click)="removeVideo($index)"
+          >
+            ✕
+          </button>
         </div>
       }
       @if (form().videos.length < maxMedia) {
@@ -224,7 +252,9 @@
         <button type="button" class="preview-btn" (click)="preview()">👁️ Preview</button>
       }
       <a [routerLink]="['/admin/products', productId(), 'edit']" class="cancel-btn">Cancel</a>
-      <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Item' : '+ Add Item' }}</button>
+      <button type="submit" class="save-btn" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : isEditMode() ? 'Save Item' : '+ Add Item' }}
+      </button>
     </div>
   </form>
 }

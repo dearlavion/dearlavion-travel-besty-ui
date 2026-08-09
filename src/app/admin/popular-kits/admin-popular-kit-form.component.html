@@ -131,7 +131,9 @@
 
     <div class="form-actions">
       <a routerLink="/admin/popular-kits" class="cancel-btn">Cancel</a>
-      <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Changes' : 'Add Kit' }}</button>
+      <button type="submit" class="save-btn" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : isEditMode() ? 'Save Changes' : 'Add Kit' }}
+      </button>
     </div>
   </form>
 }

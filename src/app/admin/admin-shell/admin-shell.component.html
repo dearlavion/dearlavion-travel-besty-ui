@@ -2,12 +2,28 @@
   <div class="admin-wrap">
     <div class="admin-logo"><span class="mark">🌷</span>Travel Besty Admin</div>
     <a routerLink="/" class="back-link">← Back to Storefront</a>
+    <button
+      type="button"
+      class="menu-toggle"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-controls="admin-nav"
+      aria-label="Toggle menu"
+    >
+      <span class="menu-icon" [class.open]="mobileMenuOpen()">
+        <span></span><span></span><span></span>
+      </span>
+    </button>
   </div>
 </header>
 
 <div class="admin-page">
   <aside class="admin-sidebar">
-    <nav class="admin-nav">
+    <nav class="admin-nav" id="admin-nav" [class.open]="mobileMenuOpen()">
+      <a routerLink="/" class="admin-nav-link mobile-back-link">
+        <span class="admin-nav-icon">←</span>
+        Back to Storefront
+      </a>
       <a routerLink="/admin/products" routerLinkActive="active" class="admin-nav-link">
         <span class="admin-nav-icon">🛍️</span>
         Products

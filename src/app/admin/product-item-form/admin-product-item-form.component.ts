@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, QueryList, signal, ViewChildren } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -59,6 +59,10 @@ function emptyItemForm(): ItemFormModel {
   styleUrl: './admin-product-item-form.component.css',
 })
 export class AdminProductItemFormComponent {
+  // One instance per gallery photo slot, in the same order as form().images — used at save time
+  // to commit any picked-but-not-yet-uploaded files before persisting the item.
+  @ViewChildren(ImageUploadFieldComponent) private readonly imageFields!: QueryList<ImageUploadFieldComponent>;
+
   private readonly route = inject(ActivatedRoute);
   private readonly catalog = inject(ProductCatalogService);
   protected readonly productItems = inject(ProductItemService);
@@ -93,6 +97,7 @@ export class AdminProductItemFormComponent {
 
   protected readonly form = signal<ItemFormModel>(emptyItemForm());
   protected readonly confirmingDelete = signal(false);
+  protected readonly saving = signal(false);
 
   // Live preview of this item's resolved identity as the admin types — Name falls back to the
   // parent product's name (same rule the Shop-facing aggregate applies), Brand falls back to
@@ -233,7 +238,37 @@ export class AdminProductItemFormComponent {
     };
   }
 
-  protected save(): void {
+  // Uploads any gallery photos picked but not yet sent to storage — nothing hits S3/Drive until
+  // the admin actually saves, so abandoning the form doesn't leave orphaned uploads behind. Each
+  // field emits its resolved URL via valueChange (already bound to updateImage()), which is what
+  // actually updates form().images; this just also fixes up form().image (the cover) if it was
+  // pointing at one of the just-replaced local preview URLs.
+  private async commitPendingUploads(): Promise<void> {
+    const fields = (this.imageFields?.toArray() ?? []).filter((f) => f.hasPendingUpload());
+    if (fields.length === 0) return;
+
+    const before = this.form().images.slice();
+    const coverBefore = this.form().image;
+
+    await Promise.all(fields.map((f) => f.commitUpload()));
+
+    const after = this.form().images;
+    before.forEach((oldUrl, i) => {
+      if (oldUrl && oldUrl === coverBefore && after[i] !== oldUrl) {
+        this.updateField('image', after[i]);
+      }
+    });
+  }
+
+  protected async save(): Promise<void> {
+    this.saving.set(true);
+    try {
+      await this.commitPendingUploads();
+    } catch {
+      this.saving.set(false);
+      return; // commitUpload() already toasted the specific failure
+    }
+
     const productId = this.productId();
     const fields = this.buildFields();
 

@@ -20,37 +20,7 @@ h1 {
   font-weight: 400;
   font-size: 28px;
   color: var(--color-ink);
-}
-
-.item-identity {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  background: var(--tint-cream);
-  border-radius: 14px;
-  padding: 14px 18px;
-  margin: 6px 0 28px;
-}
-
-.item-identity > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.item-identity dt {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-ink-soft);
-}
-
-.item-identity dd {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-ink);
-  margin: 0;
+  margin: 0 0 28px;
 }
 
 .item-form {
@@ -61,6 +31,67 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Mirrors admin-popular-kit-form's .kit-preview pattern — a live, centered preview of what this
+ * item will actually look like (cover photo + effective name/brand), sized for a product photo
+ * rather than the kit-preview's tall lifestyle-banner proportions. */
+.product-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-preview-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+}
+
+.product-preview-card {
+  width: 220px;
+  max-width: 100%;
+  background: var(--tint-cream);
+  border: 1.5px solid var(--color-line);
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.product-preview-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-bottom: 1.5px solid var(--color-line);
+}
+
+.product-preview-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.product-preview-info {
+  padding: 14px 16px 18px;
+}
+
+.product-preview-name {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--color-ink);
+  margin: 0 0 4px;
+}
+
+.product-preview-meta {
+  font-size: 12.5px;
+  color: var(--color-ink-soft);
+  font-weight: 600;
 }
 
 .field-row {
@@ -99,6 +130,30 @@ input {
 }
 
 input:focus {
+  border-color: var(--color-coral);
+}
+
+/* Selects (Size, Discount type) previously fell back to the browser's bare native appearance,
+ * clashing with the styled text inputs right next to them — this matches input's box/border/
+ * radius/padding and swaps in a custom chevron so the native dropdown arrow doesn't look pasted
+ * on top of a differently-sized control. */
+select {
+  appearance: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink);
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237A6B68' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='5 8 10 13 15 8'/%3E%3C/svg%3E")
+    no-repeat right 12px center;
+  background-size: 14px;
+  border: 1.5px solid var(--color-line);
+  border-radius: 10px;
+  padding: 10px 36px 10px 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+select:focus {
   border-color: var(--color-coral);
 }
 
@@ -149,18 +204,27 @@ input:focus {
   background: var(--tint-cream);
 }
 
-.cover-btn {
+/* Shared square icon-button base — cover toggle and remove both use this, plus
+ * app-image-upload-field's own upload button (styled independently, in its own component, but
+ * matched to the same 38x38/10px/1.5px-border proportions for a consistent row). */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 38px;
+  height: 38px;
   border: 1.5px solid var(--color-line);
   background: #fff;
   color: var(--color-ink-soft);
   border-radius: 10px;
-  padding: 0 12px;
-  height: 38px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
+  font-size: 16px;
+  line-height: 1;
   cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease;
 }
 
 .cover-btn:hover:not(:disabled) {
@@ -182,18 +246,8 @@ input:focus {
 .video-row {
   display: grid;
   grid-template-columns: 1fr 1.4fr 1fr auto;
+  align-items: center;
   gap: 8px;
-}
-
-.media-remove-btn {
-  border: 1.5px solid var(--color-line);
-  background: #fff;
-  color: var(--color-ink-soft);
-  border-radius: 10px;
-  width: 38px;
-  font-size: 13px;
-  cursor: pointer;
-  flex-shrink: 0;
 }
 
 .media-remove-btn:hover {
@@ -221,6 +275,30 @@ input:focus {
 @media (max-width: 560px) {
   .video-row {
     grid-template-columns: 1fr;
+  }
+
+  /* Too many controls (thumb, upload field, cover toggle, remove) to fit on one line at phone
+   * widths — keep the small buttons grouped on their own line and give the upload field, which
+   * itself needs the most room, a full-width line below rather than letting it get squeezed. */
+  .media-row {
+    flex-wrap: wrap;
+  }
+
+  .media-row .photo-thumb {
+    order: 0;
+  }
+
+  .media-row .cover-btn {
+    order: 1;
+  }
+
+  .media-row .media-remove-btn {
+    order: 2;
+  }
+
+  .media-row app-image-upload-field {
+    order: 3;
+    flex: 1 1 100%;
   }
 }
 

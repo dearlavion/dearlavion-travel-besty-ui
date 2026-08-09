@@ -42,6 +42,52 @@
   color: #fff;
 }
 
+.menu-toggle {
+  display: none;
+  border: none;
+  background: none;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 22px;
+  height: 16px;
+}
+
+.menu-icon span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: #fff;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menu-icon.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-icon.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-icon.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.mobile-back-link {
+  display: none;
+}
+
 .admin-page {
   max-width: 1180px;
   margin: 0 auto;
@@ -100,15 +146,62 @@
   .admin-sidebar {
     position: static;
   }
-  .admin-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-}
 
-@media (max-width: 420px) {
+  .back-link {
+    display: none;
+  }
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  /* The header stays fixed and above the menu (higher z-index) so it reads as the anchor the menu
+   * slides out from, not something the menu covers — same pattern as a native app's top bar. */
+  .admin-bar {
+    position: sticky;
+    top: 0;
+    z-index: 101;
+  }
+
+  /* Full-screen slide-and-fade panel rather than an inline dropdown that pushes content around —
+   * stays in the DOM at all times (display never toggles) so opacity/transform can transition;
+   * .open flips it visible. Padding-top clears the sticky header above it. */
+  .admin-nav {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    flex-direction: column;
+    gap: 2px;
+    background: #fff;
+    padding: 88px 20px 32px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-16px);
+    transition:
+      opacity 0.22s ease,
+      transform 0.22s ease,
+      visibility 0.22s;
+  }
+  .admin-nav.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
   .admin-nav-link {
-    padding: 9px 12px;
-    font-size: 13px;
+    font-size: 16px;
+    padding: 15px 16px;
+  }
+
+  .admin-nav-icon {
+    font-size: 18px;
+  }
+
+  .mobile-back-link {
+    display: flex;
+    border-bottom: 1.5px solid var(--color-line);
+    border-radius: 0;
+    padding-bottom: 19px;
+    margin-bottom: 10px;
   }
 }

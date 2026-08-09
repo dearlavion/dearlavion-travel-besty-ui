@@ -4,11 +4,13 @@
 
 .image-upload-field {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 input[type='text'] {
-  flex: 1;
+  flex: 1 1 120px;
+  min-width: 0;
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
@@ -28,47 +30,63 @@ input[type='text']:disabled {
   color: var(--color-ink-soft);
 }
 
-.target-select {
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-ink-soft);
-  border: 1.5px solid var(--color-line);
-  border-radius: 10px;
-  padding: 0 10px;
-  outline: none;
-  background: #fff;
-}
-
-.target-select:disabled {
-  background: var(--tint-cream);
-  cursor: not-allowed;
-}
-
+/* Icon-only square button — matches the 38x38/10px-radius/1.5px-border proportions of the
+ * cover-toggle and remove buttons that sit next to this field in admin-product-item-form, so the
+ * whole row reads as one consistent set of controls. flex-shrink:0 keeps it from being squeezed by
+ * the text input shrinking — that wraps to its own line first (see input[type='text']'s
+ * flex-basis) rather than letting this overflow. Accessible name/tooltip come from the bound
+ * title/aria-label (see uploadLabel()), not visible text. */
 .upload-btn {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  white-space: nowrap;
-  padding: 10px 16px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   border: 1.5px solid var(--color-line);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-ink);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-ink-soft);
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    color 0.2s ease;
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .upload-btn:hover {
-  border-color: var(--color-coral);
+  border-color: var(--color-coral-deep);
   color: var(--color-coral-deep);
 }
 
 .upload-btn.disabled {
   cursor: not-allowed;
-  opacity: 0.6;
   pointer-events: none;
+}
+
+.upload-btn.uploading span {
+  animation: upload-pulse 1s ease-in-out infinite;
+}
+
+@keyframes upload-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-btn.uploading span {
+    animation: none;
+  }
+}
+
+.pending-hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-ink-soft);
 }
