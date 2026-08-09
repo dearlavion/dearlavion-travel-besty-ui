@@ -28,9 +28,6 @@ import { AdminSettingsComponent } from './admin/settings/admin-settings.componen
 import { AdminUserListComponent } from './admin/users/admin-user-list.component';
 import { AdminUserFormComponent } from './admin/users/admin-user-form.component';
 import { AdminKitSettingsComponent } from './admin/kit-settings/admin-kit-settings.component';
-import { AdminMasterDataComponent } from './admin/master-data/admin-master-data.component';
-import { AdminMasterDataCollectionComponent } from './admin/master-data/admin-master-data-collection.component';
-import { AdminMasterDataItemFormComponent } from './admin/master-data/admin-master-data-item-form.component';
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
@@ -94,13 +91,6 @@ export const routes: Routes = [
       { path: 'users/new', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
       { path: 'users/:username', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
       { path: 'kit-settings', component: AdminKitSettingsComponent, canActivate: [requireAdminGuard] },
-      { path: 'master', component: AdminMasterDataComponent, canActivate: [requireAdminGuard] },
-      { path: 'master/:collection', component: AdminMasterDataCollectionComponent, canActivate: [requireAdminGuard] },
-      {
-        path: 'master/:collection/:id/edit',
-        component: AdminMasterDataItemFormComponent,
-        canActivate: [requireAdminGuard],
-      },
     ],
   },
 

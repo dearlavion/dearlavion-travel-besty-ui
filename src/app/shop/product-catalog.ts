@@ -3,7 +3,7 @@
 // seasons/destinations/parties as arrays, currency, tested, image, active) while staying mock-data/
 // localStorage-only — see the model-alignment plan for the full rationale.
 // Kept as named aliases for readability, but no longer closed unions — these 5 taxonomies are now
-// admin-editable data (see TaxonomyService/Kit Settings), so there's no fixed set to check at
+// admin-editable data (see MasterDataService/Kit Settings), so there's no fixed set to check at
 // compile time. The dropdowns/checkbox groups that populate them are the actual enforcement point.
 export type ProductSeason = string;
 export type ProductDestination = string;
@@ -11,7 +11,7 @@ export type ProductParty = string;
 export type ProductTransportation = string;
 // The single packing-list bucket a product belongs to — powers the travel survey's "what matters
 // most to you" question (kit-recommendation.ts scores a product up when it matches the answer).
-// Display order/values are admin-editable — see TaxonomyService.forAxis('kitCategory').
+// Display order/values are admin-editable — see MasterDataService.forType('kitCategory').
 export type KitCategory = string;
 
 // A generic/template product — the stable concept a packing-list slot points at (e.g. "Passport

@@ -12,7 +12,7 @@ import { FooterComponent } from '../common/footer/footer.component';
 import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
 import { organizationNode, websiteNode, breadcrumbNode } from '../common/site-entities';
-import { TaxonomyService } from '../common/taxonomy.service';
+import { MasterDataService } from '../common/master-data/master-data.service';
 
 type SortOption = 'default' | 'popular' | 'price-low' | 'price-high' | 'name';
 type ProductSeason = string;
@@ -54,7 +54,7 @@ export class ShopComponent {
   private readonly cart = inject(CartService);
   private readonly seo = inject(SeoService);
   private readonly jsonLd = inject(JsonLdService);
-  private readonly taxonomy = inject(TaxonomyService);
+  private readonly masterData = inject(MasterDataService);
 
   protected readonly search = signal('');
   protected readonly seasons = signal<ReadonlySet<ProductSeason>>(new Set());
@@ -64,13 +64,13 @@ export class ShopComponent {
   protected readonly addedIds = signal<ReadonlySet<string>>(new Set());
   protected readonly page = signal(0); // 0-indexed
 
-  // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded —
-  // emoji comes off the taxonomy row instead of a local map.
+  // Sourced from the admin-editable Kit Settings master data (see MasterDataService), not
+  // hardcoded — emoji comes off the master data row instead of a local map.
   protected readonly seasonOptions = computed(() =>
-    this.taxonomy.forAxis('season').map((v) => ({ value: v.value, label: v.emoji ? `${v.emoji} ${v.value}` : v.value })),
+    this.masterData.forType('season').map((v) => ({ value: v.value, label: v.emoji ? `${v.emoji} ${v.value}` : v.value })),
   );
   protected readonly destinationOptions = computed(() =>
-    this.taxonomy.forAxis('destination').map((v) => ({ value: v.value, label: v.emoji ? `${v.emoji} ${v.value}` : v.value })),
+    this.masterData.forType('destination').map((v) => ({ value: v.value, label: v.emoji ? `${v.emoji} ${v.value}` : v.value })),
   );
 
   protected readonly seasonMenuOpen = signal(false);

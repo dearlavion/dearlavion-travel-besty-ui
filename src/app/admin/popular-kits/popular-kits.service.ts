@@ -250,14 +250,22 @@ export class PopularKitsService {
 
   readonly kits = signal<PopularKit[]>(environment.useMockData ? (loadStoredKits() ?? SEED_KITS) : []);
 
+  // Real mode's fetch is async, so kits() reads [] for a moment on first load — consumers that
+  // need to tell "still loading" apart from "genuinely doesn't exist" (e.g. the admin edit form's
+  // notFound check) should gate on this rather than trusting an empty/no-match kits() right away.
+  readonly loaded = signal(environment.useMockData);
+
   constructor() {
     // Always attach an error handler — an unhandled subscribe error becomes an uncaught exception
     // (crashing the whole process during SSR) rather than just a rejected promise, and this fires
     // unconditionally in the constructor, so it's reached on nearly every page.
     if (!environment.useMockData) {
       this.http.get<ApiPopularKit[]>(PUBLIC_BASE).subscribe({
-        next: (res) => this.kits.set(res.map(mapFromApi)),
-        error: () => {},
+        next: (res) => {
+          this.kits.set(res.map(mapFromApi));
+          this.loaded.set(true);
+        },
+        error: () => this.loaded.set(true),
       });
     }
   }

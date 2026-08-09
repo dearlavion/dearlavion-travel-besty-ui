@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { NewPopularKit, PopularKitsService } from './popular-kits.service';
 import { ToastService } from '../../common/toast/toast.service';
 import { ImageUploadFieldComponent } from '../../common/image-upload/image-upload-field.component';
+import { MasterDataService } from '../../common/master-data/master-data.service';
 
 interface PopularKitFormModel {
   name: string;
@@ -33,11 +34,6 @@ function emptyForm(): PopularKitFormModel {
   };
 }
 
-const DESTINATION_OPTIONS: Destination[] = ['Beach', 'Mountain', 'City'];
-const SEASON_OPTIONS: Season[] = ['Summer', 'Winter', 'Rainy'];
-const PARTY_OPTIONS: Party[] = ['Solo', 'Group'];
-const DURATION_OPTIONS: Duration[] = ['Quick escape', 'A proper break', 'Living it'];
-
 // Shared add/edit form — same toSignal(paramMap) "no :id means add mode" pattern as
 // AdminProductFormComponent.
 @Component({
@@ -54,18 +50,26 @@ export class AdminPopularKitFormComponent {
   private readonly popularKits = inject(PopularKitsService);
   protected readonly catalog = inject(ProductCatalogService);
   private readonly toast = inject(ToastService);
+  private readonly masterData = inject(MasterDataService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly editingId = computed(() => this.paramMap()?.get('id') ?? null);
   protected readonly isEditMode = computed(() => this.editingId() !== null);
 
-  protected readonly destinationOptions = DESTINATION_OPTIONS;
-  protected readonly seasonOptions = SEASON_OPTIONS;
-  protected readonly partyOptions = PARTY_OPTIONS;
-  protected readonly durationOptions = DURATION_OPTIONS;
+  // Sourced from the admin-editable Kit Settings master data (see MasterDataService), same source
+  // as the admin product form and Shop's filters — this used to be its own hardcoded list, which
+  // is exactly why it could silently drift out of sync with the other two.
+  protected readonly destinationOptions = computed(() => this.masterData.forType('destination').map((v) => v.value));
+  protected readonly seasonOptions = computed(() => this.masterData.forType('season').map((v) => v.value));
+  protected readonly partyOptions = computed(() => this.masterData.forType('party').map((v) => v.value));
+  protected readonly durationOptions = computed(() => this.masterData.forType('duration').map((v) => v.value));
 
   protected readonly form = signal<PopularKitFormModel>(emptyForm());
-  protected readonly notFound = signal(false);
+  // Reactive, not a one-shot flag set in the constructor — real mode's kits list loads async, so a
+  // plain synchronous check on the first (still-empty) kits() would permanently misreport "not
+  // found" for a kit that genuinely exists whenever this page is the first one loaded (e.g. a
+  // direct link/reload straight onto the edit URL, not navigated to from the list).
+  protected readonly notFound = computed(() => this.popularKits.loaded() && this.isEditMode() && !this.popularKits.getById(this.editingId()!));
   protected readonly productSearch = signal('');
   protected readonly saving = signal(false);
 
@@ -86,29 +90,34 @@ export class AdminPopularKitFormComponent {
       .filter((p): p is Product => !!p),
   );
 
+  private formLoaded = false;
+
   constructor() {
     // Reads catalog.products() directly (the "add a product" search picker below), regardless of
     // add/edit mode.
     this.catalog.ensureAllLoaded();
 
-    const id = this.editingId();
-    if (id) {
+    // Real-backend mode loads popularKits.kits() asynchronously (HTTP) — populate the form the
+    // moment the data shows up rather than assuming it's already there synchronously (mock mode is
+    // synchronous, so this fires on the very first run there either way).
+    effect(() => {
+      if (this.formLoaded) return;
+      const id = this.editingId();
+      if (!id) return;
       const existing = this.popularKits.getById(id);
-      if (existing) {
-        this.form.set({
-          name: existing.name,
-          tag: existing.tag,
-          image: existing.image,
-          destination: existing.destination,
-          season: existing.season,
-          party: existing.party,
-          duration: existing.duration,
-          productIds: [...existing.productIds],
-        });
-      } else {
-        this.notFound.set(true);
-      }
-    }
+      if (!existing) return;
+      this.formLoaded = true;
+      this.form.set({
+        name: existing.name,
+        tag: existing.tag,
+        image: existing.image,
+        destination: existing.destination,
+        season: existing.season,
+        party: existing.party,
+        duration: existing.duration,
+        productIds: [...existing.productIds],
+      });
+    });
   }
 
   protected updateField<K extends keyof PopularKitFormModel>(key: K, value: PopularKitFormModel[K]): void {

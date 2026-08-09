@@ -8,14 +8,14 @@
 // backend's own comment implies it already uses ("scores every real catalog product").
 import { KitCategory, PRODUCTS, Product, ProductTransportation } from '../shop/product-catalog';
 
-// No longer closed unions — these axes are now admin-editable via TaxonomyService/Kit Settings
+// No longer closed unions — these axes are now admin-editable via MasterDataService/Kit Settings
 // (see product-catalog.ts's own widening for the same reason).
 export type Destination = string;
 export type Season = string;
 export type Party = string;
 // Stable code ('short'|'medium'|'long'), not the admin-editable display label — mirrors the
 // backend's SurveyAnswersDto/kit-engine.ts. TravelComponent resolves the label for display text
-// via TaxonomyService separately; this is only ever the scoring key.
+// via MasterDataService separately; this is only ever the scoring key.
 export type Duration = string;
 export type Transportation = ProductTransportation;
 export type Gender = string;

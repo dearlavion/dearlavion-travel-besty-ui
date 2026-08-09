@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment';
 import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
 import { organizationNode, websiteNode } from '../common/site-entities';
-import { TaxonomyService } from '../common/taxonomy.service';
+import { MasterDataService } from '../common/master-data/master-data.service';
 
 const TOTAL_STEPS = 9;
 const AUTO_ADVANCE_DELAY_MS = 350;
@@ -62,7 +62,7 @@ export class TravelComponent {
   private readonly catalog = inject(ProductCatalogService);
   private readonly seo = inject(SeoService);
   private readonly jsonLd = inject(JsonLdService);
-  private readonly taxonomy = inject(TaxonomyService);
+  private readonly masterData = inject(MasterDataService);
   private readonly fragment = toSignal(this.route.fragment);
 
   constructor() {
@@ -113,22 +113,22 @@ export class TravelComponent {
   protected readonly totalSteps = TOTAL_STEPS;
 
   // The 8 question cards' order — admin-configurable via Kit Settings' drag-and-drop (see
-  // TaxonomyService.axisOrder), so reordering sections there directly changes which question the
+  // MasterDataService.typeOrder), so reordering sections there directly changes which question the
   // survey asks first. Reveal (the 9th/last card) isn't part of this — it always comes last.
   protected isActiveStep(axisKey: string): boolean {
-    return this.taxonomy.axisOrder()[this.step()] === axisKey;
+    return this.masterData.typeOrder()[this.step()] === axisKey;
   }
 
-  // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded.
-  protected readonly destinationTaxonomy = computed(() => this.taxonomy.forAxis('destination'));
-  protected readonly seasonTaxonomy = computed(() => this.taxonomy.forAxis('season'));
+  // Sourced from the admin-editable Kit Settings master data (see MasterDataService), not hardcoded.
+  protected readonly destinationTaxonomy = computed(() => this.masterData.forType('destination'));
+  protected readonly seasonTaxonomy = computed(() => this.masterData.forType('season'));
   // Fixed at exactly 4 rows (admin can rename value/subtext, not add/remove) — see Kit Settings.
-  protected readonly durationTaxonomy = computed(() => this.taxonomy.forAxis('duration'));
-  protected readonly partyTaxonomy = computed(() => this.taxonomy.forAxis('party'));
-  protected readonly transportationTaxonomy = computed(() => this.taxonomy.forAxis('transportation'));
-  protected readonly activityTaxonomy = computed(() => this.taxonomy.forAxis('activity'));
-  protected readonly kitCategoryTaxonomy = computed(() => this.taxonomy.forAxis('kitCategory'));
-  protected readonly genderTaxonomy = computed(() => this.taxonomy.forAxis('gender'));
+  protected readonly durationTaxonomy = computed(() => this.masterData.forType('duration'));
+  protected readonly partyTaxonomy = computed(() => this.masterData.forType('party'));
+  protected readonly transportationTaxonomy = computed(() => this.masterData.forType('transportation'));
+  protected readonly activityTaxonomy = computed(() => this.masterData.forType('activity'));
+  protected readonly kitCategoryTaxonomy = computed(() => this.masterData.forType('kitCategory'));
+  protected readonly genderTaxonomy = computed(() => this.masterData.forType('gender'));
 
   protected readonly destinations = signal<DestinationChoice[]>([]);
   protected readonly season = signal<Season | null>(null);
@@ -362,7 +362,7 @@ export class TravelComponent {
   // had no answer check at all: the forward chevron, which otherwise lets a user click straight
   // through the whole wizard with every answer still null and land on a broken Reveal card.
   protected readonly canAdvanceFromStep = computed(() => {
-    const axisKey = this.taxonomy.axisOrder()[this.step()];
+    const axisKey = this.masterData.typeOrder()[this.step()];
     switch (axisKey) {
       case 'destination':
         return this.destinations().length > 0;

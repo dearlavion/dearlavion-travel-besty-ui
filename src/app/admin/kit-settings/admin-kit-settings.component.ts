@@ -1,10 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TaxonomyAxis, TaxonomyService, TaxonomyValue } from '../../common/taxonomy.service';
+import { MasterDataService, MasterDataType, MasterDataValue } from '../../common/master-data/master-data.service';
 import { ToastService } from '../../common/toast/toast.service';
 
 interface KitSettingsSection {
-  axis: TaxonomyAxis;
+  axis: MasterDataType;
   title: string;
   description: string;
   // Duration is fixed at exactly 3 rows (backend rejects add/delete for it, see taxonomy.controller.ts)
@@ -92,30 +92,30 @@ const SECTION_CONFIG: KitSettingsSection[] = [
   styleUrl: './admin-kit-settings.component.css',
 })
 export class AdminKitSettingsComponent {
-  protected readonly taxonomy = inject(TaxonomyService);
+  protected readonly masterData = inject(MasterDataService);
   private readonly toast = inject(ToastService);
 
-  // Section cards render in taxonomy.axisOrder()'s order — reordering here is what a shopper
+  // Section cards render in masterData.typeOrder()'s order — reordering here is what a shopper
   // actually sees as the /travel survey's step order (see TravelComponent.orderedAxes()), so the
-  // two never disagree. Falls back to appending any axis SECTION_CONFIG defines that axisOrder()
+  // two never disagree. Falls back to appending any axis SECTION_CONFIG defines that typeOrder()
   // hasn't caught up to yet (defensive — shouldn't normally happen).
   protected readonly sections = computed<KitSettingsSection[]>(() => {
-    const order = this.taxonomy.axisOrder();
+    const order = this.masterData.typeOrder();
     const byAxis = new Map(SECTION_CONFIG.map((s) => [s.axis, s]));
-    const ordered = order.map((axis) => byAxis.get(axis as TaxonomyAxis)).filter((s): s is KitSettingsSection => !!s);
+    const ordered = order.map((axis) => byAxis.get(axis as MasterDataType)).filter((s): s is KitSettingsSection => !!s);
     const seen = new Set(ordered.map((s) => s.axis));
     return [...ordered, ...SECTION_CONFIG.filter((s) => !seen.has(s.axis))];
   });
 
-  protected rowsFor(axis: TaxonomyAxis): TaxonomyValue[] {
-    return this.taxonomy.forAxis(axis);
+  protected rowsFor(axis: MasterDataType): MasterDataValue[] {
+    return this.masterData.forType(axis);
   }
 
   // ── Section reordering (drag-and-drop) — reorders which axis section appears first, distinct
   // from moveUp()/moveDown() below which reorder the *values within* one axis. ──────────────────
-  protected readonly draggedAxis = signal<TaxonomyAxis | null>(null);
+  protected readonly draggedAxis = signal<MasterDataType | null>(null);
 
-  protected onSectionDragStart(axis: TaxonomyAxis): void {
+  protected onSectionDragStart(axis: MasterDataType): void {
     this.draggedAxis.set(axis);
   }
 
@@ -123,19 +123,19 @@ export class AdminKitSettingsComponent {
     event.preventDefault(); // required for (drop) to fire at all
   }
 
-  protected onSectionDrop(targetAxis: TaxonomyAxis): void {
+  protected onSectionDrop(targetAxis: MasterDataType): void {
     const dragged = this.draggedAxis();
     this.draggedAxis.set(null);
     if (!dragged || dragged === targetAxis) return;
 
-    const order = [...this.taxonomy.axisOrder()];
+    const order = [...this.masterData.typeOrder()];
     const fromIndex = order.indexOf(dragged);
     const toIndex = order.indexOf(targetAxis);
     if (fromIndex === -1 || toIndex === -1) return;
 
     order.splice(fromIndex, 1);
     order.splice(toIndex, 0, dragged);
-    this.taxonomy.updateAxisOrder(order);
+    this.masterData.updateTypeOrder(order);
     this.toast.show('Section order updated — the survey now asks in this order too', 'success');
   }
 
@@ -159,41 +159,41 @@ export class AdminKitSettingsComponent {
   protected renameValue(id: string, value: string): void {
     const trimmed = value.trim();
     if (!trimmed) return;
-    this.taxonomy.update(id, { value: trimmed });
+    this.masterData.update(id, { value: trimmed });
   }
 
   protected renameEmoji(id: string, emoji: string): void {
-    this.taxonomy.update(id, { emoji: emoji.trim() || undefined });
+    this.masterData.update(id, { emoji: emoji.trim() || undefined });
   }
 
   protected renameSubtext(id: string, subtext: string): void {
-    this.taxonomy.update(id, { subtext: subtext.trim() || undefined });
+    this.masterData.update(id, { subtext: subtext.trim() || undefined });
   }
 
-  protected moveUp(axis: TaxonomyAxis, row: TaxonomyValue): void {
+  protected moveUp(axis: MasterDataType, row: MasterDataValue): void {
     const rows = this.rowsFor(axis);
     const idx = rows.findIndex((r) => r.id === row.id);
     if (idx <= 0) return;
     const above = rows[idx - 1];
-    this.taxonomy.update(row.id, { order: above.order });
-    this.taxonomy.update(above.id, { order: row.order });
+    this.masterData.update(row.id, { order: above.order });
+    this.masterData.update(above.id, { order: row.order });
   }
 
-  protected moveDown(axis: TaxonomyAxis, row: TaxonomyValue): void {
+  protected moveDown(axis: MasterDataType, row: MasterDataValue): void {
     const rows = this.rowsFor(axis);
     const idx = rows.findIndex((r) => r.id === row.id);
     if (idx === -1 || idx >= rows.length - 1) return;
     const below = rows[idx + 1];
-    this.taxonomy.update(row.id, { order: below.order });
-    this.taxonomy.update(below.id, { order: row.order });
+    this.masterData.update(row.id, { order: below.order });
+    this.masterData.update(below.id, { order: row.order });
   }
 
-  protected addValue(axis: TaxonomyAxis): void {
+  protected addValue(axis: MasterDataType): void {
     const value = this.draftFor(axis).trim();
     if (!value) return;
     const rows = this.rowsFor(axis);
     const nextOrder = rows.length ? Math.max(...rows.map((r) => r.order)) + 1 : 0;
-    this.taxonomy.create({ axis, value, order: nextOrder });
+    this.masterData.create({ type: axis, value, order: nextOrder });
     this.setDraft(axis, '');
     this.toast.show(`Added "${value}"`, 'success');
   }
@@ -207,7 +207,7 @@ export class AdminKitSettingsComponent {
   }
 
   protected confirmDelete(id: string): void {
-    this.taxonomy.delete(id);
+    this.masterData.delete(id);
     this.confirmingDeleteId.set(null);
     this.toast.show('Removed', 'success');
   }

@@ -7,7 +7,7 @@ import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.se
 import { Product } from '../../shop/product-catalog';
 import { ProductItemService } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
-import { TaxonomyService } from '../../common/taxonomy.service';
+import { MasterDataService } from '../../common/master-data/master-data.service';
 import { MultiSelectDropdownComponent } from '../../common/multi-select-dropdown/multi-select-dropdown.component';
 
 interface ProductFormModel {
@@ -76,19 +76,19 @@ export class AdminProductFormComponent {
   private readonly catalog = inject(ProductCatalogService);
   protected readonly productItems = inject(ProductItemService);
   private readonly toast = inject(ToastService);
-  private readonly taxonomy = inject(TaxonomyService);
+  private readonly masterData = inject(MasterDataService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly editingId = computed(() => this.paramMap()?.get('id') ?? null);
   protected readonly isEditMode = computed(() => this.editingId() !== null);
 
-  // Sourced from the admin-editable Kit Settings taxonomy (see TaxonomyService), not hardcoded.
-  protected readonly seasonOptions = computed(() => this.taxonomy.forAxis('season').map((v) => v.value));
-  protected readonly destinationOptions = computed(() => this.taxonomy.forAxis('destination').map((v) => v.value));
-  protected readonly partyOptions = computed(() => this.taxonomy.forAxis('party').map((v) => v.value));
-  protected readonly activityOptions = computed(() => this.taxonomy.forAxis('activity').map((v) => v.value));
-  protected readonly transportOptions = computed(() => this.taxonomy.forAxis('transportation').map((v) => v.value));
-  protected readonly kitCategoryOptions = computed(() => this.taxonomy.forAxis('kitCategory').map((v) => v.value));
+  // Sourced from the admin-editable Kit Settings master data (see MasterDataService), not hardcoded.
+  protected readonly seasonOptions = computed(() => this.masterData.forType('season').map((v) => v.value));
+  protected readonly destinationOptions = computed(() => this.masterData.forType('destination').map((v) => v.value));
+  protected readonly partyOptions = computed(() => this.masterData.forType('party').map((v) => v.value));
+  protected readonly activityOptions = computed(() => this.masterData.forType('activity').map((v) => v.value));
+  protected readonly transportOptions = computed(() => this.masterData.forType('transportation').map((v) => v.value));
+  protected readonly kitCategoryOptions = computed(() => this.masterData.forType('kitCategory').map((v) => v.value));
 
   protected readonly form = signal<ProductFormModel>(emptyForm());
   // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,

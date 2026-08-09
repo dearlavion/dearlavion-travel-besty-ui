@@ -52,7 +52,7 @@
       <label>
         <span>Destination</span>
         <select [ngModel]="form().destination" (ngModelChange)="updateField('destination', $event)" name="destination">
-          @for (opt of destinationOptions; track opt) {
+          @for (opt of destinationOptions(); track opt) {
             <option [value]="opt">{{ opt }}</option>
           }
         </select>
@@ -61,7 +61,7 @@
       <label>
         <span>Season</span>
         <select [ngModel]="form().season" (ngModelChange)="updateField('season', $event)" name="season">
-          @for (opt of seasonOptions; track opt) {
+          @for (opt of seasonOptions(); track opt) {
             <option [value]="opt">{{ opt }}</option>
           }
         </select>
@@ -72,7 +72,7 @@
       <label>
         <span>Party</span>
         <select [ngModel]="form().party" (ngModelChange)="updateField('party', $event)" name="party">
-          @for (opt of partyOptions; track opt) {
+          @for (opt of partyOptions(); track opt) {
             <option [value]="opt">{{ opt }}</option>
           }
         </select>
@@ -81,7 +81,7 @@
       <label>
         <span>Duration</span>
         <select [ngModel]="form().duration" (ngModelChange)="updateField('duration', $event)" name="duration">
-          @for (opt of durationOptions; track opt) {
+          @for (opt of durationOptions(); track opt) {
             <option [value]="opt">{{ opt }}</option>
           }
         </select>

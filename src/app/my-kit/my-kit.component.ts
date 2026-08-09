@@ -21,7 +21,7 @@ import { ConfirmLeavePopupComponent } from './confirm-leave-popup/confirm-leave-
 import { KitNamePopupComponent } from './kit-name-popup/kit-name-popup.component';
 import { FooterComponent } from '../common/footer/footer.component';
 import { ToastService } from '../common/toast/toast.service';
-import { TaxonomyService } from '../common/taxonomy.service';
+import { MasterDataService } from '../common/master-data/master-data.service';
 import { KitEmailService } from './kit-email.service';
 import { environment } from '../../environments/environment';
 
@@ -91,7 +91,7 @@ export class MyKitComponent {
   private readonly newsletter = inject(NewsletterService);
   private readonly kitEmail = inject(KitEmailService);
   private readonly toast = inject(ToastService);
-  private readonly taxonomy = inject(TaxonomyService);
+  private readonly masterData = inject(MasterDataService);
   private readonly paramMap = toSignal(this.route.paramMap);
 
   protected readonly getProductTint = getProductTint;
@@ -277,7 +277,7 @@ export class MyKitComponent {
   });
 
   // Groups displayItems() by kit category, in the same canonical order as the survey/admin
-  // dropdown (the admin-editable kitCategory taxonomy, see TaxonomyService/Kit Settings), with
+  // dropdown (the admin-editable kitCategory master data, see MasterDataService/Kit Settings), with
   // unresolved items bucketed under "Other" last. Only categories that actually have items are
   // included, so the page never shows empty sections.
   protected readonly groupedDisplayItems = computed<DisplayGroup[]>(() => {
@@ -291,7 +291,7 @@ export class MyKitComponent {
         byCategory.set(key, [item]);
       }
     }
-    return [...this.taxonomy.forAxis('kitCategory').map((v) => v.value), OTHER_GROUP]
+    return [...this.masterData.forType('kitCategory').map((v) => v.value), OTHER_GROUP]
       .filter((category) => byCategory.has(category))
       .map((category) => ({ category, items: byCategory.get(category)! }));
   });
