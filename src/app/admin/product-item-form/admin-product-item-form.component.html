@@ -9,16 +9,31 @@
 
   <form class="item-form" (ngSubmit)="save()">
     <div class="product-preview">
-      <span class="product-preview-label">Product Preview</span>
-      <div class="product-preview-card">
-        @if (effectiveCover()) {
-          <img class="product-preview-thumb" [src]="effectiveCover()" [alt]="effectiveName() || 'Product preview'" />
-        } @else {
-          <div class="product-preview-thumb product-preview-thumb-empty">No image yet</div>
-        }
+      <span class="product-preview-label">Product Preview — as shown in Shop</span>
+      <div class="product-preview-card" [class.sold-out]="form().soldOut">
+        <div class="product-preview-thumb-wrap">
+          @if (form().soldOut) {
+            <div class="preview-badge preview-badge-sold-out">Sold Out</div>
+          } @else if (effectivePreviewPrice().originalPrice) {
+            <div class="preview-badge preview-badge-sale">Sale</div>
+          }
+          @if (effectiveCover()) {
+            <img class="product-preview-thumb" [src]="effectiveCover()" [alt]="effectiveName() || 'Product preview'" />
+          } @else {
+            <div class="product-preview-thumb product-preview-thumb-empty">No image yet</div>
+          }
+        </div>
         <div class="product-preview-info">
+          <div class="product-preview-brand">{{ effectiveBrand() }}</div>
           <h3 class="product-preview-name">{{ effectiveName() || 'Untitled item' }}</h3>
-          <div class="product-preview-meta">{{ effectiveBrand() }}</div>
+          <div class="product-preview-price-group">
+            @if (effectivePreviewPrice().originalPrice) {
+              <span class="product-preview-price-original">{{ effectivePreviewPrice().originalPrice | price }}</span>
+              <span class="product-preview-price sale">{{ effectivePreviewPrice().price | price }}</span>
+            } @else {
+              <span class="product-preview-price">{{ effectivePreviewPrice().price | price }}</span>
+            }
+          </div>
         </div>
       </div>
     </div>

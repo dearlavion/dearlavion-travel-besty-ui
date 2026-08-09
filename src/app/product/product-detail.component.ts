@@ -171,13 +171,17 @@ export class ProductDetailComponent implements OnDestroy {
     return all.filter((tag) => tag !== 'All');
   });
 
-  // Up to 5 clickable gallery photos. Falls back to the single legacy `image` field for items an
-  // admin hasn't added a gallery to yet, so nothing regresses for existing catalog data.
+  // Clickable gallery photos, cover first — matches the admin form's own `image || images[0]`
+  // cover rule (AdminProductItemFormComponent.effectiveCover) so the explicit cover an admin picks
+  // (the star toggle) is what shoppers actually see first, not just whatever happens to be first
+  // in the images[] array. Falls back to the single legacy `image` field for items an admin hasn't
+  // added a gallery to yet, so nothing regresses for existing catalog data.
   protected readonly galleryImages = computed<string[]>(() => {
     const item = this.selectedItem();
     if (!item) return [];
-    if (item.images.length > 0) return item.images;
-    return item.image ? [item.image] : [];
+    const cover = item.image;
+    if (cover) return [cover, ...item.images.filter((img) => img !== cover)];
+    return item.images;
   });
 
   protected readonly activeImage = computed<string | undefined>(() => {

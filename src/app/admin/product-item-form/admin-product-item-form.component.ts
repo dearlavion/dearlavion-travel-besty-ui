@@ -7,6 +7,7 @@ import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { computeEffectivePrice, ProductItemService, ProductItemView } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
 import { ImageUploadFieldComponent } from '../../common/image-upload/image-upload-field.component';
+import { PricePipe } from '../../common/price.pipe';
 
 const MAX_MEDIA = 5;
 
@@ -54,7 +55,7 @@ function emptyItemForm(): ItemFormModel {
 @Component({
   selector: 'app-admin-product-item-form',
   standalone: true,
-  imports: [FormsModule, RouterLink, ImageUploadFieldComponent],
+  imports: [FormsModule, RouterLink, ImageUploadFieldComponent, PricePipe],
   templateUrl: './admin-product-item-form.component.html',
   styleUrl: './admin-product-item-form.component.css',
 })
@@ -104,6 +105,15 @@ export class AdminProductItemFormComponent {
   // "Standard" (this item's the product's sole/default variant, same label used elsewhere).
   protected readonly effectiveName = computed(() => this.form().name.trim() || this.product()?.name || '');
   protected readonly effectiveBrand = computed(() => this.form().brand.trim() || 'Standard');
+
+  // Same discount math the Shop card / live item page apply, run against the in-progress form so
+  // the preview shows a real "was $X now $Y" strikethrough the moment an admin toggles On sale —
+  // not just after saving. `originalPrice` is only set when actually on sale (see
+  // computeEffectivePrice), so the template's `@if` doubles as the sale-badge condition too.
+  protected readonly effectivePreviewPrice = computed(() => {
+    const f = this.form();
+    return computeEffectivePrice(Number(f.price) || 0, f.onSale, f.discountType, f.discountValue);
+  });
 
   private formLoaded = false;
 
