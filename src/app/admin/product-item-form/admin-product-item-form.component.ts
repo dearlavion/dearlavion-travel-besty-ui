@@ -6,6 +6,7 @@ import { ProductVideo } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { computeEffectivePrice, ProductItemService, ProductItemView } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
+import { ImageUploadFieldComponent } from '../../common/image-upload/image-upload-field.component';
 
 const MAX_MEDIA = 5;
 
@@ -53,7 +54,7 @@ function emptyItemForm(): ItemFormModel {
 @Component({
   selector: 'app-admin-product-item-form',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ImageUploadFieldComponent],
   templateUrl: './admin-product-item-form.component.html',
   styleUrl: './admin-product-item-form.component.css',
 })

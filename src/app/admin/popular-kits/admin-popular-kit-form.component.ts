@@ -7,6 +7,7 @@ import { Product } from '../../shop/product-catalog';
 import { ProductCatalogService } from '../../shop/product-catalog.service';
 import { NewPopularKit, PopularKitsService } from './popular-kits.service';
 import { ToastService } from '../../common/toast/toast.service';
+import { ImageUploadFieldComponent } from '../../common/image-upload/image-upload-field.component';
 
 interface PopularKitFormModel {
   name: string;
@@ -42,7 +43,7 @@ const DURATION_OPTIONS: Duration[] = ['Quick escape', 'A proper break', 'Living 
 @Component({
   selector: 'app-admin-popular-kit-form',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ImageUploadFieldComponent],
   templateUrl: './admin-popular-kit-form.component.html',
   styleUrl: './admin-popular-kit-form.component.css',
 })

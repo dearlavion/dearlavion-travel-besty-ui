@@ -29,8 +29,13 @@ export class AdminSettingsComponent {
   protected readonly shippingFee = signal(this.storeSettings.shippingFee());
   protected readonly savingShipping = signal(false);
 
+  protected readonly defaultMediaProvider = signal(this.storeSettings.defaultMediaProvider());
+  protected readonly maxImageSizeKb = signal(this.storeSettings.maxImageSizeKb());
+  protected readonly savingMediaProvider = signal(false);
+
   private touched = false;
   private shippingTouched = false;
+  private mediaProviderTouched = false;
 
   constructor() {
     // Seed the editable form from the service (incl. the async-loaded live rates) until the admin
@@ -46,6 +51,15 @@ export class AdminSettingsComponent {
       if (!this.shippingTouched) {
         this.freeShippingMinimum.set(min);
         this.shippingFee.set(fee);
+      }
+    });
+    // Same guard for the default upload destination + max upload size (one form, one save button).
+    effect(() => {
+      const provider = this.storeSettings.defaultMediaProvider();
+      const maxKb = this.storeSettings.maxImageSizeKb();
+      if (!this.mediaProviderTouched) {
+        this.defaultMediaProvider.set(provider);
+        this.maxImageSizeKb.set(maxKb);
       }
     });
   }
@@ -76,6 +90,35 @@ export class AdminSettingsComponent {
       });
     } else {
       this.toast.showAndReload('Shipping settings updated');
+    }
+  }
+
+  protected setDefaultMediaProvider(value: string): void {
+    this.mediaProviderTouched = true;
+    this.defaultMediaProvider.set(value === 'drive' ? 'drive' : 's3');
+  }
+
+  protected setMaxImageSizeKb(value: number): void {
+    this.mediaProviderTouched = true;
+    this.maxImageSizeKb.set(Math.max(1, Number(value) || 30));
+  }
+
+  protected saveMediaProvider(): void {
+    const result = this.storeSettings.update({
+      defaultMediaProvider: this.defaultMediaProvider(),
+      maxImageSizeKb: this.maxImageSizeKb(),
+    });
+    if (isObservable(result)) {
+      this.savingMediaProvider.set(true);
+      result.subscribe({
+        next: () => this.toast.showAndReload('Upload destination updated'),
+        error: () => {
+          this.savingMediaProvider.set(false);
+          this.toast.error('Failed to save upload destination');
+        },
+      });
+    } else {
+      this.toast.showAndReload('Upload destination updated');
     }
   }
 

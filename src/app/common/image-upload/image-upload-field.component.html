@@ -1,0 +1,23 @@
+<div class="image-upload-field">
+  <input
+    type="text"
+    [placeholder]="placeholder()"
+    [value]="value()"
+    (input)="onTextChange($any($event.target).value)"
+    [disabled]="uploading()"
+  />
+  <select
+    class="target-select"
+    [value]="target()"
+    (change)="onTargetChange($any($event.target).value)"
+    [disabled]="uploading()"
+    aria-label="Upload destination"
+  >
+    <option value="s3">Media Storage</option>
+    <option value="drive">Google Drive</option>
+  </select>
+  <label class="upload-btn" [class.disabled]="uploading()">
+    {{ uploading() ? 'Uploading…' : 'Upload' }}
+    <input type="file" accept="image/*" (change)="onFileSelected($event)" [disabled]="uploading()" hidden />
+  </label>
+</div>

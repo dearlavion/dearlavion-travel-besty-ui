@@ -6,12 +6,23 @@ import { environment } from '../../environments/environment';
 export interface StoreSettings {
   freeShippingMinimum: number; // in the base currency (USD); 0 = no threshold
   shippingFee: number; // flat fee (base currency, USD) charged below freeShippingMinimum; 0 = no fee
+  // Default upload destination admin forms preselect for new product/kit photos — admins can
+  // still override per-upload via ImageUploadFieldComponent's own selector.
+  defaultMediaProvider: 's3' | 'drive';
+  // Max accepted file size (KB) for admin product/kit photo uploads, enforced client-side by
+  // ImageUploadFieldComponent before it calls media-service.
+  maxImageSizeKb: number;
 }
 
 const STORAGE_KEY = 'travel-besty-store-settings';
 const PUBLIC_BASE = `${environment.apiUrl}/store-settings`;
 const ADMIN_BASE = `${environment.apiUrl}/admin/store-settings`;
-const DEFAULTS: StoreSettings = { freeShippingMinimum: 0, shippingFee: 0 };
+const DEFAULTS: StoreSettings = {
+  freeShippingMinimum: 0,
+  shippingFee: 0,
+  defaultMediaProvider: 's3',
+  maxImageSizeKb: 30,
+};
 
 function loadStored(): StoreSettings {
   if (typeof window === 'undefined') return { ...DEFAULTS };
@@ -40,6 +51,12 @@ export class StoreSettingsService {
 
   /** Flat shipping fee in the base currency (USD), charged below freeShippingMinimum. */
   readonly shippingFee = computed(() => this.settings().shippingFee);
+
+  /** Default upload destination admin forms preselect for new product/kit photos. */
+  readonly defaultMediaProvider = computed(() => this.settings().defaultMediaProvider);
+
+  /** Max accepted file size (KB) for admin product/kit photo uploads. */
+  readonly maxImageSizeKb = computed(() => this.settings().maxImageSizeKb);
 
   constructor() {
     if (!environment.useMockData) {

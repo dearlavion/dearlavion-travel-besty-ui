@@ -112,13 +112,7 @@
           } @else {
             <div class="photo-thumb photo-thumb-empty"></div>
           }
-          <input
-            type="text"
-            placeholder="https://..."
-            [ngModel]="photo"
-            (ngModelChange)="updateImage($index, $event)"
-            [name]="'image-' + $index"
-          />
+          <app-image-upload-field folder="products" [value]="photo" (valueChange)="updateImage($index, $event)" />
           <button
             type="button"
             class="cover-btn"

@@ -45,13 +45,7 @@
 
     <label class="field-full">
       <span>Image URL</span>
-      <input
-        type="text"
-        placeholder="https://..."
-        [ngModel]="form().image"
-        (ngModelChange)="updateField('image', $event)"
-        name="image"
-      />
+      <app-image-upload-field folder="popular-kits" [value]="form().image" (valueChange)="updateField('image', $event)" />
     </label>
 
     <div class="field-row">

@@ -124,6 +124,11 @@ input:focus {
   flex: 1;
 }
 
+.media-row app-image-upload-field {
+  flex: 1;
+  min-width: 0;
+}
+
 .cover-hint {
   font-size: 12px;
   color: var(--color-ink-soft);

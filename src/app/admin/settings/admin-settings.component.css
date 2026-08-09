@@ -101,6 +101,12 @@
   border-color: var(--color-coral);
 }
 
+.rate-select {
+  width: auto;
+  min-width: 160px;
+  text-align: left;
+}
+
 .rate-suffix {
   font-weight: 700;
   color: var(--color-ink);
