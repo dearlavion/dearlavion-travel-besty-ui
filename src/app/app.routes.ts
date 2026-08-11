@@ -28,6 +28,9 @@ import { AdminSettingsComponent } from './admin/settings/admin-settings.componen
 import { AdminUserListComponent } from './admin/users/admin-user-list.component';
 import { AdminUserFormComponent } from './admin/users/admin-user-form.component';
 import { AdminKitSettingsComponent } from './admin/kit-settings/admin-kit-settings.component';
+import { AdminMasterDataListComponent } from './admin/master-data/admin-master-data-list.component';
+import { AdminMasterDataDetailComponent } from './admin/master-data/admin-master-data-detail.component';
+import { AdminMasterDataFormComponent } from './admin/master-data/admin-master-data-form.component';
 import { ProfileShellComponent } from './profile/profile-shell/profile-shell.component';
 import { ProfileSettingsComponent } from './profile/settings/profile-settings.component';
 import { TrackPackagesComponent } from './profile/track-packages/track-packages.component';
@@ -91,6 +94,12 @@ export const routes: Routes = [
       { path: 'users/new', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
       { path: 'users/:username', component: AdminUserFormComponent, canActivate: [requireAdminGuard] },
       { path: 'kit-settings', component: AdminKitSettingsComponent, canActivate: [requireAdminGuard] },
+      { path: 'master-data', component: AdminMasterDataListComponent, canActivate: [requireAdminGuard] },
+      { path: 'master-data/:key', component: AdminMasterDataDetailComponent, canActivate: [requireAdminGuard] },
+      // 'new' must stay ahead of ':id' — otherwise /master-data/destination/new resolves as an
+      // edit of a value whose id is literally "new".
+      { path: 'master-data/:key/new', component: AdminMasterDataFormComponent, canActivate: [requireAdminGuard] },
+      { path: 'master-data/:key/:id', component: AdminMasterDataFormComponent, canActivate: [requireAdminGuard] },
     ],
   },
 

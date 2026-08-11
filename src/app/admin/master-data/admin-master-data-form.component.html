@@ -1,0 +1,95 @@
+@if (notFound()) {
+  <div class="not-found">
+    <p>We couldn't find that master data value.</p>
+    <a routerLink="/admin/master-data" class="back-link">← Back to Master Data</a>
+  </div>
+} @else if (loading()) {
+  <p class="state-note">Loading…</p>
+} @else {
+  <a [routerLink]="collectionUrl()" class="back-link">← Back to {{ collection()?.label }}</a>
+  <h1>{{ isEditMode() ? 'Edit' : 'Add' }} {{ collection()?.label }} Value</h1>
+
+  <form class="md-form" (ngSubmit)="save()">
+    <div class="field-row">
+      <label class="field-value">
+        <span>Value</span>
+        <input
+          type="text"
+          required
+          placeholder="e.g. Beach"
+          [ngModel]="form().value"
+          (ngModelChange)="updateField('value', $event)"
+          name="value"
+        />
+        <small>The label shoppers see in the travel survey and on product tags.</small>
+      </label>
+
+      <label class="field-order">
+        <span>Order</span>
+        <input
+          type="number"
+          min="0"
+          [ngModel]="form().order"
+          (ngModelChange)="updateField('order', $event)"
+          name="order"
+        />
+        <small>Lower shows first.</small>
+      </label>
+    </div>
+
+    <div class="field-row">
+      <label>
+        <span>Emoji</span>
+        <input
+          type="text"
+          maxlength="4"
+          placeholder="Optional"
+          [ngModel]="form().emoji"
+          (ngModelChange)="updateField('emoji', $event)"
+          name="emoji"
+        />
+      </label>
+
+      <label>
+        <span>Subtext</span>
+        <input
+          type="text"
+          placeholder="Optional helper text"
+          [ngModel]="form().subtext"
+          (ngModelChange)="updateField('subtext', $event)"
+          name="subtext"
+        />
+      </label>
+    </div>
+
+    @if (isEditMode()) {
+      <div class="meta-strip">
+        <span>ID <code>{{ existing()?.id }}</code></span>
+        <span>Type <code>{{ collectionKey() }}</code></span>
+        @if (existing()?.code) {
+          <!-- `code` is the kit-sizing engine's stable scoring key (duration only) — never editable. -->
+          <span>Code <code>{{ existing()?.code }}</code> (read-only)</span>
+        }
+      </div>
+    }
+
+    <div class="form-actions">
+      @if (isEditMode() && allowDelete()) {
+        @if (confirmingDelete()) {
+          <span class="confirm-delete">
+            Delete this value?
+            <button type="button" class="danger-btn" (click)="confirmDelete()">Yes, delete</button>
+            <button type="button" class="cancel-btn" (click)="cancelDelete()">Cancel</button>
+          </span>
+        } @else {
+          <button type="button" class="delete-btn" (click)="requestDelete()">Delete</button>
+        }
+      }
+      <span class="spacer"></span>
+      <a [routerLink]="collectionUrl()" class="cancel-btn">Cancel</a>
+      <button type="submit" class="save-btn" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : isEditMode() ? 'Save Changes' : 'Add Value' }}
+      </button>
+    </div>
+  </form>
+}

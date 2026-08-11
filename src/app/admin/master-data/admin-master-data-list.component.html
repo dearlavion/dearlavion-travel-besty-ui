@@ -1,0 +1,52 @@
+<div class="list-head">
+  <div>
+    <h1>Master Data</h1>
+    <p class="sub">
+      The {{ rows().length }} reference-data collections behind the travel survey and product tagging —
+      {{ totalValues() }} values in total. Open a collection to view and edit its rows.
+    </p>
+  </div>
+  <a routerLink="/admin/kit-settings" class="ghost-btn">Kit Settings →</a>
+</div>
+
+<div class="search-bar">
+  <input
+    type="text"
+    placeholder="Search collections..."
+    [ngModel]="search()"
+    (ngModelChange)="setSearch($event)"
+  />
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Collection</th>
+        <th>Key</th>
+        <th>API path</th>
+        <th class="num-col">Values</th>
+        <th>Sample</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of pagedRows(); track row.key) {
+        <tr>
+          <td class="name-cell">
+            <a [routerLink]="['/admin/master-data', row.key]" class="row-link">{{ row.label }}</a>
+          </td>
+          <td><code>{{ row.key }}</code></td>
+          <td><code>/{{ row.path }}</code></td>
+          <td class="num-col">{{ row.count }}</td>
+          <td class="preview-cell">{{ row.preview || '—' }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" class="no-results">No collections match this search.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />

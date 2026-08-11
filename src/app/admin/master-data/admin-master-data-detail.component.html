@@ -1,0 +1,80 @@
+<a routerLink="/admin/master-data" class="back-link">← All master data</a>
+
+@if (!collection) {
+  <p class="state-note">Unknown master data collection.</p>
+} @else {
+  <div class="list-head">
+    <div>
+      <h1>{{ collection.label }}</h1>
+      <p class="sub">
+        {{ rows().length }} value{{ rows().length === 1 ? '' : 's' }} · key <code>{{ collection.key }}</code> ·
+        <code>/{{ collection.path }}</code>
+      </p>
+      <p class="sub">Click a value to edit{{ allowAdd ? ' or delete' : '' }} it.</p>
+    </div>
+    <div class="head-actions">
+      <a routerLink="/admin/kit-settings" class="ghost-btn">Kit Settings →</a>
+      @if (allowAdd) {
+        <a [routerLink]="['/admin/master-data', collection.key, 'new']" class="add-btn">+ Add Value</a>
+      }
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search values..."
+      [ngModel]="search()"
+      (ngModelChange)="setSearch($event)"
+    />
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Value</th>
+          <th class="num-col">Order</th>
+          @if (showEmoji()) {
+            <th>Emoji</th>
+          }
+          @if (showSubtext()) {
+            <th>Subtext</th>
+          }
+          @if (showCode()) {
+            <th>Code</th>
+          }
+          <th>ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of pagedRows(); track row.id) {
+          <tr>
+            <td class="name-cell">
+              <a [routerLink]="['/admin/master-data', collection.key, row.id]" class="row-link">{{ row.value }}</a>
+            </td>
+            <td class="num-col">{{ row.order }}</td>
+            @if (showEmoji()) {
+              <td class="emoji-cell">{{ row.emoji || '—' }}</td>
+            }
+            @if (showSubtext()) {
+              <td>{{ row.subtext || '—' }}</td>
+            }
+            @if (showCode()) {
+              <td><code>{{ row.code || '—' }}</code></td>
+            }
+            <td><code>{{ row.id }}</code></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="columnCount()" class="no-results">
+              {{ search() ? 'No values match this search.' : 'This collection has no values yet.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+}
