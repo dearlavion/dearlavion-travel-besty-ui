@@ -51,7 +51,25 @@ h1 {
 }
 
 .field-order {
-  max-width: 140px;
+  max-width: 260px;
+}
+
+select {
+  width: 100%;
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+  outline: none;
+  cursor: pointer;
+}
+
+select:focus {
+  border-color: var(--color-coral);
 }
 
 label > span {
@@ -81,6 +99,12 @@ input {
 
 input:focus {
   border-color: var(--color-coral);
+}
+
+/* Shown while a swap is pending, so the knock-on move is visible before saving. */
+.field-note {
+  color: var(--color-coral-deep);
+  font-weight: 700;
 }
 
 .meta-strip {

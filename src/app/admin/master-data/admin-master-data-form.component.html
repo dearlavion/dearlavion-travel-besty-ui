@@ -21,20 +21,30 @@
           (ngModelChange)="updateField('value', $event)"
           name="value"
         />
-        <small>The label shoppers see in the travel survey and on product tags.</small>
+        @if (isEditMode()) {
+          <small>The label shoppers see in the travel survey and on product tags.</small>
+        } @else {
+          <small>The label shoppers see in the travel survey and on product tags. It'll be added to the end of the list — you can change its order after saving.</small>
+        }
       </label>
 
-      <label class="field-order">
-        <span>Order</span>
-        <input
-          type="number"
-          min="0"
-          [ngModel]="form().order"
-          (ngModelChange)="updateField('order', $event)"
-          name="order"
-        />
-        <small>Lower shows first.</small>
-      </label>
+      <!-- Add mode has no Order field: a new value always lands at the end of the list
+           (nextOrder()). It stays editable afterwards, from this same form in edit mode. -->
+      @if (isEditMode()) {
+        <label class="field-order">
+          <span>Order</span>
+          <select [ngModel]="form().order" (ngModelChange)="updateField('order', $event)" name="order">
+            @for (option of orderOptions(); track option.order) {
+              <option [ngValue]="option.order">{{ option.label }}</option>
+            }
+          </select>
+          @if (swapTarget()) {
+            <small class="field-note">"{{ swapTarget()?.value }}" moves to position {{ existing()?.order }}.</small>
+          } @else {
+            <small>Lower shows first. Picking another value's position swaps the two.</small>
+          }
+        </label>
+      }
     </div>
 
     <div class="field-row">

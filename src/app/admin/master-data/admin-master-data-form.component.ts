@@ -12,7 +12,8 @@ import { FIXED_CARDINALITY_TYPES } from './fixed-cardinality-types';
 
 interface MasterDataFormModel {
   value: string;
-  order: number;
+  // Null while the number input is empty — validated before save, never written as-is.
+  order: number | null;
   emoji: string;
   subtext: string;
 }
@@ -66,23 +67,19 @@ export class AdminMasterDataFormComponent {
   protected readonly saving = signal(false);
 
   private formLoaded = false;
-  // Add mode keeps re-deriving the default order until the admin types their own — real mode's
-  // values() arrives async, so a one-shot derivation on the first effect run would settle on 0 (an
-  // empty collection) and make every new value jump to the top of the list.
-  private readonly orderTouched = signal(false);
+
+  // Add mode's order isn't shown or editable — a new value always goes to the end of the list.
+  // Derived live (not frozen at page load) because real mode fills values() asynchronously, and
+  // read again at save time so what gets written reflects the latest cached rows.
+  protected readonly nextOrder = computed(() => {
+    const rows = this.masterData.forType(this.collectionKey());
+    return rows.length ? Math.max(...rows.map((r) => r.order)) + 1 : 0;
+  });
 
   constructor() {
+    // Edit mode only — add mode starts blank and takes its order from nextOrder() on save.
     effect(() => {
-      if (!this.isEditMode()) {
-        // Add mode: default to the end of the list so a new option doesn't jump the queue.
-        if (this.orderTouched()) return;
-        const rows = this.masterData.forType(this.collectionKey());
-        const nextOrder = rows.length ? Math.max(...rows.map((r) => r.order)) + 1 : 0;
-        this.form.update((f) => (f.order === nextOrder ? f : { ...f, order: nextOrder }));
-        return;
-      }
-
-      if (this.formLoaded) return;
+      if (!this.isEditMode() || this.formLoaded) return;
       const existing = this.existing();
       if (!existing) return;
       this.formLoaded = true;
@@ -96,9 +93,30 @@ export class AdminMasterDataFormComponent {
   }
 
   protected updateField<K extends keyof MasterDataFormModel>(key: K, value: MasterDataFormModel[K]): void {
-    if (key === 'order') this.orderTouched.set(true);
     this.form.update((f) => ({ ...f, [key]: value }));
   }
+
+  // The positions this collection actually occupies, in display order — the only choices the Order
+  // dropdown offers. Every one is taken by definition, so picking another value's position swaps
+  // the two (see save()) instead of creating a duplicate; the set of order numbers in the
+  // collection is invariant, which also keeps sparse orders (0, 3, 7) working.
+  protected readonly orderOptions = computed<{ order: number; label: string }[]>(() => {
+    const editingId = this.editingId();
+    return this.masterData.forType(this.collectionKey()).map((row) => ({
+      order: row.order,
+      label: row.id === editingId ? `${row.order} — current position` : `${row.order} — swap with "${row.value}"`,
+    }));
+  });
+
+  /** The value currently holding the chosen position, if it isn't this one — the swap partner. */
+  protected readonly swapTarget = computed<MasterDataValue | null>(() => {
+    const order = this.form().order;
+    if (order === null) return null;
+    const editingId = this.editingId();
+    return (
+      this.masterData.forType(this.collectionKey()).find((v) => v.id !== editingId && v.order === Number(order)) ?? null
+    );
+  });
 
   protected save(): void {
     const f = this.form();
@@ -111,15 +129,27 @@ export class AdminMasterDataFormComponent {
     this.saving.set(true);
     const patch = {
       value,
-      order: Number(f.order) || 0,
+      // Add mode takes the auto position; edit mode keeps whatever the admin typed.
+      order: this.isEditMode() ? Number(f.order) : this.nextOrder(),
       emoji: f.emoji.trim() || undefined,
       subtext: f.subtext.trim() || undefined,
     };
 
     const id = this.editingId();
     if (id) {
+      // Moving to an occupied position hands this row's old position to whoever was there, rather
+      // than leaving both on the same number (which would make their relative order arbitrary).
+      const swap = this.swapTarget();
+      const previousOrder = this.existing()?.order;
+      if (swap && previousOrder !== undefined) {
+        this.masterData.update(swap.id, { order: previousOrder });
+      }
       this.masterData.update(id, patch);
-      this.toast.showAndReload('Value updated', 'success', this.collectionUrl());
+      this.toast.showAndReload(
+        swap ? `Value updated — swapped position with "${swap.value}"` : 'Value updated',
+        'success',
+        this.collectionUrl(),
+      );
     } else {
       this.masterData.create({ type: this.collectionKey(), ...patch });
       this.toast.showAndReload('Value added', 'success', this.collectionUrl());
