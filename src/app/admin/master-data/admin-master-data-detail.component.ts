@@ -1,11 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import {
-  MASTER_DATA_COLLECTIONS,
-  MasterDataService,
-  MasterDataValue,
-} from '../../common/master-data/master-data.service';
+import { MasterDataService, MasterDataValue } from '../../common/master-data/master-data.service';
 import { PaginationComponent } from '../../common/pagination/pagination.component';
 import { FIXED_CARDINALITY_TYPES } from './fixed-cardinality-types';
 
@@ -23,10 +19,14 @@ const PAGE_SIZE = 10;
 export class AdminMasterDataDetailComponent {
   private readonly masterData = inject(MasterDataService);
 
+  protected readonly registryLoaded = this.masterData.registryLoaded;
+
   private readonly key = inject(ActivatedRoute).snapshot.paramMap.get('key') ?? '';
 
   // Null for an unknown/mistyped :key — the template renders a not-found note instead of a table.
-  protected readonly collection = MASTER_DATA_COLLECTIONS.find((c) => c.key === this.key) ?? null;
+  // Computed, not resolved once: in real mode the registry arrives over HTTP, so a synchronous
+  // lookup would render "unknown collection" on a direct link or reload.
+  protected readonly collection = computed(() => this.masterData.collections().find((c) => c.key === this.key) ?? null);
 
   // Duration's row count is fixed — no "+ Add Value" there (see FIXED_CARDINALITY_TYPES).
   protected readonly allowAdd = !FIXED_CARDINALITY_TYPES.has(this.key);
@@ -34,9 +34,7 @@ export class AdminMasterDataDetailComponent {
   protected readonly search = signal('');
   protected readonly page = signal(0); // 0-indexed
 
-  protected readonly rows = computed<MasterDataValue[]>(() =>
-    this.collection ? this.masterData.forType(this.collection.key) : [],
-  );
+  protected readonly rows = computed<MasterDataValue[]>(() => this.masterData.forType(this.key));
 
   // Only duration carries a `code` today — hide the column entirely for the other 7 collections
   // rather than render a full column of dashes.

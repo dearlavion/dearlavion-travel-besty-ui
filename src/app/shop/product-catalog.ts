@@ -31,6 +31,11 @@ export interface Product {
   parties: ProductParty[]; // [] = unrestricted/all party sizes
   activities?: string[]; // which activities this product suits (recommendation engine signal)
   transportModes?: ProductTransportation[]; // [] / omitted = unrestricted — soft-boost signal, like activities
+  // Trip lengths this product suits, as Duration's stable `code` ('day'|'short'|'medium'|'long'),
+  // not its admin-editable display label — the survey answer is a code too, so a rename in Kit
+  // Settings can never break matching. The admin form shows labels and translates on save.
+  durations?: string[]; // [] / omitted = suits any trip length — soft-boost signal
+  genders?: string[]; // [] / omitted = suits anyone — soft-boost signal (display values, no codes)
   kitCategory: KitCategory; // required — every product belongs to exactly one packing-list bucket
   popular: boolean;
   tested: boolean;

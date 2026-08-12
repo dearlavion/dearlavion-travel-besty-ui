@@ -121,6 +121,24 @@
           (toggleValue)="toggleTransport($event)"
         />
       </div>
+
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">Trip length (none selected = suits any length)</span>
+        <app-multi-select-dropdown
+          [options]="durationOptions()"
+          [selected]="form().durations"
+          (toggleValue)="toggleDuration($event)"
+        />
+      </div>
+
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">Gender (none selected = suits anyone)</span>
+        <app-multi-select-dropdown
+          [options]="genderOptions()"
+          [selected]="form().genders"
+          (toggleValue)="toggleGender($event)"
+        />
+      </div>
     </div>
 
     <div class="field-full checkbox-stack">

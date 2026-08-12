@@ -112,6 +112,18 @@ tr.inactive-row {
   font-weight: 500;
 }
 
+/* The name opens the product's edit page — it reads as ordinary table text until hovered, where it
+   turns orange to signal it's clickable. */
+.row-link {
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.row-link:hover {
+  color: var(--color-coral);
+}
+
 .stock-input {
   width: 70px;
   border: 1.5px solid var(--color-line);

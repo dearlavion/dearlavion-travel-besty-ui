@@ -32,7 +32,9 @@
       @for (row of rows(); track row.product.id) {
         <tr [class.sold-out-row]="row.defaultItem?.soldOut" [class.inactive-row]="!row.product.active">
           <td class="icon-cell">{{ row.product.icon }}</td>
-          <td class="name-cell">{{ row.product.name }}</td>
+          <td class="name-cell">
+            <a [routerLink]="['/admin/products', row.product.id, 'edit']" class="row-link">{{ row.product.name }}</a>
+          </td>
           <td>{{ row.product.category }}</td>
           @if (row.defaultItem; as item) {
             <td>

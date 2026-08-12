@@ -1,7 +1,11 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { MasterDataService, MasterDataType } from '../../common/master-data/master-data.service';
+import {
+  MasterDataService,
+  MasterDataType,
+  SectionSettings,
+} from '../../common/master-data/master-data.service';
 import { PaginationComponent } from '../../common/pagination/pagination.component';
 import { ToastService } from '../../common/toast/toast.service';
 
@@ -11,7 +15,9 @@ interface KitSettingsSection {
   description: string;
 }
 
-const PAGE_SIZE = 5;
+// Matches the other admin lists (Users, Products, Master Data). With only 8 sections today that
+// means a single page and no pager — <app-pagination> hides itself below two pages.
+const PAGE_SIZE = 10;
 
 // Per-axis metadata (title, description) — unordered. Display order is driven separately by
 // masterData.typeOrder() (see the `sections` computed below), so the rows can be reordered via
@@ -114,6 +120,10 @@ export class AdminKitSettingsComponent {
   // can never be left with a duplicate or missing position mid-edit. ─────────────────────────────
   protected readonly orderDrafts = signal<Record<string, number | null>>({});
 
+  // Behaviour drafts (optional/required, single/multiple) — saved together with the order by the
+  // one Save button, so a single PUT carries the whole page's state.
+  protected readonly settingsDrafts = signal<Record<string, SectionSettings>>({});
+
   // Once the admin touches any input, stop re-seeding drafts from typeOrder() — otherwise real
   // mode's async /type-order response (or the post-save signal update) would wipe their edits.
   private readonly orderEdited = signal(false);
@@ -122,6 +132,7 @@ export class AdminKitSettingsComponent {
     effect(() => {
       const sections = this.sections();
       const order = this.masterData.typeOrder();
+      this.masterData.sectionSettings(); // re-seed when the saved settings land too
       if (this.orderEdited()) return;
       const drafts: Record<string, number | null> = {};
       sections.forEach((section, i) => {
@@ -129,7 +140,26 @@ export class AdminKitSettingsComponent {
         drafts[section.axis] = (at === -1 ? i : at) + 1;
       });
       this.orderDrafts.set(drafts);
+      const settings: Record<string, SectionSettings> = {};
+      sections.forEach((section) => {
+        settings[section.axis] = { ...this.masterData.settingsFor(section.axis) };
+      });
+      this.settingsDrafts.set(settings);
     });
+  }
+
+  protected settingsDraftFor(axis: MasterDataType): SectionSettings {
+    return this.settingsDrafts()[axis] ?? this.masterData.settingsFor(axis);
+  }
+
+  protected setRequired(axis: MasterDataType, required: boolean): void {
+    this.orderEdited.set(true); // stop the effect re-seeding over the admin's edits
+    this.settingsDrafts.update((d) => ({ ...d, [axis]: { ...this.settingsDraftFor(axis), required } }));
+  }
+
+  protected setMultiple(axis: MasterDataType, multiple: boolean): void {
+    this.orderEdited.set(true);
+    this.settingsDrafts.update((d) => ({ ...d, [axis]: { ...this.settingsDraftFor(axis), multiple } }));
   }
 
   protected orderDraftFor(axis: MasterDataType): number | null {
@@ -191,14 +221,14 @@ export class AdminKitSettingsComponent {
     return value !== null && value !== undefined && this.duplicateOrders().includes(value);
   }
 
-  protected saveOrder(): void {
+  protected saveSettings(): void {
     if (this.orderError()) return;
     const order = [...this.sections()]
       .sort((a, b) => (this.orderDrafts()[a.axis] ?? 0) - (this.orderDrafts()[b.axis] ?? 0))
       .map((section) => section.axis);
-    this.masterData.updateTypeOrder(order);
-    // Reload rather than just re-rendering: in real mode updateTypeOrder() is fire-and-forget, so
-    // reloading is what proves the saved order actually came back from the backend.
-    this.toast.showAndReload('Section order updated — the survey now asks in this order too', 'success');
+    this.masterData.updateKitSettings(order, this.settingsDrafts());
+    // Reload rather than just re-rendering: in real mode the save is fire-and-forget, so reloading
+    // is what proves what came back from the backend is what got stored.
+    this.toast.showAndReload('Kit settings saved — the survey now asks in this order too', 'success');
   }
 }

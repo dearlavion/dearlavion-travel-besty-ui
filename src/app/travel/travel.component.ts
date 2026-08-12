@@ -284,6 +284,7 @@ export class TravelComponent {
         ? withoutAll.filter((d) => d !== choice)
         : [...withoutAll, choice];
     });
+    this.autoAdvance(); // no-op unless an admin has set Destination to a single answer
   }
 
   protected continueFromDestinations(): void {
@@ -361,24 +362,55 @@ export class TravelComponent {
   // is only visible/clickable once Group is chosen — so this only matters for the one path that
   // had no answer check at all: the forward chevron, which otherwise lets a user click straight
   // through the whole wizard with every answer still null and land on a broken Reveal card.
-  protected readonly canAdvanceFromStep = computed(() => {
-    const axisKey = this.masterData.typeOrder()[this.step()];
+  /** The collection this step is asking about, or '' for the Reveal card past the 8 questions. */
+  protected readonly currentAxisKey = computed(() => this.masterData.typeOrder()[this.step()] ?? '');
+
+  /** How many answers this question currently holds, whichever signal happens to store them. */
+  private answerCountFor(axisKey: string): number {
     switch (axisKey) {
       case 'destination':
-        return this.destinations().length > 0;
+        return this.destinations().length;
       case 'season':
-        return this.season() !== null;
+        return this.season() ? 1 : 0;
       case 'duration':
-        return this.duration() !== null;
+        return this.duration() ? 1 : 0;
       case 'party':
-        return this.party() !== null;
+        return this.party() ? 1 : 0;
       case 'transportation':
-        return this.transportation() !== null;
+        return this.transportation() ? 1 : 0;
+      case 'activity':
+        return this.activities().length;
       case 'kitCategory':
-        return this.priorityCategories().length > 0;
+        return this.priorityCategories().length;
+      case 'gender':
+        return this.gender() ? 1 : 0;
       default:
-        return true; // Activities/Gender are optional; Reveal (beyond the 8-entry axisOrder) too
+        return 0;
     }
+  }
+
+  /**
+   * Driven by admin Kit Settings (/admin/kit-settings) rather than a hardcoded per-axis switch: a
+   * question marked Optional can always be skipped, a Required one needs at least one answer. The
+   * Reveal card past the last question has no axis, so it always passes.
+   */
+  protected readonly canAdvanceFromStep = computed(() => {
+    const axisKey = this.currentAxisKey();
+    if (!axisKey) return true;
+    if (!this.masterData.settingsFor(axisKey).required) return true;
+    return this.answerCountFor(axisKey) > 0;
+  });
+
+  /**
+   * Single-answer questions move on by themselves once picked, so Next is just a fallback there;
+   * multi-answer questions must wait, or picking the first option would cut the shopper off before
+   * they can choose a second. Also admin-driven, so flipping Selection on Kit Settings changes
+   * which questions advance on their own.
+   */
+  protected readonly showNextButton = computed(() => {
+    const axisKey = this.currentAxisKey();
+    if (!axisKey) return false; // Reveal card has its own CTA
+    return this.masterData.settingsFor(axisKey).multiple || !this.masterData.settingsFor(axisKey).required;
   });
 
   protected goNext(): void {
@@ -459,6 +491,8 @@ export class TravelComponent {
   }
 
   private autoAdvance(): void {
+    // Multi-answer questions must not jump ahead on the first pick — see showNextButton().
+    if (this.masterData.settingsFor(this.currentAxisKey()).multiple) return;
     setTimeout(() => this.goNext(), AUTO_ADVANCE_DELAY_MS);
   }
 

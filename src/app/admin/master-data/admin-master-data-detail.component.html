@@ -1,8 +1,13 @@
 <a routerLink="/admin/master-data" class="back-link">← All master data</a>
 
-@if (!collection) {
-  <p class="state-note">Unknown master data collection.</p>
-} @else {
+@if (!collection()) {
+  <!-- The registry arrives over HTTP in real mode, so "not found" only holds once it has. -->
+  @if (registryLoaded()) {
+    <p class="state-note">Unknown master data collection.</p>
+  } @else {
+    <p class="state-note">Loading…</p>
+  }
+} @else if (collection(); as collection) {
   <div class="list-head">
     <div>
       <h1>{{ collection.label }}</h1>

@@ -20,6 +20,8 @@ interface ProductFormModel {
   parties: string[];
   activities: string[];
   transportModes: string[];
+  durations: string[]; // display labels in the form; mapped to Duration codes on save
+  genders: string[];
   kitCategory: string; // '' = not yet chosen — save() blocks submit until it's set
   tested: boolean;
   active: boolean;
@@ -38,6 +40,8 @@ function emptyForm(): ProductFormModel {
     parties: [],
     activities: [],
     transportModes: [],
+    durations: [],
+    genders: [],
     kitCategory: '',
     tested: true,
     active: true,
@@ -89,6 +93,9 @@ export class AdminProductFormComponent {
   protected readonly activityOptions = computed(() => this.masterData.forType('activity').map((v) => v.value));
   protected readonly transportOptions = computed(() => this.masterData.forType('transportation').map((v) => v.value));
   protected readonly kitCategoryOptions = computed(() => this.masterData.forType('kitCategory').map((v) => v.value));
+  // Duration is shown by label but persisted by `code` (see durationCodeFor/durationLabelFor).
+  protected readonly durationOptions = computed(() => this.masterData.forType('duration').map((v) => v.value));
+  protected readonly genderOptions = computed(() => this.masterData.forType('gender').map((v) => v.value));
 
   protected readonly form = signal<ProductFormModel>(emptyForm());
   // Reactive, not a one-shot flag set in the constructor — real mode's product list loads async,
@@ -153,6 +160,8 @@ export class AdminProductFormComponent {
         parties: [...existing.parties],
         activities: [...(existing.activities ?? [])],
         transportModes: [...(existing.transportModes ?? [])],
+        durations: (existing.durations ?? []).map((code) => this.durationLabelFor(code)),
+        genders: [...(existing.genders ?? [])],
         kitCategory: existing.kitCategory,
         tested: existing.tested,
         active: existing.active,
@@ -184,6 +193,23 @@ export class AdminProductFormComponent {
 
   protected toggleTransport(mode: string): void {
     this.form.update((f) => ({ ...f, transportModes: toggleWithAllSentinel(f.transportModes, mode) }));
+  }
+
+  protected toggleDuration(label: string): void {
+    this.form.update((f) => ({ ...f, durations: toggleWithAllSentinel(f.durations, label) }));
+  }
+
+  protected toggleGender(gender: string): void {
+    this.form.update((f) => ({ ...f, genders: toggleWithAllSentinel(f.genders, gender) }));
+  }
+
+  /** Duration rows carry a stable `code` the survey answers with; everything else keys off `value`. */
+  private durationCodeFor(label: string): string {
+    return this.masterData.forType('duration').find((v) => v.value === label)?.code ?? label;
+  }
+
+  private durationLabelFor(code: string): string {
+    return this.masterData.forType('duration').find((v) => v.code === code)?.value ?? code;
   }
 
   // Free-text Category changed — only auto-fills Kit Category while it's still unset, so this
@@ -224,6 +250,9 @@ export class AdminProductFormComponent {
       parties: f.parties,
       activities: f.activities,
       transportModes: f.transportModes,
+      // 'All' is the sentinel for "unrestricted" and has no code — pass it through untouched.
+      durations: f.durations.map((label) => (label === 'All' ? label : this.durationCodeFor(label))),
+      genders: f.genders,
       kitCategory: f.kitCategory,
       tested: f.tested,
       active: f.active,

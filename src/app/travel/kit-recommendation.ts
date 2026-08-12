@@ -30,7 +30,7 @@ export interface TripAnswers {
   transportation: Transportation;
   priorityCategories: KitCategory[];
   activities?: string[];
-  gender?: Gender; // collected only — not scored, no gendered catalog data to key off yet
+  gender?: Gender; // soft-boosts products tagged for this gender (see scoreProduct)
 }
 
 export interface KitItem {
@@ -85,6 +85,11 @@ function scoreProduct(product: Product, answers: TripAnswers): number {
   let score = 0;
   if (product.parties.includes(answers.party)) score += 2;
   if (product.transportModes?.includes(answers.transportation)) score += 2;
+  // Soft boosts, mirroring KitEngine's durationBoost/genderBoost — an untagged product suits any
+  // trip length and anyone, so tagging can only lift a product, never exclude it. Durations are
+  // tagged by Duration's stable code, which is exactly what `answers.duration` carries.
+  if (product.durations?.includes(answers.duration)) score += 2;
+  if (answers.gender && product.genders?.includes(answers.gender)) score += 2;
   const activities = answers.activities ?? [];
   score += (product.activities ?? []).filter((activity) => activities.includes(activity)).length;
   if (answers.priorityCategories.includes(product.kitCategory)) score += 5;

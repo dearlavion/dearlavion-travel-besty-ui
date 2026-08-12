@@ -13,9 +13,11 @@
       <path d="M15 6l-6 6 6 6" stroke="#3A2E2E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
   </div>
+  <!-- Shown per admin Kit Settings: multi-answer or optional questions need a way to move on;
+       required single-answer ones advance by themselves once picked. -->
   <div
     class="nav-arrow fwd"
-    [class.hidden]="step() === totalSteps - 1"
+    [class.hidden]="step() === totalSteps - 1 || !showNextButton()"
     [class.disabled]="!canAdvanceFromStep()"
     (click)="goNext()"
   >
@@ -72,7 +74,7 @@
           <div class="tile-label">All</div>
         </div>
       </div>
-      <button class="continue-btn" [class.show]="destinations().length > 0" (click)="continueFromDestinations()">Continue</button>
+      <button class="continue-btn" [class.show]="canAdvanceFromStep()" (click)="continueFromDestinations()">Continue</button>
     </div>
 
     <!-- CARD 2: Season -->
@@ -291,7 +293,7 @@
           </button>
         }
       </div>
-      <button class="continue-btn show" (click)="continueFromActivities()">Continue</button>
+      <button class="continue-btn" [class.show]="canAdvanceFromStep()" (click)="continueFromActivities()">Continue</button>
     </div>
 
     <!-- CARD 7: Kit Category priority (multi-select, at least one required) -->
@@ -311,7 +313,7 @@
           </button>
         }
       </div>
-      <button class="continue-btn" [class.show]="priorityCategories().length > 0" (click)="continueFromPriorityCategories()">Continue</button>
+      <button class="continue-btn" [class.show]="canAdvanceFromStep()" (click)="continueFromPriorityCategories()">Continue</button>
     </div>
 
     <!-- CARD 8: Gender (single-select, optional) -->

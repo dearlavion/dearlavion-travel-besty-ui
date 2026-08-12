@@ -6,8 +6,41 @@
       {{ totalValues() }} values in total. Open a collection to view and edit its rows.
     </p>
   </div>
-  <a routerLink="/admin/kit-settings" class="ghost-btn">Kit Settings →</a>
+  <div class="head-actions">
+    <a routerLink="/admin/kit-settings" class="ghost-btn">Kit Settings →</a>
+    @if (!creating()) {
+      <button type="button" class="add-btn" (click)="startCreating()">+ New Collection</button>
+    }
+  </div>
 </div>
+
+@if (creating()) {
+  <div class="create-panel">
+    <label class="create-field">
+      <span>Collection name</span>
+      <input
+        type="text"
+        placeholder="e.g. Fabric Types"
+        [ngModel]="newLabel()"
+        (ngModelChange)="newLabel.set($event)"
+        (keydown.enter)="createCollection()"
+      />
+      @if (newLabelError()) {
+        <small class="create-error" role="alert">{{ newLabelError() }}</small>
+      } @else if (newKey()) {
+        <small>Key <code>{{ newKey() }}</code> · values at <code>/collections/{{ newKey() }}/items</code></small>
+      } @else {
+        <small>The key and REST path are derived from the name.</small>
+      }
+    </label>
+    <div class="create-actions">
+      <button type="button" class="cancel-btn" (click)="cancelCreating()">Cancel</button>
+      <button type="button" class="add-btn" [disabled]="!newLabel().trim() || !!newLabelError()" (click)="createCollection()">
+        Create
+      </button>
+    </div>
+  </div>
+}
 
 <div class="search-bar">
   <input
@@ -27,6 +60,7 @@
         <th>API path</th>
         <th class="num-col">Values</th>
         <th>Sample</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -39,10 +73,25 @@
           <td><code>/{{ row.path }}</code></td>
           <td class="num-col">{{ row.count }}</td>
           <td class="preview-cell">{{ row.preview || '—' }}</td>
+          <td class="actions-cell">
+            @if (row.builtIn) {
+              <!-- Built-ins are renameable but never deletable: the survey and kit-scoring engine
+                   reference their keys by name, so the backend refuses a delete outright. -->
+              <span class="builtin-badge" title="Built-in collection — cannot be deleted">Built-in</span>
+            } @else if (confirmingDeleteKey() === row.key) {
+              <span class="confirm-row">
+                Delete with its {{ row.count }} value{{ row.count === 1 ? '' : 's' }}?
+                <button type="button" class="confirm-yes" (click)="confirmDelete(row)">Yes</button>
+                <button type="button" class="confirm-cancel" (click)="cancelDelete()">Cancel</button>
+              </span>
+            } @else {
+              <button type="button" class="delete-link" (click)="requestDelete(row.key)">Delete</button>
+            }
+          </td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="5" class="no-results">No collections match this search.</td>
+          <td colspan="6" class="no-results">No collections match this search.</td>
         </tr>
       }
     </tbody>

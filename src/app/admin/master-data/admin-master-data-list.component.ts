@@ -1,11 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
-  MASTER_DATA_COLLECTIONS,
+  deriveCollectionKey,
   MasterDataCollection,
   MasterDataService,
 } from '../../common/master-data/master-data.service';
+import { ToastService } from '../../common/toast/toast.service';
 import { PaginationComponent } from '../../common/pagination/pagination.component';
 
 interface CollectionRow extends MasterDataCollection {
@@ -31,6 +32,8 @@ const PREVIEW_COUNT = 4;
 })
 export class AdminMasterDataListComponent {
   private readonly masterData = inject(MasterDataService);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   protected readonly search = signal('');
   protected readonly page = signal(0); // 0-indexed
@@ -40,10 +43,13 @@ export class AdminMasterDataListComponent {
   // AdminKitSettingsComponent.sections().
   protected readonly rows = computed<CollectionRow[]>(() => {
     const order = this.masterData.typeOrder();
-    const byKey = new Map(MASTER_DATA_COLLECTIONS.map((c) => [c.key, c]));
+    const registry = this.masterData.collections();
+    const byKey = new Map(registry.map((c) => [c.key, c]));
     const ordered = order.map((key) => byKey.get(key)).filter((c): c is MasterDataCollection => !!c);
     const seen = new Set(ordered.map((c) => c.key));
-    const all = [...ordered, ...MASTER_DATA_COLLECTIONS.filter((c) => !seen.has(c.key))];
+    // Admin-created collections aren't in typeOrder until someone puts them there, so they land
+    // here — appended after the ordered ones rather than dropped.
+    const all = [...ordered, ...registry.filter((c) => !seen.has(c.key))];
 
     return all.map((collection) => {
       const values = this.masterData.forType(collection.key);
@@ -87,5 +93,58 @@ export class AdminMasterDataListComponent {
 
   protected goToPage(page: number): void {
     this.page.set(Math.max(0, Math.min(page, this.totalPages() - 1)));
+  }
+
+  // ── New collection ────────────────────────────────────────────────────────────────────────────
+  protected readonly creating = signal(false);
+  protected readonly newLabel = signal('');
+
+  /** Previews the key the backend will derive, so the admin sees the URL segment before saving. */
+  protected readonly newKey = computed(() => deriveCollectionKey(this.newLabel()));
+
+  protected readonly newLabelError = computed<string | null>(() => {
+    const label = this.newLabel().trim();
+    if (!label) return null; // nothing typed yet — not an error, just an inactive Create button
+    if (!this.newKey()) return 'Use at least one letter or number.';
+    if (this.rows().some((r) => r.key === this.newKey())) return `A collection with key "${this.newKey()}" already exists.`;
+    return null;
+  });
+
+  protected startCreating(): void {
+    this.creating.set(true);
+    this.newLabel.set('');
+  }
+
+  protected cancelCreating(): void {
+    this.creating.set(false);
+    this.newLabel.set('');
+  }
+
+  protected createCollection(): void {
+    const label = this.newLabel().trim();
+    if (!label || this.newLabelError()) return;
+    this.masterData.createCollection(label, (created) => {
+      this.creating.set(false);
+      this.newLabel.set('');
+      this.toast.success(`Created "${created.label}" — add its values next`);
+      this.router.navigate(['/admin/master-data', created.key]);
+    });
+  }
+
+  // ── Delete (custom collections only — built-ins are refused by the backend) ────────────────────
+  protected readonly confirmingDeleteKey = signal<string | null>(null);
+
+  protected requestDelete(key: string): void {
+    this.confirmingDeleteKey.set(key);
+  }
+
+  protected cancelDelete(): void {
+    this.confirmingDeleteKey.set(null);
+  }
+
+  protected confirmDelete(row: CollectionRow): void {
+    this.masterData.deleteCollection(row.key);
+    this.confirmingDeleteKey.set(null);
+    this.toast.success(`Deleted "${row.label}"`);
   }
 }

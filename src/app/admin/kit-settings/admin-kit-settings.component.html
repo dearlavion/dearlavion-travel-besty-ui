@@ -10,13 +10,13 @@
 
 <div class="order-bar" [class.has-error]="!!orderError()">
   <div class="order-bar-text">
-    <strong>Section order</strong>
-    <span>Positions apply across every page — saving writes all {{ sections().length }} sections at once.</span>
+    <strong>Survey questions</strong>
+    <span>Order, and how each question behaves. Saving writes all {{ sections().length }} sections at once.</span>
     @if (orderError()) {
       <p class="order-error" role="alert">{{ orderError() }}</p>
     }
   </div>
-  <button type="button" class="save-order-btn" [disabled]="!!orderError()" (click)="saveOrder()">Save Order</button>
+  <button type="button" class="save-order-btn" [disabled]="!!orderError()" (click)="saveSettings()">Save Settings</button>
 </div>
 
 <div class="table-wrap">
@@ -26,6 +26,8 @@
         <th class="order-col">Order</th>
         <th>Collection</th>
         <th class="num-col">Values</th>
+        <th>Answer</th>
+        <th>Selection</th>
         <th>What it drives</th>
       </tr>
     </thead>
@@ -49,11 +51,33 @@
             <a [routerLink]="['/admin/master-data', section.axis]" class="row-link">{{ section.title }}</a>
           </td>
           <td class="num-col">{{ valueCount(section.axis) }}</td>
+          <td>
+            <select
+              class="behaviour-select"
+              [ngModel]="settingsDraftFor(section.axis).required"
+              (ngModelChange)="setRequired(section.axis, $event)"
+              [attr.aria-label]="'Is the ' + section.title + ' question required?'"
+            >
+              <option [ngValue]="true">Required</option>
+              <option [ngValue]="false">Optional</option>
+            </select>
+          </td>
+          <td>
+            <select
+              class="behaviour-select"
+              [ngModel]="settingsDraftFor(section.axis).multiple"
+              (ngModelChange)="setMultiple(section.axis, $event)"
+              [attr.aria-label]="'How many answers may the ' + section.title + ' question take?'"
+            >
+              <option [ngValue]="false">Single</option>
+              <option [ngValue]="true">Multiple</option>
+            </select>
+          </td>
           <td class="note-cell">{{ section.description }}</td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="4" class="no-results">No sections configured.</td>
+          <td colspan="6" class="no-results">No sections configured.</td>
         </tr>
       }
     </tbody>

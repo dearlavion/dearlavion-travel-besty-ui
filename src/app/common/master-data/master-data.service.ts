@@ -18,25 +18,34 @@ export type MasterDataType =
 export interface MasterDataCollection {
   key: string;
   label: string;
-  /** REST path segment on dearlavion-spring-master-data-service, e.g. GET /destinations. */
+  /**
+   * REST path segment on dearlavion-spring-master-data-service, relative to its root: a built-in's
+   * own resource (`destinations`) or `collections/<key>/items` for an admin-created one. Writes are
+   * always at `admin/<path>`, so this single field builds every URL either way.
+   */
   path: string;
+  /** The 8 originals — renameable, but never deletable (see the service's CollectionRegistryService). */
+  builtIn: boolean;
 }
 
-// Mirrors the 8 reference-data types dearlavion-spring-master-data-service owns (see that repo's
-// README) — each is its own Mongo collection/REST resource, not one generic type-keyed collection.
-export const MASTER_DATA_COLLECTIONS: MasterDataCollection[] = [
-  { key: 'destination', label: 'Destinations', path: 'destinations' },
-  { key: 'season', label: 'Seasons', path: 'seasons' },
-  { key: 'party', label: 'Parties', path: 'parties' },
-  { key: 'transportation', label: 'Transportation', path: 'transportation-modes' },
-  { key: 'activity', label: 'Activities', path: 'activities' },
-  { key: 'kitCategory', label: 'Kit Categories', path: 'kit-categories' },
-  { key: 'duration', label: 'Durations', path: 'durations' },
-  { key: 'gender', label: 'Genders', path: 'genders' },
+// The 8 originals, as the backend seeds them into its `collections` registry. Used as mock-mode
+// seed data and as the fallback if GET /collections fails, so the app still works offline — the
+// registry itself is the source of truth in real mode, and it can hold admin-created collections
+// beyond these.
+export const BUILT_IN_COLLECTIONS: MasterDataCollection[] = [
+  { key: 'destination', label: 'Destinations', path: 'destinations', builtIn: true },
+  { key: 'season', label: 'Seasons', path: 'seasons', builtIn: true },
+  { key: 'party', label: 'Parties', path: 'parties', builtIn: true },
+  { key: 'transportation', label: 'Transportation', path: 'transportation-modes', builtIn: true },
+  { key: 'activity', label: 'Activities', path: 'activities', builtIn: true },
+  { key: 'kitCategory', label: 'Kit Categories', path: 'kit-categories', builtIn: true },
+  { key: 'duration', label: 'Durations', path: 'durations', builtIn: true },
+  { key: 'gender', label: 'Genders', path: 'genders', builtIn: true },
 ];
 
-function pathFor(type: string): string {
-  return MASTER_DATA_COLLECTIONS.find((c) => c.key === type)?.path ?? type;
+/** Path convention for an admin-created collection — mirrors CollectionDefinition.customPath(). */
+export function customCollectionPath(key: string): string {
+  return `collections/${key}/items`;
 }
 
 export interface MasterDataValue {
@@ -67,8 +76,32 @@ export const DEFAULT_TYPE_ORDER: MasterDataType[] = [
   'gender',
 ];
 
+/** How one collection behaves as a survey question — set per section on admin Kit Settings. */
+export interface SectionSettings {
+  required: boolean;
+  multiple: boolean;
+}
+
+/** Falls back to required + single-select, matching the backend's own default for an unknown key. */
+export const DEFAULT_SECTION_SETTINGS: SectionSettings = { required: true, multiple: false };
+
+// Mirrors KitSettings.defaultSections() on the backend — today's actual survey behaviour, so
+// defaulting changes nothing until an admin edits it.
+export const DEFAULT_SECTION_SETTINGS_BY_TYPE: Record<string, SectionSettings> = {
+  destination: { required: true, multiple: true },
+  season: { required: true, multiple: false },
+  duration: { required: true, multiple: false },
+  party: { required: true, multiple: false },
+  transportation: { required: true, multiple: false },
+  activity: { required: false, multiple: true },
+  kitCategory: { required: true, multiple: true },
+  gender: { required: false, multiple: false },
+};
+
 const STORAGE_KEY = 'travel-besty-master-data';
 const TYPE_ORDER_STORAGE_KEY = 'travel-besty-master-data-type-order';
+const SECTION_SETTINGS_STORAGE_KEY = 'travel-besty-master-data-section-settings';
+const COLLECTIONS_STORAGE_KEY = 'travel-besty-master-data-collections';
 
 // SSR prerenders pages that read master data (e.g. /travel, /shop) and Node has no localStorage —
 // every read/write here must go through this guard or the build breaks.
@@ -94,6 +127,28 @@ function loadStoredTypeOrder(): string[] | null {
   }
 }
 
+function loadStoredSectionSettings(): Record<string, SectionSettings> | null {
+  if (typeof window === 'undefined') return null;
+  const raw = window.localStorage.getItem(SECTION_SETTINGS_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Record<string, SectionSettings>;
+  } catch {
+    return null;
+  }
+}
+
+function loadStoredCollections(): MasterDataCollection[] | null {
+  if (typeof window === 'undefined') return null;
+  const raw = window.localStorage.getItem(COLLECTIONS_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as MasterDataCollection[];
+  } catch {
+    return null;
+  }
+}
+
 /**
  * The 8 admin-editable option lists behind the /travel survey and product tagging (see Kit
  * Settings, /admin/kit-settings) — backed by dearlavion-spring-master-data-service, the single
@@ -109,6 +164,18 @@ export class MasterDataService {
 
   readonly values = signal<MasterDataValue[]>(environment.useMockData ? (loadStored() ?? MASTER_DATA_SEED_DATA) : []);
 
+  /** Every collection this service knows about — the 8 built-ins plus any an admin has created. */
+  readonly collections = signal<MasterDataCollection[]>(
+    environment.useMockData ? (loadStoredCollections() ?? BUILT_IN_COLLECTIONS) : BUILT_IN_COLLECTIONS,
+  );
+
+  /**
+   * True once GET /collections has come back (either way). Until then `collections()` holds only
+   * the built-in fallback, so a page asked for an admin-created key must show "loading" rather than
+   * "no such collection" — mock mode is synchronous and starts true.
+   */
+  readonly registryLoaded = signal(environment.useMockData);
+
   // Admin-configurable order of the 8 types — drives both Kit Settings' section order and the
   // /travel survey's step order, so the two always agree. Falls back to DEFAULT_TYPE_ORDER until
   // an admin has ever saved a custom one.
@@ -116,25 +183,60 @@ export class MasterDataService {
     environment.useMockData ? (loadStoredTypeOrder() ?? DEFAULT_TYPE_ORDER) : DEFAULT_TYPE_ORDER,
   );
 
+  /** Per-collection survey behaviour (optional/required, single/multiple), keyed by collection key. */
+  readonly sectionSettings = signal<Record<string, SectionSettings>>(
+    environment.useMockData
+      ? (loadStoredSectionSettings() ?? DEFAULT_SECTION_SETTINGS_BY_TYPE)
+      : DEFAULT_SECTION_SETTINGS_BY_TYPE,
+  );
+
   constructor() {
     if (!environment.useMockData) {
-      // Unlike the old taxonomy module, master-data-service has no combined "all types" endpoint —
-      // each type is its own collection/resource. Fetch all 8 in parallel and flatten into one
-      // cached signal so every consumer keeps the same eager, always-available forType() shape.
-      for (const collection of MASTER_DATA_COLLECTIONS) {
-        this.http.get<Omit<MasterDataValue, 'type'>[]>(`${environment.masterDataUrl}/${collection.path}`).subscribe({
-          next: (items) => {
-            const withType = items.map((i) => ({ ...i, type: collection.key }));
-            this.values.update((list) => [...list.filter((v) => v.type !== collection.key), ...withType]);
+      // The registry drives everything: which collections exist (built-in or admin-created) and
+      // where each one's values live. Values can only be fetched once it lands, so that request
+      // chains off this one rather than running in parallel with it.
+      this.http.get<MasterDataCollection[]>(`${environment.masterDataUrl}/collections`).subscribe({
+        next: (list) => {
+          this.collections.set(list);
+          this.registryLoaded.set(true);
+          list.forEach((collection) => this.loadValues(collection));
+        },
+        // Keep the app usable against the built-ins if the registry endpoint is unavailable (an
+        // older deploy of the service, say) — only admin-created collections are lost.
+        error: () => {
+          this.collections.set(BUILT_IN_COLLECTIONS);
+          this.registryLoaded.set(true);
+          BUILT_IN_COLLECTIONS.forEach((collection) => this.loadValues(collection));
+        },
+      });
+      // One document holds both the question order and each question's behaviour (formerly the
+      // order-only `type_order` collection — see KitSettingsMigration).
+      this.http
+        .get<{ order: string[]; sections: Record<string, SectionSettings> }>(`${environment.masterDataUrl}/kit-settings`)
+        .subscribe({
+          next: (res) => {
+            if (res.order?.length) this.typeOrder.set(res.order);
+            if (res.sections) this.sectionSettings.set(res.sections);
           },
           error: () => {},
         });
-      }
-      this.http.get<{ order: string[] }>(`${environment.masterDataUrl}/type-order`).subscribe({
-        next: (res) => this.typeOrder.set(res.order),
-        error: () => {},
-      });
     }
+  }
+
+  // Each collection is its own resource — there's no combined "all values" endpoint — so these are
+  // flattened into one cached signal to keep the eager, always-available forType() shape.
+  private loadValues(collection: MasterDataCollection): void {
+    this.http.get<Omit<MasterDataValue, 'type'>[]>(`${environment.masterDataUrl}/${collection.path}`).subscribe({
+      next: (items) => {
+        const withType = items.map((i) => ({ ...i, type: collection.key }));
+        this.values.update((list) => [...list.filter((v) => v.type !== collection.key), ...withType]);
+      },
+      error: () => {},
+    });
+  }
+
+  private pathFor(type: string): string {
+    return this.collections().find((c) => c.key === type)?.path ?? type;
   }
 
   /** Values for one type, in display order. */
@@ -146,7 +248,7 @@ export class MasterDataService {
 
   /** Admin: add a new option. Duration is fixed-cardinality — callers must not offer this for it. */
   create(input: NewMasterDataValue): MasterDataValue {
-    const path = pathFor(input.type);
+    const path = this.pathFor(input.type);
     if (!environment.useMockData) {
       this.http
         .post<Omit<MasterDataValue, 'type'>>(`${environment.masterDataUrl}/admin/${path}`, {
@@ -178,7 +280,7 @@ export class MasterDataService {
     const type = this.values().find((v) => v.id === id)?.type;
     this.values.update((list) => list.map((v) => (v.id === id ? { ...v, ...patch } : v)));
     if (!environment.useMockData && type) {
-      const path = pathFor(type);
+      const path = this.pathFor(type);
       this.http.put<Omit<MasterDataValue, 'type'>>(`${environment.masterDataUrl}/admin/${path}/${id}`, patch).subscribe({
         next: (updated) => this.values.update((list) => list.map((v) => (v.id === id ? { ...updated, type } : v))),
         error: () => {},
@@ -193,7 +295,7 @@ export class MasterDataService {
   delete(id: string): void {
     const type = this.values().find((v) => v.id === id)?.type;
     if (!environment.useMockData && type) {
-      const path = pathFor(type);
+      const path = this.pathFor(type);
       this.http.delete(`${environment.masterDataUrl}/admin/${path}/${id}`).subscribe({
         next: () => this.values.update((list) => list.filter((v) => v.id !== id)),
         error: () => {},
@@ -205,21 +307,116 @@ export class MasterDataService {
     this.persist();
   }
 
-  /** Admin: save a new type order (drag-and-drop on Kit Settings). Applied optimistically so the
-   * page and /travel both reflect it immediately, same pattern as update()/create()/delete(). */
-  updateTypeOrder(order: string[]): void {
-    this.typeOrder.set(order);
+  /** Settings for one collection as a survey question, falling back to required + single-select. */
+  settingsFor(type: string): SectionSettings {
+    return this.sectionSettings()[type] ?? DEFAULT_SECTION_SETTINGS;
+  }
+
+  /**
+   * Admin: save the question order and/or each question's behaviour (Kit Settings). Applied
+   * optimistically so the page and /travel both reflect it immediately, same pattern as
+   * update()/create()/delete(). Either argument may be omitted — the backend merges what it gets.
+   */
+  updateKitSettings(order?: string[], sections?: Record<string, SectionSettings>): void {
+    if (order) this.typeOrder.set(order);
+    if (sections) this.sectionSettings.set(sections);
+
     if (!environment.useMockData) {
-      this.http.put<{ order: string[] }>(`${environment.masterDataUrl}/admin/type-order`, { order }).subscribe({ error: () => {} });
+      const body: { order?: string[]; sections?: Record<string, SectionSettings> } = {};
+      if (order) body.order = order;
+      if (sections) body.sections = sections;
+      this.http.put(`${environment.masterDataUrl}/admin/kit-settings`, body).subscribe({ error: () => {} });
       return;
     }
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(TYPE_ORDER_STORAGE_KEY, JSON.stringify(order));
+      if (order) window.localStorage.setItem(TYPE_ORDER_STORAGE_KEY, JSON.stringify(order));
+      if (sections) window.localStorage.setItem(SECTION_SETTINGS_STORAGE_KEY, JSON.stringify(sections));
     }
+  }
+
+  /** Order-only convenience — used when deleting a collection drops it from the survey. */
+  updateTypeOrder(order: string[]): void {
+    this.updateKitSettings(order);
+  }
+
+  // ── Collections themselves (create/rename/delete), as opposed to the values inside one ────────
+
+  /**
+   * Admin: register a new collection. `key` is derived from the label by the backend when omitted;
+   * the optimistic row below mirrors that derivation so mock mode and the pre-response UI agree.
+   * The callback fires with the created collection so callers can navigate straight into it.
+   */
+  createCollection(label: string, onCreated?: (collection: MasterDataCollection) => void): void {
+    const trimmed = label.trim();
+    const key = deriveCollectionKey(trimmed);
+    const collection: MasterDataCollection = { key, label: trimmed, path: customCollectionPath(key), builtIn: false };
+
+    if (!environment.useMockData) {
+      this.http
+        .post<MasterDataCollection>(`${environment.masterDataUrl}/admin/collections`, { label: trimmed })
+        .subscribe({
+          next: (created) => {
+            this.collections.update((list) => [...list.filter((c) => c.key !== created.key), created]);
+            onCreated?.(created);
+          },
+          error: () => {},
+        });
+      return;
+    }
+
+    this.collections.update((list) => [...list, collection]);
+    this.persistCollections();
+    onCreated?.(collection);
+  }
+
+  /** Admin: rename any collection — built-ins included, since only their key is immutable. */
+  renameCollection(key: string, label: string): void {
+    const trimmed = label.trim();
+    this.collections.update((list) => list.map((c) => (c.key === key ? { ...c, label: trimmed } : c)));
+    if (!environment.useMockData) {
+      this.http
+        .put<MasterDataCollection>(`${environment.masterDataUrl}/admin/collections/${key}`, { label: trimmed })
+        .subscribe({ error: () => {} });
+      return;
+    }
+    this.persistCollections();
+  }
+
+  /**
+   * Admin: delete an admin-created collection and every value in it. Built-ins are refused by the
+   * backend (their keys are referenced by name in the survey and kit-scoring engine), so callers
+   * must not offer this for them.
+   */
+  deleteCollection(key: string): void {
+    this.collections.update((list) => list.filter((c) => c.key !== key));
+    this.values.update((list) => list.filter((v) => v.type !== key));
+    // A deleted collection must not linger in the survey's step order.
+    this.updateTypeOrder(this.typeOrder().filter((type) => type !== key));
+
+    if (!environment.useMockData) {
+      this.http.delete(`${environment.masterDataUrl}/admin/collections/${key}`).subscribe({ error: () => {} });
+      return;
+    }
+    this.persistCollections();
+    this.persist();
   }
 
   private persist(): void {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.values()));
   }
+
+  private persistCollections(): void {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(COLLECTIONS_STORAGE_KEY, JSON.stringify(this.collections()));
+  }
+}
+
+/** "Fabric Types" -> "fabricTypes" — mirrors CollectionRegistryService.deriveKey() on the backend. */
+export function deriveCollectionKey(label: string): string {
+  const words = label.trim().split(/[^A-Za-z0-9]+/).filter(Boolean);
+  const key = words
+    .map((word, i) => (i === 0 ? word.toLowerCase() : word[0].toUpperCase() + word.slice(1).toLowerCase()))
+    .join('');
+  return /^\d/.test(key) ? `c${key}` : key;
 }

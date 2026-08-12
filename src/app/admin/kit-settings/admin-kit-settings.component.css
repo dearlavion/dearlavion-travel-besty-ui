@@ -172,6 +172,24 @@ tr:last-child td {
   border-color: var(--color-coral);
 }
 
+/* Optional/Required and Single/Multiple pickers. */
+.behaviour-select {
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  color: var(--color-ink);
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+.behaviour-select:focus {
+  border-color: var(--color-coral);
+}
+
 /* Every row sharing a duplicate position lights up, so it's obvious which two clash. */
 .order-input.invalid {
   border-color: var(--color-coral-deep);

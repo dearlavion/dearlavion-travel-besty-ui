@@ -2,11 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import {
-  MASTER_DATA_COLLECTIONS,
-  MasterDataService,
-  MasterDataValue,
-} from '../../common/master-data/master-data.service';
+import { MasterDataService, MasterDataValue } from '../../common/master-data/master-data.service';
 import { ToastService } from '../../common/toast/toast.service';
 import { FIXED_CARDINALITY_TYPES } from './fixed-cardinality-types';
 
@@ -34,8 +30,10 @@ export class AdminMasterDataFormComponent {
   private readonly paramMap = toSignal(inject(ActivatedRoute).paramMap);
 
   protected readonly collectionKey = computed(() => this.paramMap()?.get('key') ?? '');
+  // Resolved from the live registry, which loads over HTTP — see notFound()/loading() below for
+  // why this can't be a synchronous one-shot lookup.
   protected readonly collection = computed(
-    () => MASTER_DATA_COLLECTIONS.find((c) => c.key === this.collectionKey()) ?? null,
+    () => this.masterData.collections().find((c) => c.key === this.collectionKey()) ?? null,
   );
 
   // The list route registers 'master-data/:key/new' ahead of 'master-data/:key/:id', so a literal
@@ -57,9 +55,14 @@ export class AdminMasterDataFormComponent {
   // on a direct link/reload straight onto this URL (same trap AdminPopularKitFormComponent
   // documents).
   private readonly collectionLoaded = computed(() => this.masterData.forType(this.collectionKey()).length > 0);
-  protected readonly loading = computed(() => this.isEditMode() && !this.existing() && !this.collectionLoaded());
+  protected readonly loading = computed(
+    () =>
+      !this.masterData.registryLoaded() || (this.isEditMode() && !this.existing() && !this.collectionLoaded()),
+  );
   protected readonly notFound = computed(
-    () => !this.collection() || (this.isEditMode() && this.collectionLoaded() && !this.existing()),
+    () =>
+      this.masterData.registryLoaded() &&
+      (!this.collection() || (this.isEditMode() && this.collectionLoaded() && !this.existing())),
   );
 
   protected readonly form = signal<MasterDataFormModel>({ value: '', order: 0, emoji: '', subtext: '' });
