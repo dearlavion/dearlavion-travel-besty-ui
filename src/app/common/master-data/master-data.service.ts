@@ -209,10 +209,11 @@ export class MasterDataService {
           BUILT_IN_COLLECTIONS.forEach((collection) => this.loadValues(collection));
         },
       });
-      // One document holds both the question order and each question's behaviour (formerly the
-      // order-only `type_order` collection — see KitSettingsMigration).
+      // Kit settings live on store-engine (environment.apiUrl), not master-data: that service owns
+      // the survey engine these settings configure, while master-data owns the option lists whose
+      // keys they reference.
       this.http
-        .get<{ order: string[]; sections: Record<string, SectionSettings> }>(`${environment.masterDataUrl}/kit-settings`)
+        .get<{ order: string[]; sections: Record<string, SectionSettings> }>(`${environment.apiUrl}/kit-settings`)
         .subscribe({
           next: (res) => {
             if (res.order?.length) this.typeOrder.set(res.order);
@@ -325,7 +326,7 @@ export class MasterDataService {
       const body: { order?: string[]; sections?: Record<string, SectionSettings> } = {};
       if (order) body.order = order;
       if (sections) body.sections = sections;
-      this.http.put(`${environment.masterDataUrl}/admin/kit-settings`, body).subscribe({ error: () => {} });
+      this.http.put(`${environment.apiUrl}/admin/kit-settings`, body).subscribe({ error: () => {} });
       return;
     }
     if (typeof window !== 'undefined') {
