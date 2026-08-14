@@ -222,6 +222,10 @@ export class AdminProductFormComponent {
     });
   }
 
+  // The shared dropdown speaks in arrays even when picking one, so the single field is adapted at
+  // the boundary rather than widened in the form model.
+  protected readonly selectedKitCategory = computed(() => (this.form().kitCategory ? [this.form().kitCategory] : []));
+
   protected updateKitCategory(value: string): void {
     this.form.update((f) => ({ ...f, kitCategory: value }));
   }

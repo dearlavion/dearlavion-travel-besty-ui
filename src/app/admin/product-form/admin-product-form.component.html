@@ -66,15 +66,20 @@
         </div>
       </div>
 
-      <label>
-        <span>Kit Category — which packing-list bucket this belongs to (boosts it when a shopper says this matters most)</span>
-        <select required [ngModel]="form().kitCategory" (ngModelChange)="updateKitCategory($event)" name="kitCategory">
-          <option value="" disabled>Choose one...</option>
-          @for (opt of kitCategoryOptions(); track opt) {
-            <option [value]="opt">{{ opt }}</option>
-          }
-        </select>
-      </label>
+      <!-- Single-select, unlike every other tag field here: a product belongs to exactly one
+           packing-list bucket, and save() refuses to submit without it. -->
+      <div class="dropdown-field">
+        <span class="dropdown-field-label">
+          Kit Category — which packing-list bucket this belongs to (boosts it when a shopper says this matters most)
+        </span>
+        <app-multi-select-dropdown
+          [options]="kitCategoryOptions()"
+          [selected]="selectedKitCategory()"
+          [multiple]="false"
+          emptyLabel="Choose one..."
+          (toggleValue)="updateKitCategory($event)"
+        />
+      </div>
 
       <div class="dropdown-field">
         <span class="dropdown-field-label">Seasons (none selected = applies to all)</span>

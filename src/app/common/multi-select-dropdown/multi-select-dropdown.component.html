@@ -9,7 +9,11 @@
     <div class="dropdown-panel">
       @for (opt of displayOptions(); track opt) {
         <label class="dropdown-option">
-          <input type="checkbox" [checked]="isSelected(opt)" (change)="onToggleValue(opt)" />
+          <input
+            [type]="multiple() ? 'checkbox' : 'radio'"
+            [checked]="isSelected(opt)"
+            (change)="onToggleValue(opt)"
+          />
           <span>{{ opt }}</span>
         </label>
       } @empty {
