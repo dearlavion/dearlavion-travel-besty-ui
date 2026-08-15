@@ -288,4 +288,40 @@
   } @else {
     <p class="items-hint">Save this product first — you'll add its purchasable item(s) right after.</p>
   }
+
+  <!-- Walk the catalog without going back to the list. Same A→Z order as /admin/products, so
+       "next" is the next row there. Edit mode only — there's no neighbour for an unsaved product. -->
+  @if (isEditMode()) {
+    <nav class="product-nav" aria-label="Previous and next product">
+      @if (previousProduct(); as prev) {
+        <a [routerLink]="['/admin/products', routeKeyFor(prev), 'edit']" class="product-nav-link prev">
+          <span class="product-nav-arrow">←</span>
+          <span class="product-nav-text">
+            <span class="product-nav-label">Previous</span>
+            <span class="product-nav-name">{{ prev.name }}</span>
+          </span>
+        </a>
+      } @else {
+        <span class="product-nav-link disabled">
+          <span class="product-nav-arrow">←</span>
+          <span class="product-nav-text"><span class="product-nav-label">First product</span></span>
+        </span>
+      }
+
+      @if (nextProduct(); as next) {
+        <a [routerLink]="['/admin/products', routeKeyFor(next), 'edit']" class="product-nav-link next">
+          <span class="product-nav-text">
+            <span class="product-nav-label">Next</span>
+            <span class="product-nav-name">{{ next.name }}</span>
+          </span>
+          <span class="product-nav-arrow">→</span>
+        </a>
+      } @else {
+        <span class="product-nav-link disabled next">
+          <span class="product-nav-text"><span class="product-nav-label">Last product</span></span>
+          <span class="product-nav-arrow">→</span>
+        </span>
+      }
+    </nav>
+  }
 }

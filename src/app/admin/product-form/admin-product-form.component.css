@@ -471,3 +471,81 @@ textarea:focus {
   font-weight: 700;
   cursor: pointer;
 }
+
+/* Previous/next product — walk the catalog in the same A→Z order the product list uses, without
+   going back to it. Sits below the items section, at the very bottom of the page. */
+.product-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-line);
+}
+
+.product-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 12px 18px;
+  border: 1.5px solid var(--color-line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.product-nav-link.next {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+a.product-nav-link:hover {
+  border-color: var(--color-coral);
+  color: var(--color-coral);
+}
+
+.product-nav-link.disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.product-nav-arrow {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.product-nav-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.product-nav-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.product-nav-name {
+  font-family: var(--font-heading);
+  font-size: 14.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .product-nav-name {
+    display: none; /* arrows + Previous/Next only — names blow out the row at this width */
+  }
+}

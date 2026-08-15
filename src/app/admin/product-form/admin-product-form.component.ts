@@ -108,6 +108,38 @@ export class AdminProductFormComponent {
   });
   protected readonly productSearch = signal('');
 
+  // ── Previous/next product ─────────────────────────────────────────────────────────────────────
+  // Same A→Z-by-name order the product list shows, so "next" here means the next row there rather
+  // than an order that only exists on this page.
+  private readonly orderedProducts = computed<Product[]>(() =>
+    [...this.catalog.products()].sort((a, b) => a.name.localeCompare(b.name)),
+  );
+
+  private readonly currentIndex = computed(() => {
+    const id = this.editingId();
+    if (id === null) return -1;
+    // The route key may be an id or a slug (getById() accepts either), so match on both.
+    return this.orderedProducts().findIndex((p) => p.id === id || p.slug === id);
+  });
+
+  protected readonly previousProduct = computed<Product | null>(() => {
+    const i = this.currentIndex();
+    return i > 0 ? this.orderedProducts()[i - 1] : null;
+  });
+
+  protected readonly nextProduct = computed<Product | null>(() => {
+    const i = this.currentIndex();
+    const list = this.orderedProducts();
+    return i !== -1 && i < list.length - 1 ? list[i + 1] : null;
+  });
+
+  /** Keeps the URL in the same shape the current route uses — slug if you arrived by slug. */
+  protected routeKeyFor(product: Product): string {
+    const current = this.editingId();
+    const arrivedBySlug = current !== null && product.slug !== undefined && this.orderedProducts().some((p) => p.slug === current);
+    return arrivedBySlug ? (product.slug ?? product.id) : product.id;
+  }
+
   // Products matching the current search, for the "link a product" checklist — excludes this
   // product itself (in edit mode) and anything already linked.
   protected readonly searchResults = computed<Product[]>(() => {
@@ -127,7 +159,10 @@ export class AdminProductFormComponent {
       .filter((p): p is Product => !!p),
   );
 
-  private formLoaded = false;
+  // Which product the form currently holds. Not a boolean "loaded" flag: the previous/next links
+  // move between products on the same route, and Angular reuses this component instance for that,
+  // so the only signal that the form needs repopulating is the route id changing.
+  private loadedProductId: string | null = null;
 
   constructor() {
     // Reads catalog.products() directly (the "link a product" search picker below), in both add
@@ -135,21 +170,21 @@ export class AdminProductFormComponent {
     // getById() below.
     this.catalog.ensureAllLoaded();
 
-    const id = this.editingId();
-    if (!id) return; // add mode — nothing to load
-
-    // Doesn't depend on the generic Product having loaded — items are looked up by productId (a
-    // plain route string), not through ProductCatalogService.
-    this.productItems.loadAdminItems(id);
-
-    // Real-backend mode loads `catalog.products()` asynchronously — populate the form the moment
-    // this product shows up rather than assuming it's already there synchronously (mock mode's
-    // catalog is synchronous, so this fires on the very first run there).
+    // Reads editingId() inside the effect (not once in the constructor) so navigating between
+    // products re-runs it. Real-backend mode also loads `catalog.products()` asynchronously, so
+    // this doubles as "populate the moment this product shows up" — mock mode's catalog is
+    // synchronous and fires on the first run.
     effect(() => {
-      if (this.formLoaded) return;
+      const id = this.editingId();
+      if (!id) return; // add mode — nothing to load
+      if (this.loadedProductId === id) return; // already showing this product
       const existing = this.catalog.getById(id);
-      if (!existing) return;
-      this.formLoaded = true;
+      if (!existing) return; // catalog still loading
+      this.loadedProductId = id;
+
+      // Item lookups key off the route id directly, not the resolved Product.
+      this.productItems.loadAdminItems(id);
+
       this.form.set({
         name: existing.name,
         category: existing.category,
