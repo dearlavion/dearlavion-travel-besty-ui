@@ -102,6 +102,40 @@ export const DEFAULT_SECTION_SETTINGS_BY_TYPE: Record<string, SectionSettings> =
   gender: { required: false, multiple: false },
 };
 
+/** Mirrors KitSettings.DEFAULT_PRODUCT_ORDER — Category and Kit Categories lead, both required. */
+export const DEFAULT_PRODUCT_FORM_ORDER = [
+  'productCategory',
+  'kitCategory',
+  'destination',
+  'season',
+  'duration',
+  'party',
+  'transportation',
+  'activity',
+  'gender',
+];
+
+// Mirrors KitSettings.defaultProductSections(). Deliberately not the survey's shapes: a shopper
+// picks one trip length and one gender, but a product's `durations`/`genders` are arrays.
+export const DEFAULT_PRODUCT_FORM_SETTINGS: Record<string, SectionSettings> = {
+  productCategory: { required: true, multiple: false },
+  kitCategory: { required: true, multiple: true },
+  destination: { required: false, multiple: true },
+  season: { required: false, multiple: true },
+  duration: { required: false, multiple: true },
+  party: { required: false, multiple: true },
+  transportation: { required: false, multiple: true },
+  activity: { required: false, multiple: true },
+  gender: { required: false, multiple: true },
+};
+
+interface KitSettingsResponse {
+  order?: string[];
+  sections?: Record<string, SectionSettings>;
+  survey?: { order: string[]; sections: Record<string, SectionSettings> };
+  productForm?: { order: string[]; sections: Record<string, SectionSettings> };
+}
+
 const STORAGE_KEY = 'travel-besty-master-data';
 const TYPE_ORDER_STORAGE_KEY = 'travel-besty-master-data-type-order';
 const SECTION_SETTINGS_STORAGE_KEY = 'travel-besty-master-data-section-settings';
@@ -187,6 +221,14 @@ export class MasterDataService {
     environment.useMockData ? (loadStoredTypeOrder() ?? DEFAULT_TYPE_ORDER) : DEFAULT_TYPE_ORDER,
   );
 
+  /**
+   * What the admin product form shows: which collections a product can be tagged with, in what
+   * order. Separate from the survey's list because the two answer different questions about the
+   * same collection — a shopper picks one trip length, a product suits several.
+   */
+  readonly productFormOrder = signal<string[]>(DEFAULT_PRODUCT_FORM_ORDER);
+  readonly productFormSettings = signal<Record<string, SectionSettings>>(DEFAULT_PRODUCT_FORM_SETTINGS);
+
   /** Per-collection survey behaviour (optional/required, single/multiple), keyed by collection key. */
   readonly sectionSettings = signal<Record<string, SectionSettings>>(
     environment.useMockData
@@ -217,11 +259,16 @@ export class MasterDataService {
       // the survey engine these settings configure, while master-data owns the option lists whose
       // keys they reference.
       this.http
-        .get<{ order: string[]; sections: Record<string, SectionSettings> }>(`${environment.apiUrl}/kit-settings`)
+        .get<KitSettingsResponse>(`${environment.apiUrl}/kit-settings`)
         .subscribe({
           next: (res) => {
-            if (res.order?.length) this.typeOrder.set(res.order);
-            if (res.sections) this.sectionSettings.set(res.sections);
+            // `survey` is the split-out shape; the top-level order/sections is the same data
+            // repeated for clients written before the split.
+            const survey = res.survey ?? res;
+            if (survey.order?.length) this.typeOrder.set(survey.order);
+            if (survey.sections) this.sectionSettings.set(survey.sections);
+            if (res.productForm?.order?.length) this.productFormOrder.set(res.productForm.order);
+            if (res.productForm?.sections) this.productFormSettings.set(res.productForm.sections);
           },
           error: () => {},
         });
@@ -315,6 +362,26 @@ export class MasterDataService {
   /** Settings for one collection as a survey question, falling back to required + single-select. */
   settingsFor(type: string): SectionSettings {
     return this.sectionSettings()[type] ?? DEFAULT_SECTION_SETTINGS;
+  }
+
+  /**
+   * Settings for one collection as a product form field. A collection with no entry defaults to an
+   * optional multi-select — every product axis is a list, and empty means "suits all".
+   */
+  productSettingsFor(type: string): SectionSettings {
+    return this.productFormSettings()[type] ?? { required: false, multiple: true };
+  }
+
+  /** Admin: save the product form's field list and per-field shape. */
+  updateProductFormSettings(order?: string[], sections?: Record<string, SectionSettings>): void {
+    if (order) this.productFormOrder.set(order);
+    if (sections) this.productFormSettings.set(sections);
+    if (!environment.useMockData) {
+      const body: { order?: string[]; sections?: Record<string, SectionSettings> } = {};
+      if (order) body.order = order;
+      if (sections) body.sections = sections;
+      this.http.put(`${environment.apiUrl}/admin/kit-settings/product-form`, body).subscribe({ error: () => {} });
+    }
   }
 
   /**

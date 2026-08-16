@@ -1,0 +1,105 @@
+<section class="settings-card" [class.has-error]="!!orderError()">
+  <header class="card-head">
+    <div class="card-head-text">
+      <span class="card-eyebrow">{{ eyebrow() }}</span>
+      <h2>{{ title() }}</h2>
+      <p>{{ blurb() }}</p>
+    </div>
+    <button type="button" class="save-order-btn" [disabled]="!!orderError()" (click)="onSave()">
+      Save {{ itemNoun() }}s
+    </button>
+  </header>
+
+  @if (orderError()) {
+    <p class="order-error" role="alert">{{ orderError() }}</p>
+  }
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="order-col">Order</th>
+        <th>Collection</th>
+        <th class="num-col">Values</th>
+        <th>Answer</th>
+        <th>Selection</th>
+        <th>What it drives</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (collection of rows(); track collection.key) {
+        <tr>
+          <td class="order-col">
+            <input
+              type="number"
+              class="order-input"
+              [class.invalid]="isDuplicateOrder(collection.key)"
+              min="1"
+              step="1"
+              [ngModel]="orderDraftFor(collection.key)"
+              (ngModelChange)="setOrderDraft(collection.key, $event)"
+              [attr.aria-label]="'Position of ' + collection.label"
+            />
+          </td>
+          <td class="name-cell">
+            <a [routerLink]="['/admin/master-data', collection.key]" class="row-link">{{ collection.label }}</a>
+          </td>
+          <td class="num-col">{{ valueCounts()[collection.key] ?? 0 }}</td>
+          <td>
+            <select
+              class="behaviour-select"
+              [ngModel]="settingsDraftFor(collection.key).required"
+              (ngModelChange)="setRequired(collection.key, $event)"
+              [attr.aria-label]="'Is ' + collection.label + ' required?'"
+            >
+              <option [ngValue]="true">Required</option>
+              <option [ngValue]="false">Optional</option>
+            </select>
+          </td>
+          <td>
+            <select
+              class="behaviour-select"
+              [ngModel]="settingsDraftFor(collection.key).multiple"
+              (ngModelChange)="setMultiple(collection.key, $event)"
+              [attr.aria-label]="'How many answers may ' + collection.label + ' take?'"
+            >
+              <option [ngValue]="false">Single</option>
+              <option [ngValue]="true">Multiple</option>
+            </select>
+          </td>
+          <td class="note-cell">{{ descriptions()[collection.key] ?? '' }}</td>
+          <td class="actions-cell">
+            @if (confirmingRemoveKey() === collection.key) {
+              <span class="confirm-row">
+                Remove the {{ itemNoun() }}?
+                <button type="button" class="confirm-yes" (click)="removeCollection.emit(collection.key)">Yes</button>
+                <button type="button" class="confirm-cancel" (click)="confirmingRemoveKey.set(null)">Cancel</button>
+              </span>
+            } @else {
+              <button type="button" class="delete-link" (click)="confirmingRemoveKey.set(collection.key)">Remove</button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" class="no-results">Nothing here yet — add a collection below.</td>
+        </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+  @if (available().length > 0) {
+    <footer class="card-foot">
+      <span class="card-foot-label">Add a {{ itemNoun() }}</span>
+      <div class="available-list">
+        @for (collection of available(); track collection.key) {
+          <button type="button" class="available-chip" (click)="addCollection.emit(collection.key)">
+            <span class="available-chip-plus">+</span>{{ collection.label }}
+          </button>
+        }
+      </div>
+    </footer>
+  }
+</section>

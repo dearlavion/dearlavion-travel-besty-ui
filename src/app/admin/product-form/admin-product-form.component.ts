@@ -253,27 +253,26 @@ export class AdminProductFormComponent {
     gender: 'genders',
   };
 
-  /** Category first, then kit categories, then the survey's own step order, then anything new. */
+  /**
+   * The product form's own field list, from Kit Settings' product-form table — not the survey's.
+   * The two answer different questions about the same collection: a shopper picks one trip length,
+   * a product suits several, so borrowing the survey's `multiple` renders those fields
+   * single-select and silently drops the admin's earlier pick.
+   */
   protected readonly tagCollections = computed<MasterDataCollection[]>(() => {
-    const all = this.masterData.collections();
-    const lead = ['productCategory', 'kitCategory'];
-    const ordered = [...lead, ...this.masterData.typeOrder().filter((k) => !lead.includes(k))];
-    const byKey = new Map(all.map((c) => [c.key, c]));
-    const first = ordered.map((k) => byKey.get(k)).filter((c): c is MasterDataCollection => !!c);
-    const seen = new Set(first.map((c) => c.key));
-    return [...first, ...all.filter((c) => !seen.has(c.key))];
+    const byKey = new Map(this.masterData.collections().map((c) => [c.key, c]));
+    return this.masterData
+      .productFormOrder()
+      .map((k) => byKey.get(k))
+      .filter((c): c is MasterDataCollection => !!c);
   });
 
   protected optionsFor(key: string): string[] {
     return this.masterData.forType(key).map((v) => v.value);
   }
 
-  /**
-   * A collection the admin registered at runtime defaults to an optional multi-select — a loose
-   * tag — until someone gives it a shape in Kit Settings. The built-ins carry real defaults there.
-   */
   protected settingsFor(key: string): SectionSettings {
-    return this.masterData.sectionSettings()[key] ?? { required: false, multiple: true };
+    return this.masterData.productSettingsFor(key);
   }
 
   protected selectedFor(key: string): string[] {

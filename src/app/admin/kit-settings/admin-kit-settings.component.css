@@ -30,37 +30,6 @@
 }
 
 /* Section-order controls: one order input per table row, saved together from this bar. */
-.order-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  background: #fff;
-  border: 1.5px solid var(--color-line);
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin-bottom: 20px;
-}
-
-.order-bar.has-error {
-  border-color: var(--color-coral-deep);
-}
-
-.order-bar-text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 12.5px;
-  color: var(--color-ink-soft);
-  min-width: 0;
-}
-
-.order-bar-text strong {
-  font-size: 14px;
-  color: var(--color-ink);
-}
-
 .order-error {
   margin: 4px 0 0;
   font-size: 12.5px;
@@ -203,33 +172,6 @@ tr:last-child td {
 }
 
 /* Collections registered in Master Data that the survey doesn't ask about. */
-.available-box {
-  margin-top: 24px;
-  padding: 18px 20px;
-  border: 1.5px dashed var(--color-line);
-  border-radius: 16px;
-  background: #fff;
-}
-
-.available-head {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  font-size: 12.5px;
-  color: var(--color-ink-soft);
-  margin-bottom: 12px;
-}
-
-.available-head strong {
-  font-size: 14px;
-  color: var(--color-ink);
-}
-
-.available-head a {
-  color: var(--color-coral-deep);
-  font-weight: 700;
-}
-
 .available-list {
   display: flex;
   flex-wrap: wrap;
@@ -246,22 +188,6 @@ tr:last-child td {
   font-size: 13px;
   font-weight: 700;
   color: var(--color-ink);
-}
-
-.available-chip button {
-  border: none;
-  background: var(--color-coral);
-  color: #fff;
-  border-radius: 999px;
-  padding: 5px 12px;
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.available-chip button:hover {
-  background: var(--color-coral-deep);
 }
 
 .actions-cell {
@@ -313,4 +239,129 @@ tr:last-child td {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* Space between the two context tables. */
+
+/* ── One card per context ──────────────────────────────────────────────────────────────────────
+   The survey list and the product-form list are two different things, so each is a single bounded
+   card — header, table, and its add row — rather than three stacked panels that blur together
+   when scrolling. */
+.settings-card {
+  display: block;
+  background: #fff;
+  border: 1.5px solid var(--color-line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.settings-card + .settings-card {
+  margin-top: 28px;
+}
+
+.settings-card.has-error {
+  border-color: var(--color-coral-deep);
+}
+
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--tint-cream, #fdf7ee);
+}
+
+.card-head-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.card-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-coral-deep);
+  margin-bottom: 4px;
+}
+
+.card-head h2 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--color-ink);
+  margin: 0 0 4px;
+}
+
+.card-head p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-ink-soft);
+  max-width: 68ch;
+}
+
+.settings-card .order-error {
+  margin: 0;
+  padding: 12px 22px;
+  background: var(--tint-coral, #fff2ee);
+  border-bottom: 1px solid var(--color-line);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-coral-deep);
+}
+
+/* The table sits flush inside the card — its own border would double up. */
+.settings-card .table-wrap {
+  border: none;
+  border-radius: 0;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 22px;
+  border-top: 1px solid var(--color-line);
+  background: var(--tint-cream, #fdf7ee);
+}
+
+.card-foot-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* The whole chip is the button now — a chip with a button inside it read as two targets. */
+.available-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1.5px solid var(--color-line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.available-chip:hover {
+  border-color: var(--color-coral);
+  color: var(--color-coral-deep);
+}
+
+.available-chip-plus {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--color-coral-deep);
 }

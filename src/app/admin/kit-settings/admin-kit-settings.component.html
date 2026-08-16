@@ -1,119 +1,38 @@
 <div class="settings-head">
   <h1 class="settings-title">Kit Settings</h1>
   <p class="settings-sub">
-    The order of the option lists behind the /travel survey and product tagging. Set each section's
-    position, then save — the survey asks its questions in this order. To add, rename, remove, or
-    reorder the values inside a section, open it in
-    <a routerLink="/admin/master-data">Master Data</a>.
+    Which collections the survey asks about, and which ones a product can be tagged with — two
+    separate lists, because the same collection can behave differently in each. Add, rename or
+    remove the collections themselves in <a routerLink="/admin/master-data">Master Data</a>.
   </p>
 </div>
 
-<div class="order-bar" [class.has-error]="!!orderError()">
-  <div class="order-bar-text">
-    <strong>Survey questions</strong>
-    <span>Order, and how each question behaves. Saving writes all {{ sections().length }} sections at once.</span>
-    @if (orderError()) {
-      <p class="order-error" role="alert">{{ orderError() }}</p>
-    }
-  </div>
-  <button type="button" class="save-order-btn" [disabled]="!!orderError()" (click)="saveSettings()">Save Settings</button>
-</div>
+<app-kit-settings-table
+  eyebrow="Storefront · /travel"
+  title="Kit builder questionnaire"
+  blurb="The questions /travel asks, in order. Positions apply to the whole list; saving writes them all at once."
+  itemNoun="question"
+  [allCollections]="masterData.collections()"
+  [order]="masterData.typeOrder()"
+  [settings]="masterData.sectionSettings()"
+  [descriptions]="descriptions"
+  [valueCounts]="valueCounts()"
+  (save)="saveSurvey($event)"
+  (addCollection)="addToSurvey($event)"
+  (removeCollection)="removeFromSurvey($event)"
+/>
 
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th class="order-col">Order</th>
-        <th>Collection</th>
-        <th class="num-col">Values</th>
-        <th>Answer</th>
-        <th>Selection</th>
-        <th>What it drives</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (section of pagedSections(); track section.axis) {
-        <tr>
-          <td class="order-col">
-            <input
-              type="number"
-              class="order-input"
-              [class.invalid]="isDuplicateOrder(section.axis)"
-              min="1"
-              step="1"
-              [ngModel]="orderDraftFor(section.axis)"
-              (ngModelChange)="setOrderDraft(section.axis, $event)"
-              [attr.aria-label]="'Position of the ' + section.title + ' section'"
-              [attr.aria-invalid]="isDuplicateOrder(section.axis)"
-            />
-          </td>
-          <td class="name-cell">
-            <a [routerLink]="['/admin/master-data', section.axis]" class="row-link">{{ section.title }}</a>
-          </td>
-          <td class="num-col">{{ valueCount(section.axis) }}</td>
-          <td>
-            <select
-              class="behaviour-select"
-              [ngModel]="settingsDraftFor(section.axis).required"
-              (ngModelChange)="setRequired(section.axis, $event)"
-              [attr.aria-label]="'Is the ' + section.title + ' question required?'"
-            >
-              <option [ngValue]="true">Required</option>
-              <option [ngValue]="false">Optional</option>
-            </select>
-          </td>
-          <td>
-            <select
-              class="behaviour-select"
-              [ngModel]="settingsDraftFor(section.axis).multiple"
-              (ngModelChange)="setMultiple(section.axis, $event)"
-              [attr.aria-label]="'How many answers may the ' + section.title + ' question take?'"
-            >
-              <option [ngValue]="false">Single</option>
-              <option [ngValue]="true">Multiple</option>
-            </select>
-          </td>
-          <td class="note-cell">{{ section.description }}</td>
-          <td class="actions-cell">
-            @if (confirmingRemoveKey() === section.axis) {
-              <span class="confirm-row">
-                Remove the question?
-                <button type="button" class="confirm-yes" (click)="removeFromSurvey(section.axis, section.title)">Yes</button>
-                <button type="button" class="confirm-cancel" (click)="confirmingRemoveKey.set(null)">Cancel</button>
-              </span>
-            } @else {
-              <button type="button" class="delete-link" (click)="confirmingRemoveKey.set(section.axis)">Remove</button>
-            }
-          </td>
-        </tr>
-      } @empty {
-        <tr>
-          <td colspan="7" class="no-results">No sections configured.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
-</div>
-
-<app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
-
-@if (availableCollections().length > 0) {
-  <div class="available-box">
-    <div class="available-head">
-      <strong>Not asked about</strong>
-      <span>
-        Registered in <a routerLink="/admin/master-data">Master Data</a> but not a survey question.
-        Adding one appends it as the last question; products can already be tagged with it either way.
-      </span>
-    </div>
-    <div class="available-list">
-      @for (collection of availableCollections(); track collection.key) {
-        <span class="available-chip">
-          {{ collection.label }}
-          <button type="button" (click)="addToSurvey(collection.key, collection.label)">+ Add</button>
-        </span>
-      }
-    </div>
-  </div>
-}
+<app-kit-settings-table
+  eyebrow="Admin · product form"
+  title="Product form fields"
+  blurb="What the admin product form shows. 'Multiple' here means the product may hold several values — a product can suit both short and long trips even though a shopper picks one."
+  itemNoun="field"
+  [allCollections]="masterData.collections()"
+  [order]="masterData.productFormOrder()"
+  [settings]="masterData.productFormSettings()"
+  [descriptions]="descriptions"
+  [valueCounts]="valueCounts()"
+  (save)="saveProductForm($event)"
+  (addCollection)="addToProductForm($event)"
+  (removeCollection)="removeFromProductForm($event)"
+/>
