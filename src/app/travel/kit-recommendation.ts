@@ -81,6 +81,24 @@ function isEligible(product: Product, answers: TripAnswers): boolean {
 // signal, and the only one the user is asked about with the sole purpose of ranking. Multi-select:
 // any one matching category earns the full boost (not split across picks) — picking more
 // categories widens what gets prioritized, it doesn't dilute each pick's weight.
+// The basics everyone packs, so it only counts as a preference when picked alongside something
+// else. On its own it scores nothing — it's the broadest bucket, and boosting a large share of the
+// catalog on a single pick leaves nothing to order the kit by. See KitEngine.BASELINE_KIT_CATEGORY.
+const BASELINE_KIT_CATEGORY = 'Essentials Kit';
+
+/**
+ * Graded so covering more of what the shopper asked for beats scraping in on one bucket, with
+ * diminishing returns and a hard cap so a product tagged into every kit can't win on breadth of
+ * tagging alone: 1 match = 5, 2 = 6.5, 3+ = 8. Mirrors KitEngine.kitCategoryBoost.
+ */
+function kitCategoryBoost(product: Product, selected: KitCategory[]): number {
+  const effective =
+    selected.length > 1 ? selected : selected.filter((c) => c !== BASELINE_KIT_CATEGORY);
+  const matches = product.kitCategories.filter((c) => effective.includes(c)).length;
+  if (matches === 0) return 0;
+  return Math.min(5 + (matches - 1) * 1.5, 8);
+}
+
 function scoreProduct(product: Product, answers: TripAnswers): number {
   let score = 0;
   if (product.parties.includes(answers.party)) score += 2;
@@ -92,9 +110,7 @@ function scoreProduct(product: Product, answers: TripAnswers): number {
   if (answers.gender && product.genders?.includes(answers.gender)) score += 2;
   const activities = answers.activities ?? [];
   score += (product.activities ?? []).filter((activity) => activities.includes(activity)).length;
-  // Any overlap, scored once — a product tagged with many buckets shouldn't outscore a
-  // well-matched one simply by covering more of them (mirrors KitEngine.kitCategoryBoost).
-  if (product.kitCategories.some((c) => answers.priorityCategories.includes(c))) score += 5;
+  score += kitCategoryBoost(product, answers.priorityCategories);
   if (product.popular) score += 0.5; // small deterministic tiebreaker
   return score;
 }
