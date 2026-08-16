@@ -7,8 +7,12 @@ import { NewProduct, ProductCatalogService } from '../../shop/product-catalog.se
 import { Product } from '../../shop/product-catalog';
 import { ProductItemService } from '../../shop/product-item.service';
 import { ToastService } from '../../common/toast/toast.service';
-import { MasterDataService } from '../../common/master-data/master-data.service';
-import { MultiSelectDropdownComponent } from '../../common/multi-select-dropdown/multi-select-dropdown.component';
+import {
+  MasterDataCollection,
+  MasterDataService,
+  SectionSettings,
+} from '../../common/master-data/master-data.service';
+import { ProductTagFieldComponent } from './product-tag-field.component';
 
 interface ProductFormModel {
   name: string;
@@ -23,6 +27,10 @@ interface ProductFormModel {
   durations: string[]; // display labels in the form; mapped to Duration codes on save
   genders: string[];
   kitCategories: string[]; // empty = not yet chosen — save() blocks submit until at least one
+  // Values for admin-created collections, keyed by collection key. The built-in axes above keep
+  // their own fields because the engine gives each bespoke meaning; anything registered at runtime
+  // has no field to live in.
+  tags: Record<string, string[]>;
   tested: boolean;
   active: boolean;
   popular: boolean;
@@ -43,6 +51,7 @@ function emptyForm(): ProductFormModel {
     durations: [],
     genders: [],
     kitCategories: [],
+    tags: {},
     tested: true,
     active: true,
     popular: false,
@@ -57,7 +66,7 @@ function emptyForm(): ProductFormModel {
 @Component({
   selector: 'app-admin-product-form',
   standalone: true,
-  imports: [FormsModule, RouterLink, CurrencyPipe, MultiSelectDropdownComponent],
+  imports: [FormsModule, RouterLink, CurrencyPipe, ProductTagFieldComponent],
   templateUrl: './admin-product-form.component.html',
   styleUrl: './admin-product-form.component.css',
 })
@@ -188,6 +197,7 @@ export class AdminProductFormComponent {
         durations: (existing.durations ?? []).map((code) => this.durationLabelFor(code)),
         genders: [...(existing.genders ?? [])],
         kitCategories: [...(existing.kitCategories ?? [])],
+        tags: { ...(existing.tags ?? {}) },
         tested: existing.tested,
         active: existing.active,
         popular: existing.popular,
@@ -200,33 +210,12 @@ export class AdminProductFormComponent {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
-  protected toggleSeason(season: string): void {
-    this.form.update((f) => ({ ...f, seasons: toggleWithAllSentinel(f.seasons, season) }));
-  }
 
-  protected toggleDestination(destination: string): void {
-    this.form.update((f) => ({ ...f, destinations: toggleWithAllSentinel(f.destinations, destination) }));
-  }
 
-  protected toggleParty(party: string): void {
-    this.form.update((f) => ({ ...f, parties: toggleWithAllSentinel(f.parties, party) }));
-  }
 
-  protected toggleActivity(activity: string): void {
-    this.form.update((f) => ({ ...f, activities: toggleWithAllSentinel(f.activities, activity) }));
-  }
 
-  protected toggleTransport(mode: string): void {
-    this.form.update((f) => ({ ...f, transportModes: toggleWithAllSentinel(f.transportModes, mode) }));
-  }
 
-  protected toggleDuration(label: string): void {
-    this.form.update((f) => ({ ...f, durations: toggleWithAllSentinel(f.durations, label) }));
-  }
 
-  protected toggleGender(gender: string): void {
-    this.form.update((f) => ({ ...f, genders: toggleWithAllSentinel(f.genders, gender) }));
-  }
 
   /** Duration rows carry a stable `code` the survey answers with; everything else keys off `value`. */
   private durationCodeFor(label: string): string {
@@ -240,14 +229,108 @@ export class AdminProductFormComponent {
   // Free-text Category changed — only auto-fills Kit Category while it's still unset, so this
   // never clobbers a value the admin already picked (including one that happens to match the
   // suggestion). Categories with no confident default (e.g. "Gear") leave it unset for an explicit pick.
-  /** The shared dropdown speaks in arrays even when picking one. */
-  protected readonly selectedCategory = computed(() => (this.form().category ? [this.form().category] : []));
 
   protected updateCategory(value: string): void {
     // No kit-category pre-fill any more: which kit a product belongs to depends on the item, not
     // its type — Clothing splits across Weather, Comfort and Activity Gear kits (a rain jacket vs
     // pyjamas vs hiking socks), so a silent default would be wrong more often than right.
     this.form.update((f) => ({ ...f, category: value }));
+  }
+
+  // ── Dynamic tagging fields ────────────────────────────────────────────────────────────────
+  // Built-in collections map to their own typed field; everything else lands in `tags`. That's the
+  // whole reason this is a lookup rather than a generic map for all of them: the engine reads the
+  // named fields with bespoke meaning (hard filters, per-axis weights), while a runtime-registered
+  // collection has no such meaning yet.
+  private static readonly FIELD_BY_KEY: Record<string, keyof ProductFormModel> = {
+    destination: 'destinations',
+    season: 'seasons',
+    party: 'parties',
+    transportation: 'transportModes',
+    activity: 'activities',
+    kitCategory: 'kitCategories',
+    duration: 'durations',
+    gender: 'genders',
+  };
+
+  /** Category first, then kit categories, then the survey's own step order, then anything new. */
+  protected readonly tagCollections = computed<MasterDataCollection[]>(() => {
+    const all = this.masterData.collections();
+    const lead = ['productCategory', 'kitCategory'];
+    const ordered = [...lead, ...this.masterData.typeOrder().filter((k) => !lead.includes(k))];
+    const byKey = new Map(all.map((c) => [c.key, c]));
+    const first = ordered.map((k) => byKey.get(k)).filter((c): c is MasterDataCollection => !!c);
+    const seen = new Set(first.map((c) => c.key));
+    return [...first, ...all.filter((c) => !seen.has(c.key))];
+  });
+
+  protected optionsFor(key: string): string[] {
+    return this.masterData.forType(key).map((v) => v.value);
+  }
+
+  /**
+   * A collection the admin registered at runtime defaults to an optional multi-select — a loose
+   * tag — until someone gives it a shape in Kit Settings. The built-ins carry real defaults there.
+   */
+  protected settingsFor(key: string): SectionSettings {
+    return this.masterData.sectionSettings()[key] ?? { required: false, multiple: true };
+  }
+
+  protected selectedFor(key: string): string[] {
+    const f = this.form();
+    if (key === 'productCategory') return f.category ? [f.category] : [];
+    const field = AdminProductFormComponent.FIELD_BY_KEY[key];
+    if (field) return f[field] as string[];
+    return f.tags[key] ?? [];
+  }
+
+  protected toggleTag(key: string, value: string): void {
+    if (key === 'productCategory') return this.updateCategory(value);
+    if (key === 'kitCategory') return this.toggleKitCategory(value);
+
+    const field = AdminProductFormComponent.FIELD_BY_KEY[key];
+    if (field) {
+      // 'All' is mutually exclusive with specific picks on the built-in axes — see the helper.
+      this.form.update((f) => ({ ...f, [field]: toggleWithAllSentinel(f[field] as string[], value) }));
+      return;
+    }
+    this.form.update((f) => {
+      const current = f.tags[key] ?? [];
+      const multiple = this.settingsFor(key).multiple;
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : multiple
+          ? [...current, value]
+          : [value];
+      return { ...f, tags: { ...f.tags, [key]: next } };
+    });
+  }
+
+  /**
+   * Hand-written copy per built-in axis: each says something a generated sentence can't (what 'no
+   * selection' means, or what the field actually drives). A runtime-registered collection has no
+   * entry and falls back to the component's own label.
+   */
+  private static readonly DESCRIPTIONS: Record<string, string> = {
+    productCategory: 'Category — what this product is (shown on the shop card)',
+    kitCategory: 'Kit Categories — which packing-list buckets this belongs to (boosts it when a shopper says one matters most)',
+    season: 'Seasons (none selected = applies to all)',
+    destination: 'Destinations (none selected = applies to all)',
+    party: 'Party size (none selected = applies to all)',
+    activity: 'Activities (which trips this suits — powers the survey)',
+    transportation: 'Transportation (none selected = applies to all)',
+    duration: 'Trip length (none selected = suits any length)',
+    gender: 'Gender (none selected = suits anyone)',
+  };
+
+  protected descriptionFor(key: string): string | null {
+    return AdminProductFormComponent.DESCRIPTIONS[key] ?? null;
+  }
+
+  /** Only Kit Categories carries one today — which bucket a shopper's kit files it under. */
+  protected hintFor(key: string): string | null {
+    if (key !== 'kitCategory' || this.form().kitCategories.length < 2) return null;
+    return `Filed under ${this.form().kitCategories[0]} in a shopper's kit; the rest widen what it matches.`;
   }
 
   protected toggleKitCategory(category: string): void {
@@ -295,6 +378,7 @@ export class AdminProductFormComponent {
       durations: f.durations.map((label) => (label === 'All' ? label : this.durationCodeFor(label))),
       genders: f.genders,
       kitCategories: f.kitCategories,
+      tags: f.tags,
       tested: f.tested,
       active: f.active,
       popular: f.popular,
@@ -322,6 +406,28 @@ export class AdminProductFormComponent {
   // ── ProductItem deletion (inline, quick action) — add/edit happens on their own page,
   // AdminProductItemFormComponent, reached via the item table's Add/Edit links below. ───────────
 
+  // ── Delete this product ───────────────────────────────────────────────────────────────────────
+  // Same two-step confirm the product list and the item table use. Note the backend soft-deletes
+  // (active:false, record kept), so this is closer to "retire" than "erase" — matching what
+  // catalog.deleteProduct() does everywhere else.
+  protected readonly confirmingDeleteProduct = signal(false);
+
+  protected requestDeleteProduct(): void {
+    this.confirmingDeleteProduct.set(true);
+  }
+
+  protected cancelDeleteProduct(): void {
+    this.confirmingDeleteProduct.set(false);
+  }
+
+  protected confirmDeleteProduct(): void {
+    const id = this.editingId();
+    if (!id) return;
+    this.catalog.deleteProduct(id);
+    this.confirmingDeleteProduct.set(false);
+    this.toast.showAndReload('Product removed', 'success', '/admin/products');
+  }
+
   protected readonly confirmingDeleteItemId = signal<string | null>(null);
 
   protected requestDeleteItem(id: string): void {
@@ -341,7 +447,7 @@ export class AdminProductFormComponent {
 
 // 'All' and specific picks are mutually exclusive: choosing 'All' clears any specific picks (and
 // vice versa) rather than letting them coexist — mirrors TravelComponent's own Destination 'All'
-// sentinel handling (toggleDestination()).
+// sentinel handling (see toggleTag()).
 function toggleWithAllSentinel(list: readonly string[], value: string): string[] {
   if (value === 'All') {
     return list.includes('All') ? [] : ['All'];

@@ -39,6 +39,10 @@ export interface Product {
   // Ordered, at least one: the first is the primary bucket the storefront groups a kit by (see
   // MyKitComponent), the rest widen what the product matches without changing where it's filed.
   kitCategories: KitCategory[];
+  // Values for admin-created master-data collections, keyed by collection key
+  // ({ fabric: ['Linen'] }). The named axes above stay typed because the kit engine gives each
+  // bespoke meaning; a collection registered at runtime has no field to live in.
+  tags?: Record<string, string[]>;
   popular: boolean;
   tested: boolean;
   icon: string; // fallback display icon when a specific ProductItem doesn't set its own

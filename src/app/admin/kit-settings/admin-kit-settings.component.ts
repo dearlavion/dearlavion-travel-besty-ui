@@ -3,14 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   MasterDataService,
-  MasterDataType,
-  SectionSettings,
+    SectionSettings,
 } from '../../common/master-data/master-data.service';
 import { PaginationComponent } from '../../common/pagination/pagination.component';
 import { ToastService } from '../../common/toast/toast.service';
 
 interface KitSettingsSection {
-  axis: MasterDataType;
+  axis: string;
   title: string;
   description: string;
 }
@@ -22,48 +21,19 @@ const PAGE_SIZE = 10;
 // Per-axis metadata (title, description) — unordered. Display order is driven separately by
 // masterData.typeOrder() (see the `sections` computed below), so the rows can be reordered via
 // their Order inputs without touching this config.
-const SECTION_CONFIG: KitSettingsSection[] = [
-  {
-    axis: 'destination',
-    title: 'Destination',
-    description: 'Where a trip is headed — powers the /travel survey and product tagging.',
-  },
-  {
-    axis: 'season',
-    title: 'Season',
-    description: 'What the weather will be like — powers the /travel survey and product tagging.',
-  },
-  {
-    axis: 'party',
-    title: 'Party',
-    description: 'Who is traveling — powers the /travel survey and product tagging.',
-  },
-  {
-    axis: 'transportation',
-    title: 'Transportation',
-    description: 'How they are getting there — powers the /travel survey and product tagging.',
-  },
-  {
-    axis: 'activity',
-    title: 'Activities',
-    description: 'What they will be doing — powers the /travel survey and product tagging.',
-  },
-  {
-    axis: 'kitCategory',
-    title: 'Kit Category',
-    description: 'Packing-list buckets — powers the survey\'s "what matters most" question and product tagging.',
-  },
-  {
-    axis: 'duration',
-    title: 'Duration',
-    description: 'Trip length bands — fixed at exactly 4, since the kit-sizing engine keys off them directly.',
-  },
-  {
-    axis: 'gender',
-    title: 'Gender',
-    description: 'Collected on the survey for sizing — not yet tied to product tagging.',
-  },
-];
+// Copy only — which sections exist comes from the live collections registry, not this list. An
+// admin-created collection simply has no entry and shows its own label with no description.
+const DESCRIPTIONS: Record<string, string> = {
+  destination: 'Where a trip is headed — powers the /travel survey and product tagging.',
+  season: 'What the weather will be like — powers the /travel survey and product tagging.',
+  party: 'Who is traveling — powers the /travel survey and product tagging.',
+  transportation: 'How they are getting there — powers the /travel survey and product tagging.',
+  activity: 'What they will be doing — powers the /travel survey and product tagging.',
+  kitCategory: 'Packing-list buckets — powers the survey\'s "what matters most" question and product tagging.',
+  duration: 'Trip length bands — fixed at exactly 4, since the kit-sizing engine keys off them directly.',
+  gender: 'Collected on the survey for sizing — not yet tied to product tagging.',
+  productCategory: 'What a product is — drives the shop card and the kit\'s breadth, not the survey.',
+};
 
 // Sets the order of the 8 master-data sections — which one the /travel survey asks about first.
 // Editing the values inside a section (add/rename/remove/order) lives on /admin/master-data, which
@@ -83,15 +53,41 @@ export class AdminKitSettingsComponent {
   // sees as the /travel survey's step order (see TravelComponent.orderedAxes()), so the two never
   // disagree. Falls back to appending any axis SECTION_CONFIG defines that typeOrder() hasn't
   // caught up to yet (defensive — shouldn't normally happen).
+  /** The collections the survey actually asks about, in its order. */
   protected readonly sections = computed<KitSettingsSection[]>(() => {
-    const order = this.masterData.typeOrder();
-    const byAxis = new Map(SECTION_CONFIG.map((s) => [s.axis, s]));
-    const ordered = order.map((axis) => byAxis.get(axis as MasterDataType)).filter((s): s is KitSettingsSection => !!s);
-    const seen = new Set(ordered.map((s) => s.axis));
-    return [...ordered, ...SECTION_CONFIG.filter((s) => !seen.has(s.axis))];
+    const byKey = new Map(this.masterData.collections().map((c) => [c.key, c]));
+    return this.masterData
+      .typeOrder()
+      .map((key) => byKey.get(key))
+      .filter((c): c is NonNullable<typeof c> => !!c)
+      .map((c) => ({ axis: c.key, title: c.label, description: DESCRIPTIONS[c.key] ?? '' }));
   });
 
-  protected valueCount(axis: MasterDataType): number {
+  /**
+   * Registered collections the survey doesn't ask about — available to add. Being absent here is
+   * what "not a survey question" means: productCategory sits out by design (it describes a product,
+   * it isn't something to ask a shopper), and a newly created collection starts out here.
+   */
+  protected readonly availableCollections = computed(() => {
+    const inSurvey = new Set(this.masterData.typeOrder());
+    return this.masterData.collections().filter((c) => !inSurvey.has(c.key));
+  });
+
+  /** Appended last so it doesn't silently reorder the existing questions. */
+  protected addToSurvey(key: string, label: string): void {
+    this.masterData.updateKitSettings([...this.masterData.typeOrder(), key]);
+    this.toast.showAndReload(`Added "${label}" to the survey`, 'success');
+  }
+
+  /** Removes the question only — the collection and its values stay in Master Data. */
+  protected removeFromSurvey(key: string, label: string): void {
+    this.masterData.updateKitSettings(this.masterData.typeOrder().filter((k) => k !== key));
+    this.toast.showAndReload(`Removed "${label}" from the survey — the collection itself is untouched`, 'success');
+  }
+
+  protected readonly confirmingRemoveKey = signal<string | null>(null);
+
+  protected valueCount(axis: string): number {
     return this.masterData.forType(axis).length;
   }
 
@@ -148,25 +144,25 @@ export class AdminKitSettingsComponent {
     });
   }
 
-  protected settingsDraftFor(axis: MasterDataType): SectionSettings {
+  protected settingsDraftFor(axis: string): SectionSettings {
     return this.settingsDrafts()[axis] ?? this.masterData.settingsFor(axis);
   }
 
-  protected setRequired(axis: MasterDataType, required: boolean): void {
+  protected setRequired(axis: string, required: boolean): void {
     this.orderEdited.set(true); // stop the effect re-seeding over the admin's edits
     this.settingsDrafts.update((d) => ({ ...d, [axis]: { ...this.settingsDraftFor(axis), required } }));
   }
 
-  protected setMultiple(axis: MasterDataType, multiple: boolean): void {
+  protected setMultiple(axis: string, multiple: boolean): void {
     this.orderEdited.set(true);
     this.settingsDrafts.update((d) => ({ ...d, [axis]: { ...this.settingsDraftFor(axis), multiple } }));
   }
 
-  protected orderDraftFor(axis: MasterDataType): number | null {
+  protected orderDraftFor(axis: string): number | null {
     return this.orderDrafts()[axis] ?? null;
   }
 
-  protected setOrderDraft(axis: MasterDataType, value: unknown): void {
+  protected setOrderDraft(axis: string, value: unknown): void {
     this.orderEdited.set(true);
     // A cleared number input hands back '' / null — keep it as null so it reads as "missing" to
     // the validators below rather than silently collapsing to 0.
@@ -216,7 +212,7 @@ export class AdminKitSettingsComponent {
     return null;
   });
 
-  protected isDuplicateOrder(axis: MasterDataType): boolean {
+  protected isDuplicateOrder(axis: string): boolean {
     const value = this.orderDrafts()[axis];
     return value !== null && value !== undefined && this.duplicateOrders().includes(value);
   }

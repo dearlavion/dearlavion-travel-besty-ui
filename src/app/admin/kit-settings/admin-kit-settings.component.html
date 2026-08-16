@@ -29,6 +29,7 @@
         <th>Answer</th>
         <th>Selection</th>
         <th>What it drives</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -74,10 +75,21 @@
             </select>
           </td>
           <td class="note-cell">{{ section.description }}</td>
+          <td class="actions-cell">
+            @if (confirmingRemoveKey() === section.axis) {
+              <span class="confirm-row">
+                Remove the question?
+                <button type="button" class="confirm-yes" (click)="removeFromSurvey(section.axis, section.title)">Yes</button>
+                <button type="button" class="confirm-cancel" (click)="confirmingRemoveKey.set(null)">Cancel</button>
+              </span>
+            } @else {
+              <button type="button" class="delete-link" (click)="confirmingRemoveKey.set(section.axis)">Remove</button>
+            }
+          </td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="6" class="no-results">No sections configured.</td>
+          <td colspan="7" class="no-results">No sections configured.</td>
         </tr>
       }
     </tbody>
@@ -85,3 +97,23 @@
 </div>
 
 <app-pagination [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+
+@if (availableCollections().length > 0) {
+  <div class="available-box">
+    <div class="available-head">
+      <strong>Not asked about</strong>
+      <span>
+        Registered in <a routerLink="/admin/master-data">Master Data</a> but not a survey question.
+        Adding one appends it as the last question; products can already be tagged with it either way.
+      </span>
+    </div>
+    <div class="available-list">
+      @for (collection of availableCollections(); track collection.key) {
+        <span class="available-chip">
+          {{ collection.label }}
+          <button type="button" (click)="addToSurvey(collection.key, collection.label)">+ Add</button>
+        </span>
+      }
+    </div>
+  </div>
+}

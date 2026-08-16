@@ -201,3 +201,116 @@ tr:last-child td {
   padding: 40px 20px;
   color: var(--color-ink-soft);
 }
+
+/* Collections registered in Master Data that the survey doesn't ask about. */
+.available-box {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1.5px dashed var(--color-line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.available-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12.5px;
+  color: var(--color-ink-soft);
+  margin-bottom: 12px;
+}
+
+.available-head strong {
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.available-head a {
+  color: var(--color-coral-deep);
+  font-weight: 700;
+}
+
+.available-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.available-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  padding: 7px 8px 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.available-chip button {
+  border: none;
+  background: var(--color-coral);
+  color: #fff;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.available-chip button:hover {
+  background: var(--color-coral-deep);
+}
+
+.actions-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.delete-link {
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-coral-deep);
+  cursor: pointer;
+  padding: 0;
+}
+
+.delete-link:hover {
+  text-decoration: underline;
+}
+
+.confirm-row {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.confirm-yes {
+  border: none;
+  background: var(--color-coral-deep);
+  color: #fff;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-cancel {
+  border: none;
+  background: var(--color-line);
+  color: var(--color-ink);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}

@@ -165,9 +165,17 @@ textarea:focus {
 
 .form-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 14px;
   margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+/* Pushes Cancel/Save to the right, leaving Delete on the far left — destructive action kept away
+   from the one the admin reaches for every time. */
+.form-actions-spacer {
+  flex: 1;
 }
 
 .cancel-btn {

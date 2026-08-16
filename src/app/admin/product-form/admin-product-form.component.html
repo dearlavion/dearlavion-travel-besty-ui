@@ -31,19 +31,6 @@
       </label>
     </div>
 
-    <!-- What the product IS — exactly one, from master data. Distinct from Kit Categories below,
-         which is what it's PACKED IN: a rain jacket is one Clothing product in the Weather Kit. -->
-    <div class="dropdown-field field-full">
-      <span class="dropdown-field-label">Category — what this product is (shown on the shop card)</span>
-      <app-multi-select-dropdown
-        [options]="productCategoryOptions()"
-        [selected]="selectedCategory()"
-        [multiple]="false"
-        emptyLabel="Choose one..."
-        (toggleValue)="updateCategory($event)"
-      />
-    </div>
-
     <label class="field-full">
       <span>Description</span>
       <textarea
@@ -66,91 +53,20 @@
           </p>
         </div>
       </div>
-
-      <!-- The one tag field with no 'All' option: empty means "not chosen yet", not "applies to
-           all", and save() refuses to submit until at least one is picked. The first pick is the
-           primary bucket My Kit files the product under. -->
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">
-          Kit Categories — which packing-list buckets this belongs to (boosts it when a shopper says one matters most)
-        </span>
-        <app-multi-select-dropdown
-          [options]="kitCategoryOptions()"
-          [selected]="form().kitCategories"
-          [allowAll]="false"
-          emptyLabel="Choose one or more..."
-          (toggleValue)="toggleKitCategory($event)"
+      <!-- One field per registered master-data collection, in the survey's own order. Rendering
+           from the live registry rather than a hand-written list means registering or deleting a
+           collection in Master Data adds or removes a field here with no code change. -->
+      @for (collection of tagCollections(); track collection.key) {
+        <app-product-tag-field
+          [collection]="collection"
+          [options]="optionsFor(collection.key)"
+          [selected]="selectedFor(collection.key)"
+          [settings]="settingsFor(collection.key)"
+          [description]="descriptionFor(collection.key)"
+          [hint]="hintFor(collection.key)"
+          (toggleValue)="toggleTag(collection.key, $event)"
         />
-        @if (form().kitCategories.length > 1) {
-          <small class="dropdown-field-hint">
-            Filed under <strong>{{ form().kitCategories[0] }}</strong> in a shopper's kit; the rest widen what it matches.
-          </small>
-        }
-      </div>
-
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">Seasons (none selected = applies to all)</span>
-        <app-multi-select-dropdown
-          [options]="seasonOptions()"
-          [selected]="form().seasons"
-          (toggleValue)="toggleSeason($event)"
-        />
-      </div>
-
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">Destinations (none selected = applies to all)</span>
-        <app-multi-select-dropdown
-          [options]="destinationOptions()"
-          [selected]="form().destinations"
-          (toggleValue)="toggleDestination($event)"
-        />
-      </div>
-
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">Party size (none selected = applies to all)</span>
-        <app-multi-select-dropdown
-          [options]="partyOptions()"
-          [selected]="form().parties"
-          (toggleValue)="toggleParty($event)"
-        />
-      </div>
-
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">Activities (which trips this suits — powers the survey)</span>
-        <app-multi-select-dropdown
-          [options]="activityOptions()"
-          [selected]="form().activities"
-          emptyLabel="None"
-          (toggleValue)="toggleActivity($event)"
-        />
-      </div>
-
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">Transportation (none selected = applies to all)</span>
-        <app-multi-select-dropdown
-          [options]="transportOptions()"
-          [selected]="form().transportModes"
-          (toggleValue)="toggleTransport($event)"
-        />
-      </div>
-
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">Trip length (none selected = suits any length)</span>
-        <app-multi-select-dropdown
-          [options]="durationOptions()"
-          [selected]="form().durations"
-          (toggleValue)="toggleDuration($event)"
-        />
-      </div>
-
-      <div class="dropdown-field">
-        <span class="dropdown-field-label">Gender (none selected = suits anyone)</span>
-        <app-multi-select-dropdown
-          [options]="genderOptions()"
-          [selected]="form().genders"
-          (toggleValue)="toggleGender($event)"
-        />
-      </div>
+      }
     </div>
 
     <div class="field-full checkbox-stack">
@@ -230,6 +146,19 @@
     </div>
 
     <div class="form-actions">
+      <!-- Edit mode only: there's nothing to delete before the product exists. -->
+      @if (isEditMode()) {
+        @if (confirmingDeleteProduct()) {
+          <span class="confirm-row">
+            Delete this product?
+            <button type="button" class="confirm-yes" (click)="confirmDeleteProduct()">Yes, delete</button>
+            <button type="button" class="confirm-cancel" (click)="cancelDeleteProduct()">Cancel</button>
+          </span>
+        } @else {
+          <button type="button" class="delete-link" (click)="requestDeleteProduct()">Delete product</button>
+        }
+      }
+      <span class="form-actions-spacer"></span>
       <a routerLink="/admin/products" class="cancel-btn">Cancel</a>
       <button type="submit" class="save-btn">{{ isEditMode() ? 'Save Changes' : 'Add Product' }}</button>
     </div>
