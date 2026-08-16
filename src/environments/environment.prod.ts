@@ -14,5 +14,5 @@ export const environment = {
   notificationUrl: '',
   // Not deployed yet — dearlavion-spring-master-data-service is local-only for now.
   masterDataUrl: '',
-  customer: 'travel-besty',
+  customer: 'travelbesty',
 };

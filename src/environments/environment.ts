@@ -14,5 +14,5 @@ export const environment = {
   // Empty in mock mode — admin Master Data page has no mock fallback (real-backend-only feature).
   masterDataUrl: '',
   // Tenant id sent as X-Customer on real auth calls (unused in mock mode).
-  customer: 'travel-besty',
+  customer: 'travelbesty',
 };

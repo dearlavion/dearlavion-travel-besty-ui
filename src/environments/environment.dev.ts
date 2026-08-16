@@ -19,5 +19,5 @@ export const environment = {
   masterDataUrl: 'http://localhost:4012',
   // Which tenant this app is — sent as the X-Customer header on auth calls (one auth instance
   // serves many customers, each with its own authentication-<customer> DB).
-  customer: 'travel-besty',
+  customer: 'travelbesty',
 };
