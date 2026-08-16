@@ -52,15 +52,16 @@ function emptyForm(): ProductFormModel {
 
 // Pre-fills Kit Category from the free-text Category field, so most products need zero extra
 // thought — the admin just confirms or overrides. Keyed off today's actual `category` values
-// (see product-catalog.ts). No entry for "Gear": it splits into Weather vs Activity Gear, a real
-// judgment call that shouldn't get a silent default.
+// (see product-catalog.ts) and must only ever suggest a value that exists in the kitCategory
+// master data, or the form pre-fills something the dropdown can't show.
+// Deliberately unmapped: "Gear" (splits between Activity Gear and Accessories) and "Comfort"
+// (no longer a kit category) — both are real judgment calls that shouldn't get a silent default.
 const CATEGORY_SUGGESTION: Record<string, string> = {
-  Documents: 'Essentials',
-  Accessories: 'Weather Gear',
-  Electronics: 'Tech Pack',
+  Documents: 'Travel Documents',
+  Accessories: 'Accessories',
+  Electronics: 'Electronics',
   Health: 'Health & Safety',
   Clothing: 'Clothing',
-  Comfort: 'Comfort',
   Toiletries: 'Toiletries',
 };
 
