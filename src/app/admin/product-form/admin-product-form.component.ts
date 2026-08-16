@@ -22,7 +22,7 @@ interface ProductFormModel {
   transportModes: string[];
   durations: string[]; // display labels in the form; mapped to Duration codes on save
   genders: string[];
-  kitCategory: string; // '' = not yet chosen — save() blocks submit until it's set
+  kitCategories: string[]; // empty = not yet chosen — save() blocks submit until at least one
   tested: boolean;
   active: boolean;
   popular: boolean;
@@ -42,28 +42,13 @@ function emptyForm(): ProductFormModel {
     transportModes: [],
     durations: [],
     genders: [],
-    kitCategory: '',
+    kitCategories: [],
     tested: true,
     active: true,
     popular: false,
     linkedProductIds: [],
   };
 }
-
-// Pre-fills Kit Category from the free-text Category field, so most products need zero extra
-// thought — the admin just confirms or overrides. Keyed off today's actual `category` values
-// (see product-catalog.ts) and must only ever suggest a value that exists in the kitCategory
-// master data, or the form pre-fills something the dropdown can't show.
-// Deliberately unmapped: "Gear" (splits between Activity Gear and Accessories) and "Comfort"
-// (no longer a kit category) — both are real judgment calls that shouldn't get a silent default.
-const CATEGORY_SUGGESTION: Record<string, string> = {
-  Documents: 'Travel Documents',
-  Accessories: 'Accessories',
-  Electronics: 'Electronics',
-  Health: 'Health & Safety',
-  Clothing: 'Clothing',
-  Toiletries: 'Toiletries',
-};
 
 // Shared add/edit form — no `:id` param means add mode, same toSignal(paramMap) pattern
 // ProductDetailComponent uses to detect route param changes. Purchase data (price/stock/etc) is
@@ -94,6 +79,10 @@ export class AdminProductFormComponent {
   protected readonly activityOptions = computed(() => this.masterData.forType('activity').map((v) => v.value));
   protected readonly transportOptions = computed(() => this.masterData.forType('transportation').map((v) => v.value));
   protected readonly kitCategoryOptions = computed(() => this.masterData.forType('kitCategory').map((v) => v.value));
+  // What the product IS — one per product, from master data (was a free-text box, which drifted).
+  protected readonly productCategoryOptions = computed(() =>
+    this.masterData.forType('productCategory').map((v) => v.value),
+  );
   // Duration is shown by label but persisted by `code` (see durationCodeFor/durationLabelFor).
   protected readonly durationOptions = computed(() => this.masterData.forType('duration').map((v) => v.value));
   protected readonly genderOptions = computed(() => this.masterData.forType('gender').map((v) => v.value));
@@ -198,7 +187,7 @@ export class AdminProductFormComponent {
         transportModes: [...(existing.transportModes ?? [])],
         durations: (existing.durations ?? []).map((code) => this.durationLabelFor(code)),
         genders: [...(existing.genders ?? [])],
-        kitCategory: existing.kitCategory,
+        kitCategories: [...(existing.kitCategories ?? [])],
         tested: existing.tested,
         active: existing.active,
         popular: existing.popular,
@@ -251,19 +240,25 @@ export class AdminProductFormComponent {
   // Free-text Category changed — only auto-fills Kit Category while it's still unset, so this
   // never clobbers a value the admin already picked (including one that happens to match the
   // suggestion). Categories with no confident default (e.g. "Gear") leave it unset for an explicit pick.
+  /** The shared dropdown speaks in arrays even when picking one. */
+  protected readonly selectedCategory = computed(() => (this.form().category ? [this.form().category] : []));
+
   protected updateCategory(value: string): void {
-    this.form.update((f) => {
-      const suggestion = f.kitCategory === '' ? CATEGORY_SUGGESTION[value.trim()] : undefined;
-      return { ...f, category: value, kitCategory: suggestion ?? f.kitCategory };
-    });
+    // No kit-category pre-fill any more: which kit a product belongs to depends on the item, not
+    // its type — Clothing splits across Weather, Comfort and Activity Gear kits (a rain jacket vs
+    // pyjamas vs hiking socks), so a silent default would be wrong more often than right.
+    this.form.update((f) => ({ ...f, category: value }));
   }
 
-  // The shared dropdown speaks in arrays even when picking one, so the single field is adapted at
-  // the boundary rather than widened in the form model.
-  protected readonly selectedKitCategory = computed(() => (this.form().kitCategory ? [this.form().kitCategory] : []));
-
-  protected updateKitCategory(value: string): void {
-    this.form.update((f) => ({ ...f, kitCategory: value }));
+  protected toggleKitCategory(category: string): void {
+    // No 'All' sentinel here: unlike the other tag fields, an empty list means "not chosen yet"
+    // rather than "applies to all", so toggleWithAllSentinel() would be wrong.
+    this.form.update((f) => ({
+      ...f,
+      kitCategories: f.kitCategories.includes(category)
+        ? f.kitCategories.filter((c) => c !== category)
+        : [...f.kitCategories, category],
+    }));
   }
 
   protected addLinkedProduct(id: string): void {
@@ -276,8 +271,14 @@ export class AdminProductFormComponent {
 
   protected save(): void {
     const f = this.form();
-    if (!f.kitCategory) {
-      this.toast.show('Pick a Kit Category before saving', 'error');
+    // Category lost its `required` attribute when it stopped being a native input, so the check
+    // moves here alongside the kit-category one.
+    if (!f.category.trim()) {
+      this.toast.show('Pick a Category before saving', 'error');
+      return;
+    }
+    if (f.kitCategories.length === 0) {
+      this.toast.show('Pick at least one Kit Category before saving', 'error');
       return;
     }
     const fields = {
@@ -293,7 +294,7 @@ export class AdminProductFormComponent {
       // 'All' is the sentinel for "unrestricted" and has no code — pass it through untouched.
       durations: f.durations.map((label) => (label === 'All' ? label : this.durationCodeFor(label))),
       genders: f.genders,
-      kitCategory: f.kitCategory,
+      kitCategories: f.kitCategories,
       tested: f.tested,
       active: f.active,
       popular: f.popular,

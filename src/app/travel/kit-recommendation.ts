@@ -92,7 +92,9 @@ function scoreProduct(product: Product, answers: TripAnswers): number {
   if (answers.gender && product.genders?.includes(answers.gender)) score += 2;
   const activities = answers.activities ?? [];
   score += (product.activities ?? []).filter((activity) => activities.includes(activity)).length;
-  if (answers.priorityCategories.includes(product.kitCategory)) score += 5;
+  // Any overlap, scored once — a product tagged with many buckets shouldn't outscore a
+  // well-matched one simply by covering more of them (mirrors KitEngine.kitCategoryBoost).
+  if (product.kitCategories.some((c) => answers.priorityCategories.includes(c))) score += 5;
   if (product.popular) score += 0.5; // small deterministic tiebreaker
   return score;
 }

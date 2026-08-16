@@ -31,17 +31,18 @@
       </label>
     </div>
 
-    <label class="field-full">
-      <span>Category</span>
-      <input
-        type="text"
-        required
-        placeholder="e.g. Electronics"
-        [ngModel]="form().category"
-        (ngModelChange)="updateCategory($event)"
-        name="category"
+    <!-- What the product IS — exactly one, from master data. Distinct from Kit Categories below,
+         which is what it's PACKED IN: a rain jacket is one Clothing product in the Weather Kit. -->
+    <div class="dropdown-field field-full">
+      <span class="dropdown-field-label">Category — what this product is (shown on the shop card)</span>
+      <app-multi-select-dropdown
+        [options]="productCategoryOptions()"
+        [selected]="selectedCategory()"
+        [multiple]="false"
+        emptyLabel="Choose one..."
+        (toggleValue)="updateCategory($event)"
       />
-    </label>
+    </div>
 
     <label class="field-full">
       <span>Description</span>
@@ -66,19 +67,25 @@
         </div>
       </div>
 
-      <!-- Single-select, unlike every other tag field here: a product belongs to exactly one
-           packing-list bucket, and save() refuses to submit without it. -->
+      <!-- The one tag field with no 'All' option: empty means "not chosen yet", not "applies to
+           all", and save() refuses to submit until at least one is picked. The first pick is the
+           primary bucket My Kit files the product under. -->
       <div class="dropdown-field">
         <span class="dropdown-field-label">
-          Kit Category — which packing-list bucket this belongs to (boosts it when a shopper says this matters most)
+          Kit Categories — which packing-list buckets this belongs to (boosts it when a shopper says one matters most)
         </span>
         <app-multi-select-dropdown
           [options]="kitCategoryOptions()"
-          [selected]="selectedKitCategory()"
-          [multiple]="false"
-          emptyLabel="Choose one..."
-          (toggleValue)="updateKitCategory($event)"
+          [selected]="form().kitCategories"
+          [allowAll]="false"
+          emptyLabel="Choose one or more..."
+          (toggleValue)="toggleKitCategory($event)"
         />
+        @if (form().kitCategories.length > 1) {
+          <small class="dropdown-field-hint">
+            Filed under <strong>{{ form().kitCategories[0] }}</strong> in a shopper's kit; the rest widen what it matches.
+          </small>
+        }
       </div>
 
       <div class="dropdown-field">

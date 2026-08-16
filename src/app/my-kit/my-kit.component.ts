@@ -267,7 +267,8 @@ export class MyKitComponent {
       return {
         label: item.label,
         productId: item.productId,
-        kitCategory: primary?.kitCategory ?? null,
+        // First bucket only: a product may sit in several, but a packing list files it under one.
+        kitCategory: primary?.kitCategories?.[0] ?? null,
         suggestions,
         hasMoreSuggestions: resolved.length > MAX_SUGGESTIONS,
         moreSuggestionsCategory: primary?.category ?? null,

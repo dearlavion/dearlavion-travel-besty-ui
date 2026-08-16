@@ -13,7 +13,10 @@ export type MasterDataType =
   | 'activity'
   | 'kitCategory'
   | 'duration'
-  | 'gender';
+  | 'gender'
+  // What a product IS (one per product, drives the shop). Distinct from kitCategory, which is what
+  // a product is PACKED IN (several per product, drives the survey).
+  | 'productCategory';
 
 export interface MasterDataCollection {
   key: string;
@@ -41,6 +44,7 @@ export const BUILT_IN_COLLECTIONS: MasterDataCollection[] = [
   { key: 'kitCategory', label: 'Kit Categories', path: 'kit-categories', builtIn: true },
   { key: 'duration', label: 'Durations', path: 'durations', builtIn: true },
   { key: 'gender', label: 'Genders', path: 'genders', builtIn: true },
+  { key: 'productCategory', label: 'Product Categories', path: 'product-categories', builtIn: true },
 ];
 
 /** Path convention for an admin-created collection — mirrors CollectionDefinition.customPath(). */

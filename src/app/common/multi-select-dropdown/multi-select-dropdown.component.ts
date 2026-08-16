@@ -26,6 +26,9 @@ export class MultiSelectDropdownComponent {
   readonly emptyLabel = input('All');
   /** false = pick exactly one (radios, panel closes on choice, no 'All' sentinel). */
   readonly multiple = input(true);
+  /** false = drop the 'All' sentinel for a multi-select whose empty state means "none chosen yet"
+   * rather than "unrestricted" (product form's Kit Categories). */
+  readonly allowAll = input(true);
   readonly toggleValue = output<string>();
 
   // Always offered as an explicit choice, on top of "nothing selected" already meaning
@@ -35,7 +38,7 @@ export class MultiSelectDropdownComponent {
   // toggleWithAllSentinel() in admin-product-form.component.ts), same split of responsibility as
   // TravelComponent's own Destination 'All' sentinel.
   protected readonly displayOptions = computed(() =>
-    this.multiple() ? ['All', ...this.options()] : this.options(),
+    this.multiple() && this.allowAll() ? ['All', ...this.options()] : this.options(),
   );
 
   protected readonly open = signal(false);
