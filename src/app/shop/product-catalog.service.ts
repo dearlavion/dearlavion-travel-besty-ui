@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, Injector, inject, signal } from '@angular/core';
 import { Product, PRODUCTS } from './product-catalog';
 import { slugify } from '../common/slugify';
 import { environment } from '../../environments/environment';
+import { ProductItemService } from './product-item.service';
 
 const STORAGE_KEY = 'travel-besty-products';
 // Reads go through the public, unauthenticated endpoint — most consumers (Shop, Product Detail,
@@ -36,6 +37,9 @@ interface ProductListResponse {
 @Injectable({ providedIn: 'root' })
 export class ProductCatalogService {
   private readonly http = inject(HttpClient);
+  // Resolved at call time, not construction: ProductItemService injects this service back (see its
+  // `catalog` field), so a constructor injection either way round would be a cycle.
+  private readonly injector = inject(Injector);
 
   readonly products = signal<Product[]>(environment.useMockData ? (loadStoredProducts() ?? PRODUCTS) : []);
 
@@ -154,7 +158,13 @@ export class ProductCatalogService {
     this.persist();
   }
 
+  /**
+   * Retires a product and, with it, its purchasable items. The backend cascades this itself (see
+   * ProductService.deactivate) — the local updates here only keep the in-memory view in step, and
+   * do the actual work in mock mode.
+   */
   deleteProduct(id: string): void {
+    this.injector.get(ProductItemService).deactivateItemsForProduct(id);
     if (!environment.useMockData) {
       // Backend soft-deletes (active:false, record kept) rather than removing it — mirror that
       // locally instead of dropping the row, so the local view matches server truth.

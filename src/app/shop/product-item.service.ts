@@ -318,6 +318,17 @@ export class ProductItemService {
     this.updateItem(id, { active: false });
   }
 
+  /**
+   * Deactivates every item under a product — mirrors the cascade store-engine's
+   * ProductService.deactivate() performs, so mock mode and the local view match what the server
+   * does rather than leaving orphaned SKUs listed under a deleted product.
+   */
+  deactivateItemsForProduct(productId: string): void {
+    for (const item of this.rawItems().filter((i) => i.productId === productId && i.active)) {
+      this.deactivateItem(item.id);
+    }
+  }
+
   private persistRaw(): void {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(this.rawItems()));
