@@ -8,6 +8,20 @@
       @if (hasPendingChanges()) {
         <p class="pending-changes-note">● You have unsaved changes to this kit</p>
       }
+
+      <!-- What the shopper answered, so the kit can be read against the trip it was built for.
+           Absent for kits that didn't come from the survey (e.g. a popular-kit card). -->
+      @if (builtKit.answers?.length) {
+        <dl class="answer-summary">
+          @for (answer of builtKit.answers; track answer.label) {
+            <div class="answer-summary-item">
+              <dt>{{ answer.label }}</dt>
+              <dd>{{ answer.value }}</dd>
+            </div>
+          }
+        </dl>
+        <a routerLink="/travel" class="answer-summary-edit">Change my answers</a>
+      }
     </div>
 
     @for (group of groupedDisplayItems(); track group.category) {

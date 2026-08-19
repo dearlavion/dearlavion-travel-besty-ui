@@ -9,9 +9,10 @@ import { Product } from '../shop/product-catalog';
 import { ProductCatalogService } from '../shop/product-catalog.service';
 import { PopularKitCard, toPopularKitCard } from './popular-kit-view';
 import { buildTravelKit, Destination, Duration, Gender, Party, Season, Transportation } from './kit-recommendation';
-import { TravelKitService } from './travel-kit.service';
+import { KitAnswerSummary, TravelKitService } from './travel-kit.service';
 import { PaginationComponent } from '../common/pagination/pagination.component';
 import { environment } from '../../environments/environment';
+import { ToastService } from '../common/toast/toast.service';
 import { SeoService } from '../common/seo.service';
 import { JsonLdService } from '../common/json-ld.service';
 import { organizationNode, websiteNode } from '../common/site-entities';
@@ -57,6 +58,7 @@ export class TravelComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly http = inject(HttpClient);
+  private readonly toast = inject(ToastService);
   private readonly travelKitService = inject(TravelKitService);
   private readonly popularKitsService = inject(PopularKitsService);
   private readonly catalog = inject(ProductCatalogService);
@@ -163,6 +165,29 @@ export class TravelComponent {
     return destinations.length ? joinWithAnd(destinations) : undefined;
   }
 
+  /**
+   * The answers as label/value pairs, in the order Kit Settings asks them, skipping anything left
+   * unanswered — an optional question the shopper skipped isn't worth a row saying "none".
+   */
+  protected readonly answerSummary = computed<KitAnswerSummary[]>(() => {
+    const party = this.party();
+    const values: Record<string, string> = {
+      destination: this.destinations().includes('All') ? 'Anywhere' : this.destinations().join(', '),
+      season: this.season() ?? '',
+      duration: this.durationLabel(),
+      party: party === 'Group' ? `${party} of ${this.partySize()}` : (party ?? ''),
+      transportation: this.transportation() ?? '',
+      activity: this.activities().join(', '),
+      kitCategory: this.priorityCategories().join(', '),
+      gender: this.gender() ?? '',
+    };
+    const byKey = new Map(this.masterData.collections().map((c) => [c.key, c.label]));
+    return this.masterData
+      .typeOrder()
+      .filter((key) => (values[key] ?? '').trim().length > 0)
+      .map((key) => ({ label: byKey.get(key) ?? key, value: values[key] }));
+  });
+
   protected readonly revealSummary = computed(() => {
     const destinations = this.resolvedDestinations();
     const destPart = destinations.length
@@ -196,7 +221,7 @@ export class TravelComponent {
     const duration = this.duration();
     const transportation = this.transportation();
     const priorityCategories = this.priorityCategories();
-    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
+    if (this.missingAnswers().length > 0 || !season || !party || !duration) {
       return null;
     }
     const partySize = party === 'Group' ? this.partySize() : undefined;
@@ -206,7 +231,7 @@ export class TravelComponent {
       party,
       partySize,
       duration,
-      transportation,
+      transportation: transportation ?? undefined,
       priorityCategories: [...priorityCategories].sort(),
       activities: [...this.activities()].sort(),
       gender: this.gender(),
@@ -220,9 +245,8 @@ export class TravelComponent {
     const duration = this.duration();
     const transportation = this.transportation();
     const priorityCategories = this.priorityCategories();
-    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
-      return;
-    }
+    // Silent: this runs while the shopper is still answering, so an incomplete survey is normal.
+    if (this.missingAnswers().length > 0 || !season || !party || !duration) return;
     const partySize = party === 'Group' ? this.partySize() : undefined;
     this.http
       .post<SurveyRecommendationsResponse>(`${environment.apiUrl}/survey/recommendations`, {
@@ -231,7 +255,7 @@ export class TravelComponent {
         party,
         partySize,
         duration,
-        transportation,
+        transportation: transportation ?? undefined,
         priorityCategories,
         activities: this.activities(),
         gender: this.gender(),
@@ -252,7 +276,7 @@ export class TravelComponent {
     const duration = this.duration();
     const transportation = this.transportation();
     const priorityCategories = this.priorityCategories();
-    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
+    if (this.missingAnswers().length > 0 || !season || !party || !duration) {
       return null;
     }
     return buildTravelKit({
@@ -260,7 +284,7 @@ export class TravelComponent {
       season,
       party,
       duration,
-      transportation,
+      transportation: transportation ?? undefined,
       priorityCategories,
       activities: this.activities(),
       gender: this.gender() ?? undefined,
@@ -425,6 +449,40 @@ export class TravelComponent {
     }
   }
 
+  /**
+   * What the shopper still has to answer. Driven by Kit Settings rather than a fixed list — a
+   * question marked Optional there can be skipped past by the Next button, so blocking submit on
+   * it silently strands them on the reveal card with a button that does nothing.
+   *
+   * <p>season/party/duration are the exception: the survey endpoint rejects them as blank, and the
+   * engine treats season and party as hard filters and duration as the kit's size, so there's no
+   * neutral value to send. They stay required whatever Kit Settings says.
+   */
+  private static readonly ALWAYS_REQUIRED = ['season', 'party', 'duration'];
+
+  protected readonly missingAnswers = computed<string[]>(() => {
+    const answered: Record<string, boolean> = {
+      destination: this.destinations().length > 0,
+      season: !!this.season(),
+      duration: !!this.duration(),
+      party: !!this.party(),
+      transportation: !!this.transportation(),
+      activity: this.activities().length > 0,
+      kitCategory: this.priorityCategories().length > 0,
+      gender: !!this.gender(),
+    };
+    const labelFor = (key: string) =>
+      this.masterData.collections().find((c) => c.label && c.key === key)?.label ?? key;
+    return this.masterData
+      .typeOrder()
+      .filter(
+        (key) =>
+          (TravelComponent.ALWAYS_REQUIRED.includes(key) || this.masterData.settingsFor(key).required) &&
+          answered[key] === false,
+      )
+      .map(labelFor);
+  });
+
   protected seeMyTravelKit(): void {
     const destinations = this.destinations();
     const season = this.season();
@@ -432,7 +490,11 @@ export class TravelComponent {
     const duration = this.duration();
     const transportation = this.transportation();
     const priorityCategories = this.priorityCategories();
-    if (destinations.length === 0 || !season || !party || !duration || !transportation || priorityCategories.length === 0) {
+    const missing = this.missingAnswers();
+    if (missing.length > 0 || !season || !party || !duration) {
+      // Was a bare `return`, so an unanswered optional question left the button dead with no
+      // explanation. Say what's missing instead.
+      this.toast.show(`Answer ${missing.join(', ') || 'every question'} to build your kit`, 'error');
       return;
     }
 
@@ -453,7 +515,8 @@ export class TravelComponent {
           party,
           partySize,
           duration,
-          transportation,
+          // Optional now: the engine treats a missing transport as a neutral soft boost.
+          transportation: transportation ?? undefined,
           priorityCategories,
           activities: this.activities(),
           gender: this.gender(),
@@ -468,12 +531,13 @@ export class TravelComponent {
         season,
         party,
         duration,
-        transportation,
+        transportation: transportation ?? undefined,
         priorityCategories,
         activities: this.activities(),
         gender: this.gender() ?? undefined,
       }),
       summary: this.revealSummary(),
+      answers: this.answerSummary(),
       destination: this.destinationLabel(),
     });
     this.router.navigate(['/my-kit']);
@@ -485,6 +549,7 @@ export class TravelComponent {
     this.travelKitService.setKit({
       items: res.checklist.map((c) => ({ label: c.label, productId: c.productId, productItemId: c.productItemId })),
       summary: this.revealSummary(),
+      answers: this.answerSummary(),
       destination: this.destinationLabel(),
     });
     this.router.navigate(['/my-kit']);

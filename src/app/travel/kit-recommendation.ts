@@ -27,7 +27,9 @@ export interface TripAnswers {
   season: Season;
   party: Party;
   duration: Duration;
-  transportation: Transportation;
+  // Optional: Kit Settings can mark the question skippable, and an unanswered transport is
+  // simply a boost nobody earns — it was never a filter.
+  transportation?: Transportation;
   priorityCategories: KitCategory[];
   activities?: string[];
   gender?: Gender; // soft-boosts products tagged for this gender (see scoreProduct)
@@ -39,15 +41,6 @@ export interface KitItem {
   productItemId?: string; // the specific sized/variant SKU the engine matched to the trip
 }
 
-// Always included regardless of scoring — the handful of items every trip needs.
-const BASE_ITEMS: KitItem[] = [
-  { label: 'Passport / government ID', productId: 'passport-wallet' },
-  { label: 'Phone + charging cable', productId: 'fast-charge-cable-set' },
-  { label: 'Personal medications (labeled)', productId: 'travel-medication-case' },
-  { label: 'Compact first-aid kit', productId: 'compact-first-aid-kit' },
-  { label: 'Travel document wallet', productId: 'document-organizer-wallet' },
-];
-const BASE_PRODUCT_IDS = new Set(BASE_ITEMS.map((item) => item.productId));
 
 // How many scored (non-base) items to include, by trip length — same 20/21/22-ish totals the old
 // static-table formula produced, so switching the selection mechanism doesn't jar the kit size.
@@ -62,7 +55,7 @@ const DURATION_TARGET: Record<string, number> = {
 // just wrong to pack (a swimsuit for a winter mountain trip), so it's excluded outright rather
 // than merely down-scored. An empty tag array means "unrestricted" — always eligible on that axis.
 function isEligible(product: Product, answers: TripAnswers): boolean {
-  if (!product.active || BASE_PRODUCT_IDS.has(product.id)) return false;
+  if (!product.active) return false;
   // Both sides follow the same "[] = unrestricted" convention: a product with no destination tag
   // fits any trip, and an answer of "All" (empty) doesn't exclude any product either way.
   if (
@@ -81,9 +74,9 @@ function isEligible(product: Product, answers: TripAnswers): boolean {
 // signal, and the only one the user is asked about with the sole purpose of ranking. Multi-select:
 // any one matching category earns the full boost (not split across picks) — picking more
 // categories widens what gets prioritized, it doesn't dilute each pick's weight.
-// The basics everyone packs, so it only counts as a preference when picked alongside something
-// else. On its own it scores nothing — it's the broadest bucket, and boosting a large share of the
-// catalog on a single pick leaves nothing to order the kit by. See KitEngine.BASELINE_KIT_CATEGORY.
+// The basics everyone packs — the broadest bucket, so it never earns a place on its own. A product
+// must match one of the shopper's other picked kits first; this then adds to that. See
+// KitEngine.BASELINE_KIT_CATEGORY.
 const BASELINE_KIT_CATEGORY = 'Essentials Kit';
 
 /**
@@ -92,17 +85,22 @@ const BASELINE_KIT_CATEGORY = 'Essentials Kit';
  * tagging alone: 1 match = 5, 2 = 6.5, 3+ = 8. Mirrors KitEngine.kitCategoryBoost.
  */
 function kitCategoryBoost(product: Product, selected: KitCategory[]): number {
-  const effective =
-    selected.length > 1 ? selected : selected.filter((c) => c !== BASELINE_KIT_CATEGORY);
-  const matches = product.kitCategories.filter((c) => effective.includes(c)).length;
-  if (matches === 0) return 0;
+  const specific = product.kitCategories.filter(
+    (c) => c !== BASELINE_KIT_CATEGORY && selected.includes(c),
+  ).length;
+  // Matching only the baseline is not a reason to pack something.
+  if (specific === 0) return 0;
+
+  const baselineToo =
+    selected.includes(BASELINE_KIT_CATEGORY) && product.kitCategories.includes(BASELINE_KIT_CATEGORY);
+  const matches = specific + (baselineToo ? 1 : 0);
   return Math.min(5 + (matches - 1) * 1.5, 8);
 }
 
 function scoreProduct(product: Product, answers: TripAnswers): number {
   let score = 0;
   if (product.parties.includes(answers.party)) score += 2;
-  if (product.transportModes?.includes(answers.transportation)) score += 2;
+  if (answers.transportation && product.transportModes?.includes(answers.transportation)) score += 2;
   // Soft boosts, mirroring KitEngine's durationBoost/genderBoost — an untagged product suits any
   // trip length and anyone, so tagging can only lift a product, never exclude it. Durations are
   // tagged by Duration's stable code, which is exactly what `answers.duration` carries.
@@ -115,12 +113,24 @@ function scoreProduct(product: Product, answers: TripAnswers): number {
   return score;
 }
 
+/**
+ * Did this product earn anything for *this* trip? Popularity doesn't count — it's a tiebreaker, not
+ * a reason to pack something. Mirrors KitEngine's `unmatched`: a product that fits this trip no
+ * better than any other isn't recommended, even if that leaves the kit short of its target.
+ */
+function matchesTrip(product: Product, answers: TripAnswers): boolean {
+  return scoreProduct(product, answers) - (product.popular ? 0.5 : 0) > 0;
+}
+
 export function buildTravelKit(answers: TripAnswers): KitItem[] {
   const target = DURATION_TARGET[answers.duration] ?? 16;
-  const scored = PRODUCTS.filter((product) => isEligible(product, answers))
+  const scored = PRODUCTS.filter((product) => isEligible(product, answers) && matchesTrip(product, answers))
     .map((product) => ({ product, score: scoreProduct(product, answers) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, target)
     .map(({ product }): KitItem => ({ label: product.name, productId: product.id }));
-  return [...BASE_ITEMS, ...scored];
+  // No always-included list: a product that earned nothing for this trip isn't packed, even if it
+  // was previously treated as a universal essential. Mirrors KitEngine, which has no such list —
+  // the two engines disagreeing was itself a bug waiting to be noticed.
+  return scored;
 }

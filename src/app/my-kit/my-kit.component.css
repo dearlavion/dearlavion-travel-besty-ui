@@ -461,3 +461,49 @@
 .empty-state .collection-link {
   margin-top: 24px;
 }
+
+/* The survey answers this kit was built from. */
+.answer-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+}
+
+.answer-summary-item {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  padding: 7px 16px;
+  background: #fff;
+}
+
+.answer-summary-item dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.answer-summary-item dd {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.answer-summary-edit {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-coral-deep);
+}
+
+.answer-summary-edit:hover {
+  text-decoration: underline;
+}
