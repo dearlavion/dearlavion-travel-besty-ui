@@ -143,3 +143,69 @@
     </div>
   </form>
 </section>
+
+<section class="rates-card">
+  <div class="rates-head">
+    <h2>Product cache</h2>
+    <p class="rates-note">
+      Surveys are matched against a copy of the catalog held in memory, which is why they return in
+      milliseconds. <strong>Product edits do not reach surveys until this cache is reset</strong> —
+      save your changes, then reset here to publish them all at once, or set a schedule below.
+    </p>
+  </div>
+
+  @if (cacheStatus(); as cache) {
+    <div class="cache-status" [class.cache-off]="!cache.cached">
+      @if (cache.cached) {
+        <span class="cache-dot" aria-hidden="true"></span>
+        <span class="cache-summary">
+          Surveys are using a copy loaded <strong>{{ cacheAge() }}</strong> —
+          {{ cache.products }} products, {{ cache.items }} items.
+          @if (!cache.refreshCron) {
+            <span class="cache-warn">No schedule set, so it will not update on its own.</span>
+          }
+        </span>
+      } @else {
+        <span class="cache-summary">
+          Caching is switched off on the server; every survey reads the database directly. Nothing to reset.
+        </span>
+      }
+    </div>
+  }
+
+  <form class="rates-form" (ngSubmit)="saveCacheCron()">
+    <label class="rate-row">
+      <span class="rate-code">Cron</span>
+      <span class="rate-label">Automatic reset</span>
+      <span class="rate-input-wrap">
+        <input
+          type="text"
+          class="rate-input"
+          name="refreshCron"
+          placeholder="Leave blank for no schedule"
+          [ngModel]="refreshCron()"
+          (ngModelChange)="setRefreshCron($event)"
+          [disabled]="!cacheStatus()?.cached"
+        />
+      </span>
+    </label>
+
+    <p class="rates-note cron-hint">
+      Six fields, starting with seconds — <code>0 0 * * * *</code> is hourly and
+      <code>0 0 3 * * *</code> is 3am daily. The familiar five-field form is rejected.
+      Leave blank for no schedule — the cache will then only ever update when someone presses the
+      button, or the service restarts.
+    </p>
+
+    <div class="rates-actions">
+      <button type="button" class="reset-cache-btn" [disabled]="resettingCache() || !cacheStatus()?.cached"
+              (click)="resetCacheNow()">
+        {{ resettingCache() ? 'Resetting…' : 'Reset cache now' }}
+      </button>
+      <button type="submit" class="save-btn" [disabled]="savingCron() || !cacheStatus()?.cached">
+        {{ savingCron() ? 'Saving…' : 'Save schedule' }}
+      </button>
+    </div>
+  </form>
+</section>
+

@@ -135,3 +135,65 @@
   opacity: 0.6;
   cursor: default;
 }
+
+/* ── Product cache ─────────────────────────────────────────────────────────────────────────── */
+
+.cache-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: #f4f7f4;
+  font-size: 0.92rem;
+}
+
+.cache-status.cache-off {
+  background: #f6f6f6;
+  color: #6b6b6b;
+}
+
+/* A live indicator reads faster than a timestamp — the point is that staleness is noticeable. */
+.cache-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3d9970;
+  flex: 0 0 auto;
+}
+
+.cron-hint code {
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  background: #efefef;
+  font-size: 0.9em;
+}
+
+.reset-cache-btn {
+  padding: 0.55rem 1.1rem;
+  margin-right: 0.6rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.reset-cache-btn:hover:not(:disabled) {
+  border-color: #e8833a;
+  color: #e8833a;
+}
+
+.reset-cache-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* With no write hooks, "nothing will update this for you" is the thing an admin must not miss. */
+.cache-warn {
+  display: block;
+  margin-top: 0.15rem;
+  color: #a8642a;
+  font-size: 0.88rem;
+}

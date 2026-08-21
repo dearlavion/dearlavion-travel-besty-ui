@@ -1,6 +1,7 @@
 import { Component, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { isObservable } from 'rxjs';
+import { CatalogCacheService } from '../../common/catalog-cache/catalog-cache.service';
 import { BASE_CURRENCY, CURRENCY_OPTIONS } from '../../common/currency';
 import { ExchangeRateService } from '../../common/exchange-rate.service';
 import { StoreSettingsService } from '../../common/store-settings.service';
@@ -16,6 +17,7 @@ import { ToastService } from '../../common/toast/toast.service';
   styleUrl: './admin-settings.component.css',
 })
 export class AdminSettingsComponent {
+  private readonly catalogCache = inject(CatalogCacheService);
   private readonly exchange = inject(ExchangeRateService);
   private readonly storeSettings = inject(StoreSettingsService);
   private readonly toast = inject(ToastService);
@@ -29,6 +31,13 @@ export class AdminSettingsComponent {
   protected readonly shippingFee = signal(this.storeSettings.shippingFee());
   protected readonly savingShipping = signal(false);
 
+  // ── Product cache ────────────────────────────────────────────────────────────────────────────
+  protected readonly cacheStatus = this.catalogCache.status;
+  protected readonly refreshCron = signal('');
+  protected readonly resettingCache = signal(false);
+  protected readonly savingCron = signal(false);
+  private cronTouched = false;
+
   protected readonly defaultMediaProvider = signal(this.storeSettings.defaultMediaProvider());
   protected readonly maxImageSizeKb = signal(this.storeSettings.maxImageSizeKb());
   protected readonly savingMediaProvider = signal(false);
@@ -38,6 +47,15 @@ export class AdminSettingsComponent {
   private mediaProviderTouched = false;
 
   constructor() {
+    this.catalogCache.load().subscribe({ error: () => {} });
+    // Seed the cron box from the server until the admin types, so a status refresh (after a reset,
+    // say) can't overwrite an edit in progress.
+    effect(() => {
+      const status = this.cacheStatus();
+      if (!status || this.cronTouched) return;
+      this.refreshCron.set(status.refreshCron ?? '');
+    });
+
     // Seed the editable form from the service (incl. the async-loaded live rates) until the admin
     // starts editing, so their changes are never clobbered by a late GET.
     effect(() => {
@@ -141,5 +159,52 @@ export class AdminSettingsComponent {
     } else {
       this.toast.showAndReload('Exchange rates updated');
     }
+  }
+
+  /** Human-readable age, so a stale cache is obvious at a glance rather than a raw timestamp. */
+  protected cacheAge(): string {
+    const built = this.cacheStatus()?.builtAt;
+    if (!built) return 'unknown';
+    const seconds = Math.max(0, Math.floor((Date.now() - new Date(built).getTime()) / 1000));
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`;
+    return `${Math.floor(seconds / 86400)} days ago`;
+  }
+
+  protected setRefreshCron(value: string): void {
+    this.cronTouched = true;
+    this.refreshCron.set(value ?? '');
+  }
+
+  protected resetCacheNow(): void {
+    this.resettingCache.set(true);
+    this.catalogCache.refresh().subscribe({
+      next: (status) => {
+        this.resettingCache.set(false);
+        this.toast.show(`Product cache reset — ${status.products} products, ${status.items} items`);
+      },
+      error: () => {
+        this.resettingCache.set(false);
+        this.toast.error('Failed to reset the product cache');
+      },
+    });
+  }
+
+  protected saveCacheCron(): void {
+    this.savingCron.set(true);
+    this.catalogCache.updateCron(this.refreshCron().trim()).subscribe({
+      next: (status) => {
+        this.savingCron.set(false);
+        this.cronTouched = false;
+        this.toast.show(status.refreshCron ? `Automatic reset scheduled (${status.refreshCron})` : 'Automatic reset turned off');
+      },
+      // The backend rejects a bad expression with a 400 and an explanatory message; surface it
+      // rather than a generic failure, since the six-field format is the usual mistake.
+      error: (e) => {
+        this.savingCron.set(false);
+        this.toast.error(e?.error?.message ?? 'Failed to save the reset schedule');
+      },
+    });
   }
 }
